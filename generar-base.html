@@ -3,42 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generador de base de datos Nutri</title>
+<title>Generador Nutri</title>
 
 <style>
 body {
 font-family: Arial, sans-serif;
-padding: 30px;
-background: #f5f5f5;
-}
-
-h1 {
-margin-bottom: 10px;
+max-width: 700px;
+margin: 40px auto;
+padding: 20px;
 }
 
 button {
-padding: 14px 20px;
+padding: 14px 22px;
 font-size: 16px;
 cursor: pointer;
-border: none;
-border-radius: 8px;
 }
 
 #progress {
 margin-top: 20px;
 white-space: pre-line;
 font-family: monospace;
+line-height: 1.6;
 }
 </style>
 </head>
 
 <body>
 
-<h1>Generador de alimentos de Nutri</h1>
+<h1>Generador de alimentos Nutri</h1>
 
 <p>
-Este programa descargará hasta 20.000 alimentos de Open Food Facts
-y creará automáticamente el archivo foods.js.
+Generará una base local de hasta 20.000 alimentos.
 </p>
 
 <button id="startButton">
@@ -46,20 +41,24 @@ Generar foods.js
 </button>
 
 <div id="progress">
-Pulsa el botón para empezar.
+Preparado.
 </div>
 
 <script>
 
 const MAX_FOODS = 20000;
 const PAGE_SIZE = 100;
+const MAX_RETRIES = 3;
 
-const startButton = document.getElementById("startButton");
+const button = document.getElementById("startButton");
 const progress = document.getElementById("progress");
 
-function sleep(milliseconds) {
+const foods = [];
+const names = new Set();
+
+function esperar(ms) {
 return new Promise(resolve => {
-setTimeout(resolve, milliseconds);
+setTimeout(resolve, ms);
 });
 }
 
@@ -75,7 +74,7 @@ const response = await fetch(url);
 
 if (!response.ok) {
 throw new Error(
-"Error HTTP " + response.status
+"HTTP " + response.status
 );
 }
 
@@ -89,62 +88,57 @@ product.product_name_es ||
 product.product_name ||
 "";
 
-const cleanName = String(name).trim();
+const cleanName =
+String(name).trim();
 
 if (!cleanName) {
 return null;
 }
 
-const nutriments = product.nutriments || {};
+const nameKey =
+cleanName.toLowerCase();
+
+if (names.has(nameKey)) {
+return null;
+}
+
+const nutriments =
+product.nutriments || {};
 
 const calories =
-nutriments["energy-kcal_100g"];
+Number(nutriments["energy-kcal_100g"]);
 
 const protein =
-nutriments["proteins_100g"];
+Number(nutriments["proteins_100g"]);
 
 const carbs =
-nutriments["carbohydrates_100g"];
+Number(nutriments["carbohydrates_100g"]);
 
 const fat =
-nutriments["fat_100g"];
+Number(nutriments["fat_100g"]);
 
 if (
-calories === undefined ||
-protein === undefined ||
-carbs === undefined ||
-fat === undefined
+!Number.isFinite(calories) ||
+!Number.isFinite(protein) ||
+!Number.isFinite(carbs) ||
+!Number.isFinite(fat)
 ) {
 return null;
 }
 
-const kcal = Number(calories);
-const proteinValue = Number(protein);
-const carbsValue = Number(carbs);
-const fatValue = Number(fat);
-
-if (
-!Number.isFinite(kcal) ||
-!Number.isFinite(proteinValue) ||
-!Number.isFinite(carbsValue) ||
-!Number.isFinite(fatValue)
-) {
+if (calories < 0 || calories > 1000) {
 return null;
 }
 
-if (kcal < 0 || kcal > 1000) {
+if (protein < 0 || protein > 100) {
 return null;
 }
 
-if (proteinValue < 0 || proteinValue > 100) {
+if (carbs < 0 || carbs > 100) {
 return null;
 }
 
-if (carbsValue < 0 || carbsValue > 100) {
-return null;
-}
-
-if (fatValue < 0 || fatValue > 100) {
+if (fat < 0 || fat > 100) {
 return null;
 }
 
@@ -152,18 +146,14 @@ let category = "";
 
 if (product.categories) {
 
-const categories =
-String(product.categories).split(",");
-
-if (categories.length > 0) {
-
-category = categories[0]
+category =
+String(product.categories)
+.split(",")[0]
 .trim()
 .replace(/^[a-z]{2}:/, "");
 }
-}
 
-return {
+const food = {
 id: String(
 product.code ||
 crypto.randomUUID()
@@ -177,36 +167,84 @@ product.brands || ""
 
 category: category,
 
-calories: Math.round(kcal * 10) / 10,
+calories: Math.round(
+calories * 10
+) / 10,
 
 protein: Math.round(
-proteinValue * 10
+protein * 10
 ) / 10,
 
 carbs: Math.round(
-carbsValue * 10
+carbs * 10
 ) / 10,
 
 fat: Math.round(
-fatValue * 10
+fat * 10
 ) / 10
 };
+
+names.add(nameKey);
+
+return food;
+}
+
+async function obtenerPagina(page) {
+
+for (
+let intento = 1;
+intento <= MAX_RETRIES;
+intento++
+) {
+
+try {
+
+progress.textContent =
+"Página " +
+page +
+"\n" +
+"Intento " +
+intento +
+"/" +
+MAX_RETRIES +
+"\n\n" +
+"Alimentos encontrados: " +
+foods.length.toLocaleString("es-ES");
+
+return await descargarPagina(page);
+
+} catch (error) {
+
+if (
+intento === MAX_RETRIES
+) {
+
+return null;
+}
+
+await esperar(
+2000 * intento
+);
+}
+}
+
+return null;
 }
 
 async function generarBase() {
 
-startButton.disabled = true;
+button.disabled = true;
 
-const foods = [];
-const names = new Set();
+foods.length = 0;
+names.clear();
 
 const totalPages =
-Math.ceil(MAX_FOODS / PAGE_SIZE);
+Math.ceil(
+MAX_FOODS / PAGE_SIZE
+);
 
-progress.textContent =
-"Iniciando...\n\n";
-
-try {
+let paginasCorrectas = 0;
+let paginasFallidas = 0;
 
 for (
 let page = 1;
@@ -214,79 +252,64 @@ page <= totalPages;
 page++
 ) {
 
-if (foods.length >= MAX_FOODS) {
+if (
+foods.length >= MAX_FOODS
+) {
 break;
 }
 
-progress.textContent =
-"Descargando página " +
-page +
-" de " +
-totalPages +
-"\n" +
-"Alimentos válidos: " +
-foods.length.toLocaleString("es-ES");
+const data =
+await obtenerPagina(page);
 
-let data;
+if (!data) {
 
-try {
-
-data =
-await descargarPagina(page);
-
-} catch (error) {
+paginasFallidas++;
 
 progress.textContent +=
-"\n\nError en la página " +
+"\n\n⚠️ Página " +
 page +
-". Reintentando...";
+" no disponible." +
+"\nContinuando con la siguiente...";
 
-await sleep(3000);
-
-data =
-await descargarPagina(page);
+continue;
 }
+
+paginasCorrectas++;
 
 const products =
 data.products || [];
 
-for (const product of products) {
+for (
+const product of products
+) {
 
-if (foods.length >= MAX_FOODS) {
+if (
+foods.length >= MAX_FOODS
+) {
 break;
 }
 
 const food =
 convertirProducto(product);
 
-if (!food) {
-continue;
-}
-
-const nameKey =
-food.name
-.toLowerCase()
-.trim();
-
-if (names.has(nameKey)) {
-continue;
-}
-
-names.add(nameKey);
+if (food) {
 foods.push(food);
 }
+}
 
-/*
-* Pequeña pausa para no bombardear
-* la API con peticiones seguidas.
-*/
-await sleep(500);
+await esperar(700);
 }
 
 progress.textContent =
-"Generando archivo...\n\n" +
-"Alimentos encontrados: " +
-foods.length.toLocaleString("es-ES");
+"Generando foods.js...\n\n" +
+"Alimentos: " +
+foods.length.toLocaleString("es-ES") +
+"\n" +
+"Páginas correctas: " +
+paginasCorrectas +
+"\n" +
+"Páginas fallidas: " +
+paginasFallidas;
 
 const contenido =
 "const foods = " +
@@ -297,7 +320,8 @@ const blob =
 new Blob(
 [contenido],
 {
-type: "application/javascript"
+type:
+"application/javascript"
 }
 );
 
@@ -318,31 +342,15 @@ link.remove();
 
 URL.revokeObjectURL(url);
 
-progress.textContent =
-"¡TERMINADO!\n\n" +
-"Alimentos: " +
-foods.length.toLocaleString("es-ES") +
-"\n\n" +
-"Se ha descargado foods.js.\n" +
-"Mueve ese archivo a la carpeta de Nutri.";
+progress.textContent +=
+"\n\n✅ TERMINADO" +
+"\n\nSe ha descargado foods.js." +
+"\n\nAhora súbelo a tu repositorio de Nutri.";
 
-} catch (error) {
-
-console.error(error);
-
-progress.textContent =
-"ERROR:\n\n" +
-error.message +
-"\n\n" +
-"No cierres esta página y dime qué mensaje aparece.";
-
-} finally {
-
-startButton.disabled = false;
-}
+button.disabled = false;
 }
 
-startButton.addEventListener(
+button.addEventListener(
 "click",
 generarBase
 );
@@ -351,3 +359,4 @@ generarBase
 
 </body>
 </html>
+
