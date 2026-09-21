@@ -1,6 +1,4 @@
-* Nutri — aplicación local.
-foods.js se mantiene separado e intacto.
-*/
+/* Nutri — aplicación local. foods.js se mantiene separado e intacto. */
 
 const FOOD_DATABASE =
 typeof foods !== 'undefined'
@@ -15,41 +13,41 @@ EJERCICIOS PREDETERMINADOS
 ========================================================= */
 
 const defaultExercises = [
-['Press banca máquina', 'Pecho', 'Máquina', 'bilateral', 'same'],
-['Press inclinado con mancuernas', 'Pecho', 'Mancuernas', 'bilateral', 'same'],
-['Aperturas en polea', 'Pecho', 'Polea', 'bilateral', 'same'],
-['Pec deck', 'Pecho', 'Máquina', 'bilateral', 'same'],
+['Press banca máquina','Pecho','Máquina','bilateral','same'],
+['Press inclinado con mancuernas','Pecho','Mancuernas','bilateral','same'],
+['Aperturas en polea','Pecho','Polea','bilateral','same'],
+['Pec deck','Pecho','Máquina','bilateral','same'],
 
-['Jalón al pecho agarre ancho', 'Espalda', 'Polea', 'bilateral', 'same'],
-['Remo T-bar', 'Espalda', 'Máquina', 'bilateral', 'same'],
-['Remo unilateral en polea', 'Espalda', 'Polea', 'unilateral', 'same'],
-['Pullover en polea', 'Espalda', 'Polea', 'bilateral', 'same'],
+['Jalón al pecho agarre ancho','Espalda','Polea','bilateral','same'],
+['Remo T-bar','Espalda','Máquina','bilateral','same'],
+['Remo unilateral en polea','Espalda','Polea','unilateral','same'],
+['Pullover en polea','Espalda','Polea','bilateral','same'],
 
-['Press hombros máquina', 'Hombros', 'Máquina', 'bilateral', 'same'],
-['Elevación lateral', 'Hombros', 'Mancuernas', 'bilateral', 'same'],
-['Elevación lateral unilateral en polea', 'Hombros', 'Polea', 'unilateral', 'same'],
-['Pájaros en máquina', 'Hombros', 'Máquina', 'bilateral', 'same'],
+['Press hombros máquina','Hombros','Máquina','bilateral','same'],
+['Elevación lateral','Hombros','Mancuernas','bilateral','same'],
+['Elevación lateral unilateral en polea','Hombros','Polea','unilateral','same'],
+['Pájaros en máquina','Hombros','Máquina','bilateral','same'],
 
-['Curl bíceps detrás del torso', 'Bíceps', 'Polea', 'unilateral', 'same'],
-['Curl predicador', 'Bíceps', 'Máquina', 'bilateral', 'same'],
-['Curl martillo', 'Bíceps', 'Mancuernas', 'unilateral', 'same'],
+['Curl bíceps detrás del torso','Bíceps','Polea','unilateral','same'],
+['Curl predicador','Bíceps','Máquina','bilateral','same'],
+['Curl martillo','Bíceps','Mancuernas','unilateral','same'],
 
-['Extensión de tríceps en polea', 'Tríceps', 'Polea', 'bilateral', 'same'],
-['Extensión de tríceps unilateral', 'Tríceps', 'Polea', 'unilateral', 'same'],
-['Press cerrado', 'Tríceps', 'Máquina', 'bilateral', 'same'],
+['Extensión de tríceps en polea','Tríceps','Polea','bilateral','same'],
+['Extensión de tríceps unilateral','Tríceps','Polea','unilateral','same'],
+['Press cerrado','Tríceps','Máquina','bilateral','same'],
 
-['Extensión de cuádriceps', 'Pierna', 'Máquina', 'bilateral', 'same'],
-['Curl femoral', 'Pierna', 'Máquina', 'bilateral', 'same'],
-['Prensa', 'Pierna', 'Máquina', 'bilateral', 'same'],
-['Elevación de gemelo de pie', 'Pierna', 'Máquina', 'bilateral', 'same'],
+['Extensión de cuádriceps','Pierna','Máquina','bilateral','same'],
+['Curl femoral','Pierna','Máquina','bilateral','same'],
+['Prensa','Pierna','Máquina','bilateral','same'],
+['Elevación de gemelo de pie','Pierna','Máquina','bilateral','same'],
 
-['Hip thrust', 'Glúteos', 'Máquina', 'bilateral', 'same'],
-['Abducción de cadera', 'Glúteos', 'Máquina', 'bilateral', 'same'],
+['Hip thrust','Glúteos','Máquina','bilateral','same'],
+['Abducción de cadera','Glúteos','Máquina','bilateral','same'],
 
-['Crunch en polea', 'Abdomen', 'Polea', 'bilateral', 'same'],
-['Elevación de piernas', 'Abdomen', 'Peso corporal', 'bilateral', 'same'],
+['Crunch en polea','Abdomen','Polea','bilateral','same'],
+['Elevación de piernas','Abdomen','Peso corporal','bilateral','same'],
 
-['Curl de muñeca', 'Antebrazo', 'Mancuernas', 'bilateral', 'same']
+['Curl de muñeca','Antebrazo','Mancuernas','bilateral','same']
 ].map((x, i) => ({
 id: 'def-' + (i + 1),
 name: x[0],
@@ -86,13 +84,12 @@ adjustment: -400
 
 nutrition: {},
 
-/* NUEVO:
-aquí se guardan los alimentos creados por ti */
-customFoods: [],
-
 progress: [],
 
 targetWeight: null,
+
+/* NUEVO: alimentos personalizados */
+customFoods: [],
 
 customExercises: [],
 
@@ -109,7 +106,9 @@ settings: {}
 let state = loadState();
 
 let selectedFood = null;
+
 let selectedRoutineId = null;
+
 let editingRoutineId = null;
 
 let currentNutritionDate =
@@ -140,29 +139,16 @@ localStorage.getItem(
 STORAGE_KEY
 );
 
-if (!raw) {
-
-return clone(
-initialState
-);
-
-}
-
-return merge(
+return raw
+? merge(
 initialState,
 JSON.parse(raw)
-);
+)
+: clone(initialState);
 
 } catch (error) {
 
-console.error(
-'Error cargando datos:',
-error
-);
-
-return clone(
-initialState
-);
+return clone(initialState);
 
 }
 
@@ -171,8 +157,7 @@ initialState
 
 function merge(a, b) {
 
-const out =
-clone(a);
+const out = clone(a);
 
 for (const key in b) {
 
@@ -231,12 +216,11 @@ Date.now()
 }
 
 
-function dateKey(date) {
+function dateKey(d) {
 
 return new Date(
-date.getTime() -
-date.getTimezoneOffset() *
-60000
+d.getTime() -
+d.getTimezoneOffset() * 60000
 )
 .toISOString()
 .slice(0, 10);
@@ -263,129 +247,26 @@ opts
 }
 
 
-function esc(value) {
+function esc(s) {
 
 return String(
-value ?? ''
+s ?? ''
 ).replace(
 /[&<>'"]/g,
-char => ({
+c => ({
 '&': '&amp;',
 '<': '&lt;',
 '>': '&gt;',
 "'": '&#39;',
 '"': '&quot;'
-}[char])
+}[c])
 );
-
-}
-
-
-function fmt(
-number,
-decimals = 0
-) {
-
-return Number(
-number || 0
-).toLocaleString(
-'es-ES',
-{
-maximumFractionDigits:
-decimals
-}
-);
-
-}
-
-
-function setText(
-id,
-value
-) {
-
-const element =
-document.getElementById(id);
-
-if (element) {
-
-element.textContent =
-value;
-
-}
-
-}
-
-
-function setBar(
-id,
-value,
-goal
-) {
-
-const element =
-document.getElementById(id);
-
-if (element) {
-
-element.style.width =
-pct(
-value,
-goal
-) + '%';
-
-}
-
-}
-
-
-function pct(
-value,
-goal
-) {
-
-return goal
-? Math.min(
-100,
-Math.max(
-0,
-value / goal * 100
-)
-)
-: 0;
-
-}
-
-
-function withinDays(
-date,
-days
-) {
-
-return (
-Date.now() -
-new Date(
-date + 'T23:59:59'
-).getTime()
-) <=
-days * 86400000;
-
-}
-
-
-function emptyList(text) {
-
-return `
-<div class="list-row">
-<span>${esc(text)}</span>
-</div>
-`;
 
 }
 
 
 /* =========================================================
-EJERCICIOS
+BASES DE DATOS
 ========================================================= */
 
 function allExercises() {
@@ -398,25 +279,10 @@ return [
 }
 
 
-function getExercise(id) {
-
-return allExercises().find(
-exercise =>
-exercise.id === id
-);
-
-}
-
-
-/* =========================================================
-ALIMENTOS
-========================================================= */
-
 /*
-NUEVO:
-
-Junta los 358 alimentos de foods.js
-con los alimentos que tú hayas creado.
+IMPORTANTE:
+Aquí se combinan los 358 alimentos originales
+de foods.js con los alimentos creados por el usuario.
 */
 
 function allFoods() {
@@ -440,6 +306,46 @@ String(id)
 }
 
 
+function getExercise(id) {
+
+return allExercises().find(
+exercise =>
+exercise.id === id
+);
+
+}
+
+
+function pct(value, goal) {
+
+return goal
+? Math.min(
+100,
+Math.max(
+0,
+value / goal * 100
+)
+)
+: 0;
+
+}
+
+
+function kcalFromMacros(
+protein,
+carbs,
+fat
+) {
+
+return (
+protein * 4 +
+carbs * 4 +
+fat * 9
+);
+
+}
+
+
 function todayLog() {
 
 return (
@@ -456,19 +362,19 @@ function totalsForDate(key) {
 return (
 state.nutrition[key] || []
 ).reduce(
-(total, food) => {
+(total, item) => {
 
 total.calories +=
-Number(food.calories) || 0;
+item.calories;
 
 total.protein +=
-Number(food.protein) || 0;
+item.protein;
 
 total.carbs +=
-Number(food.carbs) || 0;
+item.carbs;
 
 total.fat +=
-Number(food.fat) || 0;
+item.fat;
 
 return total;
 
@@ -478,6 +384,24 @@ calories: 0,
 protein: 0,
 carbs: 0,
 fat: 0
+}
+);
+
+}
+
+
+function fmt(
+number,
+decimals = 0
+) {
+
+return Number(
+number || 0
+).toLocaleString(
+'es-ES',
+{
+maximumFractionDigits:
+decimals
 }
 );
 
@@ -502,7 +426,6 @@ section.id ===
 
 });
 
-
 document
 .querySelectorAll('.nav-link')
 .forEach(button => {
@@ -515,35 +438,25 @@ view
 
 });
 
-
 window.scrollTo({
 top: 0,
 behavior: 'smooth'
 });
 
-
 if (view === 'nutrition') {
-
 renderNutrition();
-
 }
 
 if (view === 'training') {
-
 renderTraining();
-
 }
 
 if (view === 'progress') {
-
 renderProgress();
-
 }
 
 if (view === 'maintenance') {
-
 renderMaintenance();
-
 }
 
 }
@@ -553,21 +466,20 @@ document.addEventListener(
 'click',
 event => {
 
-const navigation =
+const viewButton =
 event.target.closest(
 '[data-view]'
 );
 
-if (navigation) {
+if (viewButton) {
 
 navigate(
-navigation.dataset.view
+viewButton.dataset.view
 );
 
 return;
 
 }
-
 
 if (
 event.target.id ===
@@ -588,28 +500,25 @@ DASHBOARD
 
 function renderDashboard() {
 
-const today =
-dateKey(new Date());
-
 const totals =
-totalsForDate(today);
+totalsForDate(
+dateKey(new Date())
+);
 
 const goals =
 state.goals;
 
-
-setText(
-'todayLabel',
+document.getElementById(
+'todayLabel'
+).textContent =
 fmtDate(
-today,
+dateKey(new Date()),
 {
 weekday: 'long',
 day: 'numeric',
 month: 'long'
 }
-)
 );
-
 
 setText(
 'dashCalories',
@@ -636,7 +545,6 @@ setText(
 fmt(totals.fat)
 );
 
-
 setBar(
 'dashProteinBar',
 totals.protein,
@@ -655,7 +563,6 @@ totals.fat,
 goals.fat
 );
 
-
 const donut =
 document.getElementById(
 'calorieDonut'
@@ -663,7 +570,10 @@ document.getElementById(
 
 if (donut) {
 
-const degrees =
+donut.style.background =
+`conic-gradient(
+var(--accent)
+${
 Math.min(
 360,
 totals.calories /
@@ -672,17 +582,12 @@ Math.max(
 goals.calories
 ) *
 360
-);
-
-donut.style.background =
-`conic-gradient(
-var(--accent)
-${degrees}deg,
+)
+}deg,
 #2b323d 0deg
 )`;
 
 }
-
 
 const sessions =
 state.workouts.filter(
@@ -693,14 +598,13 @@ workout.date,
 )
 );
 
-
 const sets =
 sessions.reduce(
 (total, workout) =>
 total +
 workout.exercises.reduce(
-(subTotal, exercise) =>
-subTotal +
+(inner, exercise) =>
+inner +
 exercise.sets.filter(
 set => set.done
 ).length,
@@ -709,7 +613,6 @@ set => set.done
 0
 );
 
-
 const volume =
 sessions.reduce(
 (total, workout) =>
@@ -717,7 +620,6 @@ total +
 workoutVolume(workout),
 0
 );
-
 
 setText(
 'dashSessions',
@@ -734,10 +636,8 @@ setText(
 fmt(volume)
 );
 
-
 const last =
 state.workouts[0];
-
 
 setText(
 'dashWorkoutTitle',
@@ -746,7 +646,6 @@ last
 : 'Ningún entrenamiento hoy'
 );
 
-
 setText(
 'dashWorkoutText',
 last
@@ -754,56 +653,47 @@ last
 : 'Crea una rutina o empieza un entrenamiento libre.'
 );
 
-
-const recentWorkouts =
+const recent =
 document.getElementById(
 'dashRecentWorkouts'
 );
 
+if (recent) {
 
-if (recentWorkouts) {
-
-recentWorkouts.innerHTML =
+recent.innerHTML =
 sessions
 .slice(0, 4)
-.map(workout => `
+.map(
+workout => `
 <div class="list-row">
-
 <div>
-
-<b>
-${esc(workout.name)}
-</b>
-
+<b>${esc(workout.name)}</b>
 <small>
 ${fmtDate(workout.date)}
 ·
 ${workout.exercises.length}
 ejercicios
 </small>
-
 </div>
 
 <b>
-${fmt(workoutVolume(workout))} kg
+${fmt(workoutVolume(workout))}
+kg
 </b>
-
 </div>
-`)
-.join('')
-||
+`
+)
+.join('') ||
 emptyList(
 'Todavía no hay sesiones.'
 );
 
 }
 
-
 const meals =
 document.getElementById(
 'dashMeals'
 );
-
 
 if (meals) {
 
@@ -811,34 +701,92 @@ meals.innerHTML =
 todayLog()
 .slice(-4)
 .reverse()
-.map(food => `
+.map(
+item => `
 <div class="list-row">
-
 <div>
-
-<b>
-${esc(food.name)}
-</b>
-
+<b>${esc(item.name)}</b>
 <small>
-${fmt(food.grams, 1)} g
+${fmt(item.grams, 1)} g
 </small>
-
 </div>
 
 <b>
-${fmt(food.calories)} kcal
+${fmt(item.calories)}
+kcal
 </b>
-
 </div>
-`)
-.join('')
-||
+`
+)
+.join('') ||
 emptyList(
 'No hay alimentos registrados hoy.'
 );
 
 }
+
+}
+
+
+function emptyList(text) {
+
+return `
+<div class="list-row">
+<span>${text}</span>
+</div>
+`;
+
+}
+
+
+function setText(id, value) {
+
+const element =
+document.getElementById(id);
+
+if (element) {
+
+element.textContent =
+value;
+
+}
+
+}
+
+
+function setBar(
+id,
+value,
+goal
+) {
+
+const element =
+document.getElementById(id);
+
+if (element) {
+
+element.style.width =
+pct(value, goal) +
+'%';
+
+}
+
+}
+
+
+function withinDays(
+date,
+days
+) {
+
+return (
+Date.now() -
+new Date(
+date + 'T23:59:59'
+).getTime()
+) <=
+days *
+86400000;
 
 }
 
@@ -849,6 +797,8 @@ NUTRICIÓN
 
 function renderNutrition() {
 
+renderCustomFoods();
+
 const totals =
 totalsForDate(
 currentNutritionDate
@@ -856,7 +806,6 @@ currentNutritionDate
 
 const goals =
 state.goals;
-
 
 setText(
 'nutritionDate',
@@ -870,7 +819,6 @@ year: 'numeric'
 }
 )
 );
-
 
 setText(
 'nutCalories',
@@ -894,13 +842,11 @@ totals.calories
 )} kcal restantes`
 );
 
-
 setBar(
 'nutCalBar',
 totals.calories,
 goals.calories
 );
-
 
 setText(
 'nutProtein',
@@ -920,12 +866,17 @@ fmt(totals.fat) +
 ' g'
 );
 
-
 setText(
 'foodCount',
 todayLog().length
 );
 
+setText(
+'customFoodCount',
+(
+state.customFoods || []
+).length
+);
 
 setText(
 'sideProtein',
@@ -941,7 +892,6 @@ setText(
 'sideFat',
 `${fmt(totals.fat)} / ${fmt(goals.fat)} g`
 );
-
 
 setBar(
 'sideProteinBar',
@@ -961,71 +911,54 @@ totals.fat,
 goals.fat
 );
 
-
-renderCustomFoods();
-
-
 const foodLog =
 document.getElementById(
 'foodLog'
 );
 
-
 if (!foodLog) {
 return;
 }
 
-
 foodLog.innerHTML =
 todayLog()
 .map(
-(food, index) => `
+(item, index) => `
 <div class="food-row">
 
 <div>
-
 <strong>
-${esc(food.name)}
+${esc(item.name)}
 </strong>
 
 <small>
 ${
-food.brand
-? esc(food.brand) + ' · '
+item.brand
+? esc(item.brand) + ' · '
 : ''
 }
 
-${fmt(food.grams, 1)} g
+${fmt(item.grams, 1)} g
 </small>
-
 </div>
 
-
 <div class="food-kcal">
-
 <b>
-${fmt(food.calories)}
+${fmt(item.calories)}
 </b>
 
 <small>
 kcal
 </small>
-
 </div>
-
 
 <div class="food-macros">
-
 <small>
-${fmt(food.protein, 1)}P
-·
-${fmt(food.carbs, 1)}C
-·
-${fmt(food.fat, 1)}G
+${fmt(item.protein, 1)}P ·
+${fmt(item.carbs, 1)}C ·
+${fmt(item.fat, 1)}G
 </small>
-
 </div>
-
 
 <button
 class="remove-btn"
@@ -1037,11 +970,9 @@ data-remove-food="${index}"
 </div>
 `
 )
-.join('')
-||
+.join('') ||
 `
 <div class="empty-state">
-
 <span>⌁</span>
 
 <h3>
@@ -1051,7 +982,6 @@ Diario vacío
 <p>
 Añade un alimento para empezar.
 </p>
-
 </div>
 `;
 
@@ -1062,34 +992,25 @@ document.addEventListener(
 'click',
 event => {
 
-const button =
+const remove =
 event.target.closest(
 '[data-remove-food]'
 );
 
-if (!button) {
+if (!remove) {
 return;
 }
 
-
-if (
-!state.nutrition[
+state
+.nutrition[
 currentNutritionDate
 ]
-) {
-return;
-}
-
-
-state.nutrition[
-currentNutritionDate
-].splice(
+.splice(
 Number(
-button.dataset.removeFood
+remove.dataset.removeFood
 ),
 1
 );
-
 
 save();
 
@@ -1105,24 +1026,21 @@ MIS ALIMENTOS
 
 function renderCustomFoods() {
 
-const container =
+const box =
 document.getElementById(
 'customFoodList'
 );
 
-
-if (!container) {
+if (!box) {
 return;
 }
 
-
-const customFoods =
+const foods =
 state.customFoods || [];
 
+if (!foods.length) {
 
-if (!customFoods.length) {
-
-container.innerHTML = `
+box.innerHTML = `
 <div class="empty-state">
 
 <h3>
@@ -1138,14 +1056,14 @@ y aparecerá siempre en el buscador.
 `;
 
 return;
+
 }
 
-
-container.innerHTML =
-customFoods
+box.innerHTML =
+foods
 .map(
 food => `
-<div class="food-row">
+<div class="food-row custom-food-row">
 
 <div>
 
@@ -1154,43 +1072,31 @@ ${esc(food.name)}
 </strong>
 
 <small>
-
 ${
 food.brand
-? esc(food.brand) +
-' · '
+? esc(food.brand) + ' · '
 : ''
 }
 
-${fmt(food.calories)}
-kcal ·
-
+${fmt(food.calories)} kcal ·
 ${fmt(food.protein, 1)}P ·
-
 ${fmt(food.carbs, 1)}C ·
-
 ${fmt(food.fat, 1)}G
-
 / 100 g
-
 </small>
 
 </div>
 
-
 <div class="food-actions">
 
 <button
-type="button"
 class="secondary-btn"
 data-edit-custom-food="${esc(food.id)}"
 >
 Editar
 </button>
 
-
 <button
-type="button"
 class="remove-btn"
 data-delete-custom-food="${esc(food.id)}"
 >
@@ -1211,26 +1117,10 @@ function openCustomFoodModal(
 id = null
 ) {
 
-const modal =
-document.getElementById(
-'customFoodModal'
-);
-
-
-if (!modal) {
-return;
-}
-
-
 const food =
 id
-? state.customFoods.find(
-item =>
-String(item.id) ===
-String(id)
-)
+? getFood(id)
 : null;
-
 
 document.getElementById(
 'customFoodModalTitle'
@@ -1239,90 +1129,49 @@ food
 ? 'Editar alimento'
 : 'Añadir alimento propio';
 
-
 document.getElementById(
 'customFoodId'
 ).value =
 food?.id || '';
-
 
 document.getElementById(
 'customFoodName'
 ).value =
 food?.name || '';
 
-
 document.getElementById(
 'customFoodBrand'
 ).value =
 food?.brand || '';
-
 
 document.getElementById(
 'customFoodCalories'
 ).value =
 food?.calories ?? '';
 
-
 document.getElementById(
 'customFoodProtein'
 ).value =
 food?.protein ?? '';
-
 
 document.getElementById(
 'customFoodCarbs'
 ).value =
 food?.carbs ?? '';
 
-
 document.getElementById(
 'customFoodFat'
 ).value =
 food?.fat ?? '';
 
-
-modal.showModal();
+document.getElementById(
+'customFoodModal'
+).showModal();
 
 }
 
 
-document
-.getElementById(
-'openCustomFoodModal'
-)
-?.addEventListener(
-'click',
-() =>
-openCustomFoodModal()
-);
-
-
-document
-.getElementById(
-'closeCustomFoodModal'
-)
-?.addEventListener(
-'click',
-() =>
-document
-.getElementById(
-'customFoodModal'
-)
-?.close()
-);
-
-
-document
-.getElementById(
-'customFoodForm'
-)
-?.addEventListener(
-'submit',
-event => {
-
-event.preventDefault();
-
+function saveCustomFood() {
 
 const name =
 document
@@ -1332,7 +1181,6 @@ document
 .value
 .trim();
 
-
 const brand =
 document
 .getElementById(
@@ -1341,53 +1189,42 @@ document
 .value
 .trim();
 
-
 const calories =
 Number(
-document
-.getElementById(
+document.getElementById(
 'customFoodCalories'
-)
-.value
+).value
 );
-
 
 const protein =
 Number(
-document
-.getElementById(
+document.getElementById(
 'customFoodProtein'
-)
-.value
+).value
 );
-
 
 const carbs =
 Number(
-document
-.getElementById(
+document.getElementById(
 'customFoodCarbs'
-)
-.value
+).value
 );
-
 
 const fat =
 Number(
-document
-.getElementById(
+document.getElementById(
 'customFoodFat'
-)
-.value
+).value
 );
-
 
 if (
 !name ||
-!Number.isFinite(calories) ||
-!Number.isFinite(protein) ||
-!Number.isFinite(carbs) ||
-!Number.isFinite(fat) ||
+![
+calories,
+protein,
+carbs,
+fat
+].every(Number.isFinite) ||
 calories < 0 ||
 protein < 0 ||
 carbs < 0 ||
@@ -1395,35 +1232,52 @@ fat < 0
 ) {
 
 alert(
-'Completa todos los datos correctamente.'
+'Completa correctamente los datos del alimento por 100 g.'
 );
 
 return;
 
 }
 
-
 const id =
 document.getElementById(
 'customFoodId'
 ).value;
 
+if (id) {
 
-const existing =
-id
-? state.customFoods.find(
+const food =
+state.customFoods.find(
 item =>
 String(item.id) ===
 String(id)
-)
-: null;
+);
 
+if (food) {
 
-const food = {
+Object.assign(
+food,
+{
+name,
+brand,
+category:
+'Mis alimentos',
+calories,
+protein,
+carbs,
+fat,
+custom: true
+}
+);
+
+}
+
+} else {
+
+state.customFoods.push({
 
 id:
-id ||
-uid('custom-food'),
+uid('customfood'),
 
 name,
 
@@ -1444,52 +1298,43 @@ custom:
 true,
 
 createdAt:
-existing?.createdAt ||
 new Date().toISOString()
 
-};
-
-
-if (id) {
-
-const index =
-state.customFoods.findIndex(
-item =>
-String(item.id) ===
-String(id)
-);
-
-
-if (index !== -1) {
-
-state.customFoods[index] =
-food;
+});
 
 }
-
-} else {
-
-state.customFoods.push(
-food
-);
-
-}
-
 
 save();
 
+renderCustomFoods();
+
+renderFoodResults('');
 
 document
 .getElementById(
 'customFoodModal'
 )
-?.close();
-
-
-renderCustomFoods();
+.close();
 
 }
-);
+
+
+document.getElementById(
+'openCustomFood'
+).onclick = () =>
+openCustomFoodModal();
+
+
+document.getElementById(
+'openCustomFood2'
+).onclick = () =>
+openCustomFoodModal();
+
+
+document.getElementById(
+'saveCustomFood'
+).onclick =
+saveCustomFood;
 
 
 document.addEventListener(
@@ -1500,7 +1345,6 @@ const edit =
 event.target.closest(
 '[data-edit-custom-food]'
 );
-
 
 if (edit) {
 
@@ -1513,43 +1357,42 @@ return;
 
 }
 
-
 const remove =
 event.target.closest(
 '[data-delete-custom-food]'
 );
 
-
 if (!remove) {
 return;
 }
 
-
 if (
 !confirm(
-'¿Eliminar este alimento personalizado?'
+'¿Eliminar este alimento de Mis alimentos?'
 )
 ) {
 return;
 }
 
-
-const id =
-remove.dataset
-.deleteCustomFood;
-
-
 state.customFoods =
 state.customFoods.filter(
 food =>
 String(food.id) !==
-String(id)
+String(
+remove.dataset
+.deleteCustomFood
+)
 );
-
 
 save();
 
 renderCustomFoods();
+
+renderFoodResults(
+document.getElementById(
+'foodSearch'
+)?.value || ''
+);
 
 }
 );
@@ -1566,31 +1409,21 @@ document.getElementById(
 'foodModal'
 );
 
-
 selectedFood = null;
-
 
 document
 .getElementById(
 'foodAmount'
 )
-.classList.add(
-'hidden'
-);
+.classList.add('hidden');
 
-
-document
-.getElementById(
+document.getElementById(
 'foodSearch'
-)
-.value = '';
-
+).value = '';
 
 renderFoodResults('');
 
-
 modal.showModal();
-
 
 setTimeout(
 () =>
@@ -1631,38 +1464,24 @@ query
 .trim()
 .toLowerCase();
 
-
-/*
-IMPORTANTE:
-usamos allFoods(), no FOOD_DATABASE,
-para que también aparezcan tus alimentos.
-*/
-
 const results =
 allFoods()
-.filter(food => {
-
-if (!term) {
-return true;
-}
-
-
-return `${food.name} ${
-food.brand || ''
-} ${
-food.category || ''
-}`
+.filter(
+food =>
+!term ||
+`
+${food.name}
+${food.brand || ''}
+${food.category || ''}
+`
 .toLowerCase()
-.includes(term);
-
-})
+.includes(term)
+)
 .slice(0, 80);
-
 
 document.getElementById(
 'foodResults'
 ).innerHTML =
-
 results
 .map(
 food => `
@@ -1679,43 +1498,31 @@ ${esc(food.name)}
 </b>
 
 <small>
-
-${esc(
-food.category || ''
-)}
+${esc(food.category || '')}
 
 ${
 food.brand
-? ' · ' +
-esc(food.brand)
+? ' · ' + esc(food.brand)
 : ''
 }
-
 </small>
 
 </span>
 
 <strong>
-
 ${fmt(food.calories)}
 kcal
-
 </strong>
 
 </button>
 `
 )
-.join('')
-
-||
-
+.join('') ||
 `
 <div class="empty-state">
-
 <p>
 No se encontraron alimentos.
 </p>
-
 </div>
 `;
 
@@ -1731,38 +1538,23 @@ event.target.closest(
 '[data-food-id]'
 );
 
-
 if (!button) {
 return;
 }
 
-
-/*
-También usamos allFoods() aquí.
-Así funciona tanto para los 358 originales
-como para los creados por ti.
-*/
-
 selectedFood =
-allFoods().find(
-food =>
-String(food.id) ===
-String(
+getFood(
 button.dataset.foodId
-)
 );
-
 
 if (!selectedFood) {
 return;
 }
 
-
 document.getElementById(
 'selectedFoodName'
 ).textContent =
 selectedFood.name;
-
 
 document.getElementById(
 'selectedFoodMacros'
@@ -1772,7 +1564,6 @@ document.getElementById(
 `${fmt(selectedFood.carbs, 1)}C · ` +
 `${fmt(selectedFood.fat, 1)}G / 100 g`;
 
-
 document
 .getElementById(
 'foodAmount'
@@ -1781,12 +1572,9 @@ document
 'hidden'
 );
 
-
-document
-.getElementById(
+document.getElementById(
 'foodGrams'
-)
-.focus();
+).focus();
 
 }
 );
@@ -1800,7 +1588,6 @@ if (!selectedFood) {
 return;
 }
 
-
 const grams =
 Number(
 document.getElementById(
@@ -1808,15 +1595,12 @@ document.getElementById(
 ).value
 ) || 0;
 
-
 if (grams <= 0) {
 return;
 }
 
-
 const multiplier =
 grams / 100;
-
 
 const item = {
 
@@ -1852,28 +1636,23 @@ multiplier
 
 };
 
-
 state.nutrition[
 currentNutritionDate
 ] ??= [];
-
 
 state.nutrition[
 currentNutritionDate
 ].push(item);
 
-
 save();
 
 renderNutrition();
-
 
 document
 .getElementById(
 'foodModal'
 )
 .close();
-
 
 selectedFood = null;
 
@@ -1890,15 +1669,12 @@ currentNutritionDate +
 'T12:00:00'
 );
 
-
 date.setDate(
 date.getDate() - 1
 );
 
-
 currentNutritionDate =
 dateKey(date);
-
 
 renderNutrition();
 
@@ -1915,15 +1691,12 @@ currentNutritionDate +
 'T12:00:00'
 );
 
-
 date.setDate(
 date.getDate() + 1
 );
 
-
 currentNutritionDate =
 dateKey(date);
-
 
 renderNutrition();
 
@@ -1946,26 +1719,64 @@ renderNutrition();
 ENTRENAMIENTO
 ========================================================= */
 
-function blankSet() {
+function startWorkout(
+name = 'Entrenamiento libre',
+routine = null
+) {
 
-return {
+if (state.activeWorkout) {
+
+if (
+!confirm(
+'Ya tienes una sesión en curso. ¿Reemplazarla?'
+)
+) {
+return;
+}
+
+}
+
+const exercises =
+(
+routine?.exercises ||
+[]
+)
+.map(id => {
+
+const exercise =
+getExercise(id);
+
+return exercise
+? exerciseForSession(
+exercise
+)
+: null;
+
+})
+.filter(Boolean);
+
+state.activeWorkout = {
 
 id:
-uid('set'),
+uid('session'),
 
-weight: '',
-reps: '',
-rir: '',
+name,
 
-done: false,
+routineId:
+routine?.id || null,
 
-leftWeight: '',
-leftReps: '',
+startedAt:
+new Date().toISOString(),
 
-rightWeight: '',
-rightReps: ''
+notes: '',
+
+exercises
 
 };
+
+save();
+
+renderTraining();
 
 }
 
@@ -1993,7 +1804,7 @@ exercise.unilateralMode ||
 'same',
 
 sets: [
-blankSet()
+blankSet(exercise)
 ]
 
 };
@@ -2001,64 +1812,30 @@ blankSet()
 }
 
 
-function startWorkout(
-name = 'Entrenamiento libre',
-routine = null
-) {
+function blankSet() {
 
-if (state.activeWorkout) {
-
-if (
-!confirm(
-'Ya tienes una sesión en curso. ¿Reemplazarla?'
-)
-) {
-return;
-}
-
-}
-
-
-const exercises =
-(routine?.exercises || [])
-.map(id => {
-
-const exercise =
-getExercise(id);
-
-return exercise
-? exerciseForSession(
-exercise
-)
-: null;
-
-})
-.filter(Boolean);
-
-
-state.activeWorkout = {
+return {
 
 id:
-uid('session'),
+uid('set'),
 
-name,
+weight: '',
 
-routineId:
-routine?.id || null,
+reps: '',
 
-startedAt:
-new Date().toISOString(),
+rir: '',
 
-notes: '',
+done: false,
 
-exercises
+leftWeight: '',
+
+leftReps: '',
+
+rightWeight: '',
+
+rightReps: ''
 
 };
-
-
-save();
-
-renderTraining();
 
 }
 
@@ -2070,22 +1847,16 @@ workout
 return (
 workout.exercises || []
 ).reduce(
-(total, exercise) => {
-
-return (
-total +
+(sum, exercise) =>
+sum +
 (
 exercise.sets || []
 ).reduce(
-(
-subtotal,
-set
-) => {
+(setsTotal, set) => {
 
 if (!set.done) {
-return subtotal;
+return setsTotal;
 }
-
 
 if (
 exercise.type ===
@@ -2095,56 +1866,54 @@ exercise.unilateralMode ===
 ) {
 
 return (
-subtotal +
-
+setsTotal +
 (
-(Number(
+Number(
 set.leftWeight
-) || 0) *
-(Number(
-set.leftReps
-) || 0)
-) +
-
+) || 0
+) *
 (
-(Number(
+Number(
+set.leftReps
+) || 0
+) +
+(
+Number(
 set.rightWeight
-) || 0) *
-(Number(
+) || 0
+) *
+(
+Number(
 set.rightReps
-) || 0)
+) || 0
 )
 );
 
 }
 
-
-const multiplier =
+return (
+setsTotal +
+(
+Number(
+set.weight
+) || 0
+) *
+(
+Number(
+set.reps
+) || 0
+) *
+(
 exercise.type ===
 'unilateral'
 ? 2
-: 1;
-
-
-return (
-subtotal +
-(
-(Number(
-set.weight
-) || 0) *
-(Number(
-set.reps
-) || 0) *
-multiplier
+: 1
 )
 );
 
 },
 0
-)
-);
-
-},
+),
 0
 );
 
@@ -2158,45 +1927,6 @@ return state.activeWorkout
 state.activeWorkout
 )
 : 0;
-
-}
-
-
-function formatDuration(
-seconds
-) {
-
-return (
-
-String(
-Math.floor(
-seconds / 3600
-)
-).padStart(2, '0')
-
-+
-
-':'
-
-+
-
-String(
-Math.floor(
-seconds % 3600 / 60
-)
-).padStart(2, '0')
-
-+
-
-':'
-
-+
-
-String(
-seconds % 60
-).padStart(2, '0')
-
-);
 
 }
 
@@ -2221,50 +1951,35 @@ function renderSession() {
 const session =
 state.activeWorkout;
 
-
-const noSession =
-document.getElementById(
+document
+.getElementById(
 'noSession'
-);
-
-const activeSession =
-document.getElementById(
-'activeSession'
-);
-
-
-if (
-!noSession ||
-!activeSession
-) {
-return;
-}
-
-
-noSession.classList.toggle(
+)
+.classList.toggle(
 'hidden',
-Boolean(session)
+!!session
 );
 
-
-activeSession.classList.toggle(
+document
+.getElementById(
+'activeSession'
+)
+.classList.toggle(
 'hidden',
 !session
 );
 
-
 if (!session) {
 return;
 }
-
 
 setText(
 'sessionName',
 session.name
 );
 
-
-const completedSets =
+setText(
+'sessionSets',
 session.exercises.reduce(
 (total, exercise) =>
 total +
@@ -2272,14 +1987,8 @@ exercise.sets.filter(
 set => set.done
 ).length,
 0
+)
 );
-
-
-setText(
-'sessionSets',
-completedSets
-);
-
 
 setText(
 'sessionVolume',
@@ -2287,19 +1996,17 @@ fmt(sessionVolume()) +
 ' kg'
 );
 
-
 setText(
 'sessionExercises',
 session.exercises.length
 );
 
-
-const rirs =
-session.exercises
-.flatMap(
+const rirValues =
+session.exercises.flatMap(
 exercise =>
 exercise.sets
-.map(set =>
+.map(
+set =>
 Number(set.rir)
 )
 .filter(
@@ -2310,44 +2017,37 @@ value
 )
 );
 
-
 setText(
 'sessionRir',
-rirs.length
+rirValues.length
 ? fmt(
-rirs.reduce(
+rirValues.reduce(
 (a, b) =>
 a + b,
 0
 ) /
-rirs.length,
+rirValues.length,
 1
 )
 : '—'
 );
-
 
 document.getElementById(
 'sessionExercisesList'
 ).innerHTML =
 session.exercises
 .map(
-(
-exercise,
-exerciseIndex
-) =>
+(exercise, index) =>
 renderSessionExercise(
 exercise,
-exerciseIndex
+index
 )
 )
 .join('');
 
-
 clearInterval(
 workoutTimer
 );
-
 
 workoutTimer =
 setInterval(
@@ -2366,7 +2066,6 @@ session.startedAt
 )
 );
 
-
 setText(
 'sessionTimer',
 formatDuration(
@@ -2381,27 +2080,47 @@ seconds
 }
 
 
+function formatDuration(
+seconds
+) {
+
+return (
+String(
+Math.floor(
+seconds / 3600
+)
+).padStart(2, '0') +
+':' +
+String(
+Math.floor(
+seconds % 3600 / 60
+)
+).padStart(2, '0') +
+':' +
+String(
+seconds % 60
+).padStart(2, '0')
+);
+
+}
+
+
 function renderSessionExercise(
 exercise,
 exerciseIndex
 ) {
 
-const separateSides =
-exercise.type ===
-'unilateral' &&
-exercise.unilateralMode ===
-'separate';
-
-
 const rows =
 exercise.sets
 .map(
-(
-set,
-setIndex
-) => {
+(set, setIndex) => {
 
-if (separateSides) {
+if (
+exercise.type ===
+'unilateral' &&
+exercise.unilateralMode ===
+'separate'
+) {
 
 return `
 <tr>
@@ -2481,7 +2200,6 @@ ${set.done ? 'checked' : ''}
 
 }
 
-
 return `
 <tr>
 
@@ -2490,7 +2208,6 @@ ${setIndex + 1}
 </td>
 
 <td colspan="2">
-
 <input
 class="set-input"
 data-set-field="weight"
@@ -2499,11 +2216,9 @@ data-si="${setIndex}"
 value="${esc(set.weight)}"
 placeholder="kg"
 >
-
 </td>
 
 <td>
-
 <input
 class="set-input"
 data-set-field="reps"
@@ -2512,11 +2227,9 @@ data-si="${setIndex}"
 value="${esc(set.reps)}"
 placeholder="reps"
 >
-
 </td>
 
 <td>
-
 <input
 class="set-input"
 data-set-field="rir"
@@ -2525,13 +2238,11 @@ data-si="${setIndex}"
 value="${esc(set.rir)}"
 placeholder="RIR"
 >
-
 </td>
 
 <td></td>
 
 <td>
-
 <input
 type="checkbox"
 class="set-check"
@@ -2540,7 +2251,6 @@ data-ei="${exerciseIndex}"
 data-si="${setIndex}"
 ${set.done ? 'checked' : ''}
 >
-
 </td>
 
 </tr>
@@ -2550,10 +2260,11 @@ ${set.done ? 'checked' : ''}
 )
 .join('');
 
-
-const header =
-separateSides
-
+const head =
+exercise.type ===
+'unilateral' &&
+exercise.unilateralMode ===
+'separate'
 ? `
 <th>L kg</th>
 <th>L reps</th>
@@ -2561,23 +2272,18 @@ separateSides
 <th>R reps</th>
 <th>RIR</th>
 `
-
 : `
 <th colspan="2">
 Carga
 </th>
-
 <th>
 Reps
 </th>
-
 <th>
 RIR
 </th>
-
 <th></th>
 `;
-
 
 return `
 <article class="session-exercise">
@@ -2591,11 +2297,8 @@ ${esc(exercise.name)}
 </h3>
 
 <small>
-
 ${esc(exercise.muscle)}
-
 ·
-
 ${
 exercise.type ===
 'unilateral'
@@ -2604,15 +2307,16 @@ exercise.type ===
 }
 
 ${
-separateSides
+exercise.type ===
+'unilateral' &&
+exercise.unilateralMode ===
+'separate'
 ? ' · lados separados'
 : ''
 }
-
 </small>
 
 </div>
-
 
 <button
 class="remove-btn"
@@ -2623,34 +2327,27 @@ data-remove-session-exercise="${exerciseIndex}"
 
 </div>
 
-
 <table class="set-table">
 
 <thead>
-
 <tr>
 
 <th>#</th>
 
-${header}
+${head}
 
 <th>
 Hecha
 </th>
 
 </tr>
-
 </thead>
 
-
 <tbody>
-
 ${rows}
-
 </tbody>
 
 </table>
-
 
 <button
 class="add-set"
@@ -2665,10 +2362,6 @@ data-add-set="${exerciseIndex}"
 }
 
 
-/* =========================================================
-ACTUALIZACIÓN DE SERIES
-========================================================= */
-
 document.addEventListener(
 'input',
 event => {
@@ -2678,45 +2371,38 @@ event.target.closest(
 '[data-set-field]'
 );
 
-
 if (
-!field ||
-!state.activeWorkout
-) {
-return;
-}
-
-
-const exercise =
+field &&
 state.activeWorkout
+) {
+
+const set =
+state
+.activeWorkout
 .exercises[
 Number(
 field.dataset.ei
 )
-];
-
-
-const set =
-exercise.sets[
+]
+.sets[
 Number(
 field.dataset.si
 )
 ];
-
 
 set[
 field.dataset.setField
 ] =
 field.value;
 
-
 localStorage.setItem(
 STORAGE_KEY,
 JSON.stringify(state)
 );
 
-
 updateSessionStatsOnly();
+
+}
 
 }
 );
@@ -2726,38 +2412,36 @@ document.addEventListener(
 'change',
 event => {
 
-const checkbox =
+const done =
 event.target.closest(
 '[data-done]'
 );
 
-
 if (
-!checkbox ||
-!state.activeWorkout
-) {
-return;
-}
-
-
+done &&
 state.activeWorkout
+) {
+
+state
+.activeWorkout
 .exercises[
 Number(
-checkbox.dataset.ei
+done.dataset.ei
 )
 ]
 .sets[
 Number(
-checkbox.dataset.si
+done.dataset.si
 )
 ]
 .done =
-checkbox.checked;
-
+done.checked;
 
 save();
 
 renderSession();
+
+}
 
 }
 );
@@ -2772,41 +2456,41 @@ event.target.closest(
 '[data-add-set]'
 );
 
-
 if (addSet) {
 
 const exercise =
-state.activeWorkout
+state
+.activeWorkout
 .exercises[
 Number(
 addSet.dataset.addSet
 )
 ];
 
+const definition =
+getExercise(
+exercise.exerciseId
+) || exercise;
 
 exercise.sets.push(
-blankSet()
+blankSet(definition)
 );
-
 
 save();
 
 renderSession();
 
-return;
-
 }
-
 
 const removeExercise =
 event.target.closest(
 '[data-remove-session-exercise]'
 );
 
-
 if (removeExercise) {
 
-state.activeWorkout
+state
+.activeWorkout
 .exercises
 .splice(
 Number(
@@ -2815,7 +2499,6 @@ removeExercise.dataset
 ),
 1
 );
-
 
 save();
 
@@ -2833,11 +2516,9 @@ if (!state.activeWorkout) {
 return;
 }
 
-
 setText(
 'sessionSets',
-state.activeWorkout
-.exercises
+state.activeWorkout.exercises
 .reduce(
 (total, exercise) =>
 total +
@@ -2848,28 +2529,20 @@ set => set.done
 )
 );
 
-
 setText(
 'sessionVolume',
-fmt(
-sessionVolume()
-) +
+fmt(sessionVolume()) +
 ' kg'
 );
 
 }
 
 
-/* =========================================================
-TERMINAR ENTRENAMIENTO
-========================================================= */
-
 function finishWorkout() {
 
 if (!state.activeWorkout) {
 return;
 }
-
 
 if (
 !confirm(
@@ -2879,34 +2552,23 @@ if (
 return;
 }
 
-
 const session =
 clone(
 state.activeWorkout
 );
 
-
 session.date =
 dateKey(new Date());
 
-
 session.finishedAt =
 new Date().toISOString();
-
 
 state.workouts.unshift(
 session
 );
 
-
 state.activeWorkout =
 null;
-
-
-clearInterval(
-workoutTimer
-);
-
 
 save();
 
@@ -2920,22 +2582,19 @@ navigate('training');
 document.getElementById(
 'quickWorkout'
 ).onclick =
-() =>
-startWorkout();
+() => startWorkout();
 
 
 document.getElementById(
 'startFreeBtn'
 ).onclick =
-() =>
-startWorkout();
+() => startWorkout();
 
 
 document.getElementById(
 'emptyStartBtn'
 ).onclick =
-() =>
-startWorkout();
+() => startWorkout();
 
 
 document.getElementById(
@@ -2947,7 +2606,8 @@ finishWorkout;
 document.getElementById(
 'addExerciseToSession'
 ).onclick =
-openExerciseChooserForSession;
+() =>
+openExerciseChooserForSession();
 
 
 document.getElementById(
@@ -2966,19 +2626,12 @@ document.getElementById(
 ).onclick =
 () => {
 
-if (!state.activeWorkout) {
-return;
-}
-
-
 state.activeWorkout.notes =
 document.getElementById(
 'sessionNote'
 ).value;
 
-
 save();
-
 
 document
 .getElementById(
@@ -2989,25 +2642,18 @@ document
 };
 
 
-/* =========================================================
-AÑADIR EJERCICIO A SESIÓN
-========================================================= */
-
 function openExerciseChooserForSession() {
 
 const exercises =
 allExercises();
-
 
 const modal =
 document.createElement(
 'dialog'
 );
 
-
 modal.className =
 'modal';
-
 
 modal.innerHTML = `
 <form
@@ -3027,20 +2673,20 @@ Añadir ejercicio
 
 </div>
 
-
 <input
 class="search-input big"
 id="tempExSearch"
 placeholder="Buscar ejercicio..."
 >
 
-
 <div
 class="routine-picker"
 id="tempExList"
 >
 
-${exercises.map(
+${
+exercises
+.map(
 exercise => `
 <label
 class="routine-pick"
@@ -3048,40 +2694,43 @@ class="routine-pick"
 
 <input
 type="checkbox"
-value="${exercise.id}"
+value="${esc(
+exercise.id
+)}"
 >
 
 <span>
 
 <b>
-${esc(exercise.name)}
+${esc(
+exercise.name
+)}
 </b>
 
 <br>
 
 <small>
-
-${esc(exercise.muscle)}
-
+${esc(
+exercise.muscle
+)}
 ·
-
 ${
 exercise.type ===
 'unilateral'
 ? 'Unilateral'
 : 'Bilateral'
 }
-
 </small>
 
 </span>
 
 </label>
 `
-).join('')}
+)
+.join('')
+}
 
 </div>
-
 
 <button
 type="button"
@@ -3094,26 +2743,22 @@ Añadir seleccionados
 </form>
 `;
 
-
 document.body.appendChild(
 modal
 );
 
-
 modal.showModal();
-
 
 const search =
 modal.querySelector(
 '#tempExSearch'
 );
 
-
 search.oninput = () => {
 
 const query =
-search.value.toLowerCase();
-
+search.value
+.toLowerCase();
 
 modal
 .querySelectorAll(
@@ -3132,7 +2777,6 @@ item.textContent
 
 };
 
-
 modal
 .querySelector(
 '#tempExAdd'
@@ -3150,10 +2794,10 @@ getExercise(
 input.value
 );
 
-
 if (exercise) {
 
-state.activeWorkout
+state
+.activeWorkout
 .exercises
 .push(
 exerciseForSession(
@@ -3165,7 +2809,6 @@ exercise
 
 });
 
-
 save();
 
 modal.close();
@@ -3176,11 +2819,9 @@ renderSession();
 
 };
 
-
 modal.addEventListener(
 'close',
-() =>
-modal.remove()
+() => modal.remove()
 );
 
 }
@@ -3199,7 +2840,6 @@ document.getElementById(
 )?.value || ''
 ).toLowerCase();
 
-
 const routines =
 state.routines.filter(
 routine =>
@@ -3208,19 +2848,9 @@ routine.name
 .includes(query)
 );
 
-
-const grid =
 document.getElementById(
 'routineGrid'
-);
-
-
-if (!grid) {
-return;
-}
-
-
-grid.innerHTML =
+).innerHTML =
 routines
 .map(
 routine => `
@@ -3233,11 +2863,9 @@ ${routine.exercises.length}
 ejercicios
 </span>
 
-
 <h3>
 ${esc(routine.name)}
 </h3>
-
 
 <p>
 ${esc(
@@ -3246,10 +2874,10 @@ routine.description ||
 )}
 </p>
 
-
 <div>
 
-${routine.exercises
+${
+routine.exercises
 .slice(0, 5)
 .map(id => {
 
@@ -3267,15 +2895,15 @@ exercise.name
 : '';
 
 })
-.join('')}
-
+.join('')
+}
 
 ${
-routine.exercises.length > 5
+routine.exercises.length >
+5
 ? `
 <span class="tag">
-+
-${
++${
 routine.exercises.length -
 5
 }
@@ -3286,28 +2914,33 @@ routine.exercises.length -
 
 </div>
 
-
-<div class="card-actions">
+<div
+class="card-actions"
+>
 
 <button
 class="primary-btn"
-data-start-routine="${routine.id}"
+data-start-routine="${esc(
+routine.id
+)}"
 >
 Entrenar
 </button>
 
-
 <button
 class="secondary-btn"
-data-edit-routine="${routine.id}"
+data-edit-routine="${esc(
+routine.id
+)}"
 >
 Editar
 </button>
 
-
 <button
 class="danger-btn"
-data-delete-routine="${routine.id}"
+data-delete-routine="${esc(
+routine.id
+)}"
 >
 ×
 </button>
@@ -3317,10 +2950,7 @@ data-delete-routine="${routine.id}"
 </article>
 `
 )
-.join('')
-
-||
-
+.join('') ||
 `
 <div class="empty-state">
 
@@ -3329,8 +2959,8 @@ No hay rutinas
 </h3>
 
 <p>
-Crea tu primera rutina y añade
-los ejercicios que quieras.
+Crea tu primera rutina y
+añade los ejercicios que quieras.
 </p>
 
 </div>
@@ -3343,9 +2973,7 @@ function openRoutineModal(
 id = null
 ) {
 
-editingRoutineId =
-id;
-
+editingRoutineId = id;
 
 const routine =
 id
@@ -3355,7 +2983,6 @@ item.id === id
 )
 : null;
 
-
 document.getElementById(
 'routineModalTitle'
 ).textContent =
@@ -3363,23 +2990,19 @@ routine
 ? 'Editar rutina'
 : 'Crear rutina';
 
-
 document.getElementById(
 'rName'
 ).value =
 routine?.name || '';
-
 
 document.getElementById(
 'rDescription'
 ).value =
 routine?.description || '';
 
-
 renderRoutinePicker(
 routine?.exercises || []
 );
-
 
 document
 .getElementById(
@@ -3397,7 +3020,6 @@ selected = []
 document.getElementById(
 'routineExercisePicker'
 ).innerHTML =
-
 allExercises()
 .map(
 exercise => `
@@ -3407,7 +3029,9 @@ class="routine-pick"
 
 <input
 type="checkbox"
-value="${exercise.id}"
+value="${esc(
+exercise.id
+)}"
 ${
 selected.includes(
 exercise.id
@@ -3417,23 +3041,21 @@ exercise.id
 }
 >
 
-
 <span>
 
 <b>
-${esc(exercise.name)}
+${esc(
+exercise.name
+)}
 </b>
 
 <br>
 
 <small>
-
 ${esc(
 exercise.muscle
 )}
-
 ·
-
 ${
 exercise.type ===
 'unilateral'
@@ -3441,6 +3063,14 @@ exercise.type ===
 : 'Bilateral'
 }
 
+${
+exercise.type ===
+'unilateral' &&
+exercise.unilateralMode ===
+'separate'
+? ' · lados separados'
+: ''
+}
 </small>
 
 </span>
@@ -3497,29 +3127,19 @@ document.getElementById(
 'rName'
 ).value.trim();
 
-
 if (!name) {
 return;
 }
-
 
 const exercises =
 [
 ...document.querySelectorAll(
 '#routineExercisePicker input:checked'
 )
-]
-.map(
+].map(
 input =>
 input.value
 );
-
-
-const description =
-document.getElementById(
-'rDescription'
-).value.trim();
-
 
 if (editingRoutineId) {
 
@@ -3530,14 +3150,18 @@ item.id ===
 editingRoutineId
 );
 
-
 if (routine) {
 
 routine.name =
 name;
 
 routine.description =
-description;
+document
+.getElementById(
+'rDescription'
+)
+.value
+.trim();
 
 routine.exercises =
 exercises;
@@ -3553,7 +3177,13 @@ uid('routine'),
 
 name,
 
-description,
+description:
+document
+.getElementById(
+'rDescription'
+)
+.value
+.trim(),
 
 exercises
 
@@ -3561,16 +3191,13 @@ exercises
 
 }
 
-
 save();
-
 
 document
 .getElementById(
 'routineModal'
 )
 .close();
-
 
 renderRoutines();
 
@@ -3586,7 +3213,6 @@ event.target.closest(
 '[data-start-routine]'
 );
 
-
 if (start) {
 
 const routine =
@@ -3597,7 +3223,6 @@ start.dataset
 .startRoutine
 );
 
-
 if (routine) {
 
 startWorkout(
@@ -3607,16 +3232,12 @@ routine
 
 }
 
-return;
-
 }
-
 
 const edit =
 event.target.closest(
 '[data-edit-routine]'
 );
-
 
 if (edit) {
 
@@ -3625,16 +3246,12 @@ edit.dataset
 .editRoutine
 );
 
-return;
-
 }
-
 
 const remove =
 event.target.closest(
 '[data-delete-routine]'
 );
-
 
 if (
 remove &&
@@ -3650,7 +3267,6 @@ routine.id !==
 remove.dataset
 .deleteRoutine
 );
-
 
 save();
 
@@ -3675,51 +3291,29 @@ document.getElementById(
 )?.value || ''
 ).toLowerCase();
 
-
 const muscle =
 document.getElementById(
 'exerciseMuscle'
 )?.value || '';
 
-
 const exercises =
 allExercises().filter(
-exercise => {
-
-const matchesSearch =
+exercise =>
+(
 !query ||
 exercise.name
 .toLowerCase()
-.includes(query);
-
-
-const matchesMuscle =
+.includes(query)
+) &&
+(
 !muscle ||
-exercise.muscle ===
-muscle;
-
-
-return (
-matchesSearch &&
-matchesMuscle
+exercise.muscle === muscle
+)
 );
 
-}
-);
-
-
-const grid =
 document.getElementById(
 'exerciseGrid'
-);
-
-
-if (!grid) {
-return;
-}
-
-
-grid.innerHTML =
+).innerHTML =
 exercises
 .map(
 exercise => `
@@ -3733,25 +3327,20 @@ exercise.muscle
 )}
 </span>
 
-
 <span class="tag">
-
 ${
 exercise.type ===
 'unilateral'
 ? 'Unilateral'
 : 'Bilateral'
 }
-
 </span>
-
 
 <h3>
 ${esc(
 exercise.name
 )}
 </h3>
-
 
 <p>
 ${esc(
@@ -3766,23 +3355,17 @@ exercise.custom
 }
 </p>
 
-
 ${
 exercise.type ===
 'unilateral'
 ? `
 <small class="muted">
-
 ${
 exercise.unilateralMode ===
 'separate'
-
 ? 'Registro de lados separado'
-
 : 'Mismo peso/reps en ambos lados'
-
 }
-
 </small>
 `
 : ''
@@ -3791,39 +3374,33 @@ exercise.unilateralMode ===
 </article>
 `
 )
-.join('')
-
-||
-
+.join('') ||
 `
 <div class="empty-state">
-
 <p>
 No se encontraron ejercicios.
 </p>
-
 </div>
 `;
-
 
 const select =
 document.getElementById(
 'progressExerciseSelect'
 );
 
-
 if (select) {
 
-const previous =
+const oldValue =
 select.value;
-
 
 select.innerHTML =
 allExercises()
 .map(
 exercise => `
 <option
-value="${exercise.id}"
+value="${esc(
+exercise.id
+)}"
 >
 ${esc(
 exercise.name
@@ -3833,12 +3410,9 @@ exercise.name
 )
 .join('');
 
-
-if (previous) {
-
+if (oldValue) {
 select.value =
-previous;
-
+oldValue;
 }
 
 }
@@ -3868,16 +3442,13 @@ document.getElementById(
 ).textContent =
 'Crear ejercicio';
 
-
 document
 .getElementById(
 'exerciseForm'
 )
 .reset();
 
-
 toggleUnilateral();
-
 
 document
 .getElementById(
@@ -3896,13 +3467,9 @@ toggleUnilateral;
 
 function toggleUnilateral() {
 
-const label =
 document.getElementById(
 'unilateralModeLabel'
-);
-
-
-label.style.display =
+).style.display =
 document.getElementById(
 'eType'
 ).value ===
@@ -3920,16 +3487,18 @@ event => {
 
 event.preventDefault();
 
-
 const exercise = {
 
 id:
 uid('custom'),
 
 name:
-document.getElementById(
+document
+.getElementById(
 'eName'
-).value.trim(),
+)
+.value
+.trim(),
 
 muscle:
 document.getElementById(
@@ -3937,9 +3506,12 @@ document.getElementById(
 ).value,
 
 equipment:
-document.getElementById(
+document
+.getElementById(
 'eEquipment'
-).value.trim(),
+)
+.value
+.trim(),
 
 type:
 document.getElementById(
@@ -3956,26 +3528,21 @@ true
 
 };
 
-
 if (!exercise.name) {
 return;
 }
-
 
 state.customExercises.push(
 exercise
 );
 
-
 save();
-
 
 document
 .getElementById(
 'exerciseModal'
 )
 .close();
-
 
 renderExercises();
 
@@ -3988,22 +3555,29 @@ HISTORIAL
 
 function renderHistory() {
 
-const history =
+const query =
+(
 document.getElementById(
-'workoutHistory'
-);
-
-
-if (!history) {
-return;
-}
-
+'historySearch'
+)?.value || ''
+).toLowerCase();
 
 const workouts =
-state.workouts;
+state.workouts.filter(
+workout =>
+workout.name
+.toLowerCase()
+.includes(query)
+);
 
+setText(
+'historyCount',
+`${workouts.length} sesiones`
+);
 
-history.innerHTML =
+document.getElementById(
+'workoutHistory'
+).innerHTML =
 workouts
 .map(
 workout => `
@@ -4023,7 +3597,6 @@ workout.name
 </h3>
 
 <p>
-
 ${fmtDate(
 workout.date,
 {
@@ -4033,16 +3606,12 @@ month: 'long',
 year: 'numeric'
 }
 )}
-
 ·
-
 ${workout.exercises.length}
 ejercicios
-
 </p>
 
 </div>
-
 
 <div>
 
@@ -4056,30 +3625,26 @@ kg
 </b>
 
 <p>
-
 ${
 workout.exercises
 .reduce(
-(
-total,
-exercise
-) =>
+(total, exercise) =>
 total +
-exercise.sets.filter(
-set => set.done
-).length,
+exercise.sets
+.filter(
+set =>
+set.done
+)
+.length,
 0
 )
 }
-
 series
-
 </p>
 
 </div>
 
 </div>
-
 
 <div class="history-details">
 
@@ -4098,18 +3663,15 @@ exercise.name
 </b>
 
 <small>
-
 ${
 exercise.type ===
 'unilateral'
 ? 'Unilateral'
 : 'Bilateral'
 }
-
 </small>
 
 </div>
-
 
 <span>
 
@@ -4120,71 +3682,45 @@ set =>
 set.done
 )
 .map(
-set => {
-
-if (
+set =>
 exercise.type ===
 'unilateral' &&
 exercise.unilateralMode ===
 'separate'
-) {
-
-return `
+? `
 ${
 set.leftWeight ||
 0
-}
-×
-${
+}×${
 set.leftReps ||
 0
 }
-
 /
-
 ${
 set.rightWeight ||
 0
-}
-×
-${
+}×${
 set.rightReps ||
 0
 }
-`;
-
-}
-
-
-return `
+`
+: `
 ${
 set.weight ||
 0
-}
-
-×
-
-${
+}×${
 set.reps ||
 0
 }
-
 · RIR
-
 ${
 set.rir ||
 '—'
 }
-`;
-
-}
+`
 )
-.join(' · ')
-
-||
-
+.join(' · ') ||
 'Sin series completadas'
-
 }
 
 </span>
@@ -4194,7 +3730,6 @@ set.rir ||
 )
 .join('')
 }
-
 
 ${
 workout.notes
@@ -4214,10 +3749,7 @@ workout.notes
 </article>
 `
 )
-.join('')
-
-||
-
+.join('') ||
 `
 <div class="empty-state">
 
@@ -4236,6 +3768,12 @@ aparecerá aquí.
 }
 
 
+document.getElementById(
+'historySearch'
+).oninput =
+renderHistory;
+
+
 document.addEventListener(
 'click',
 event => {
@@ -4244,7 +3782,6 @@ const item =
 event.target.closest(
 '[data-history-item]'
 );
-
 
 if (
 item &&
@@ -4269,44 +3806,27 @@ PROGRESIÓN
 
 function renderProgression() {
 
-const select =
+const id =
 document.getElementById(
 'progressExerciseSelect'
-);
-
-
-const content =
-document.getElementById(
-'progressionContent'
-);
-
-
-if (!select || !content) {
-return;
-}
-
-
-const id =
-select.value ||
+).value ||
 allExercises()[0]?.id;
-
 
 const exercise =
 getExercise(id);
 
-
 if (!exercise) {
 
-content.innerHTML =
+document.getElementById(
+'progressionContent'
+).innerHTML =
 '';
 
 return;
 
 }
 
-
 const rows = [];
-
 
 state.workouts.forEach(
 workout => {
@@ -4318,127 +3838,59 @@ item.exerciseId ===
 id
 );
 
-
 if (!exerciseData) {
 return;
 }
-
 
 const completed =
 exerciseData.sets.filter(
 set => set.done
 );
 
-
 if (!completed.length) {
 return;
 }
-
-
-let volume = 0;
-
-
-completed.forEach(
-set => {
-
-if (
-exerciseData.type ===
-'unilateral' &&
-exerciseData.unilateralMode ===
-'separate'
-) {
-
-volume +=
-(
-Number(
-set.leftWeight
-) || 0
-) *
-(
-Number(
-set.leftReps
-) || 0
-);
-
-
-volume +=
-(
-Number(
-set.rightWeight
-) || 0
-) *
-(
-Number(
-set.rightReps
-) || 0
-);
-
-} else {
-
-const multiplier =
-exerciseData.type ===
-'unilateral'
-? 2
-: 1;
-
-
-volume +=
-(
-Number(
-set.weight
-) || 0
-) *
-(
-Number(
-set.reps
-) || 0
-) *
-multiplier;
-
-}
-
-}
-);
-
-
-const weights =
-completed
-.map(
-set =>
-Number(
-set.weight
-) || 0
-)
-.filter(
-weight =>
-weight > 0
-);
-
 
 rows.push({
 
 date:
 workout.date,
 
-volume,
-
-top:
-weights.length
-? Math.max(
-...weights
-)
-: 0,
-
-reps:
+volume:
 completed.reduce(
-(max, set) =>
-Math.max(
-max,
+(total, set) =>
+total +
+(
+Number(
+set.weight
+) || 0
+) *
+(
 Number(
 set.reps
 ) || 0
 ),
 0
+),
+
+top:
+Math.max(
+...completed.map(
+set =>
+Number(
+set.weight
+) || 0
+)
+),
+
+reps:
+Math.max(
+...completed.map(
+set =>
+Number(
+set.reps
+) || 0
+)
 )
 
 });
@@ -4446,33 +3898,33 @@ set.reps
 }
 );
 
-
 const best =
 rows.length
 ? Math.max(
 ...rows.map(
-row => row.top
+row =>
+row.top
 )
 )
 : 0;
-
 
 const maxVolume =
 rows.length
 ? Math.max(
 ...rows.map(
-row => row.volume
+row =>
+row.volume
 )
 )
 : 0;
 
-
-content.innerHTML = `
+document.getElementById(
+'progressionContent'
+).innerHTML = `
 
 <div class="progression-summary">
 
 <div class="prog-stat">
-
 <span>
 Mejor carga registrada
 </span>
@@ -4480,12 +3932,9 @@ Mejor carga registrada
 <b>
 ${fmt(best)} kg
 </b>
-
 </div>
 
-
 <div class="prog-stat">
-
 <span>
 Mayor volumen
 </span>
@@ -4493,12 +3942,9 @@ Mayor volumen
 <b>
 ${fmt(maxVolume)} kg
 </b>
-
 </div>
 
-
 <div class="prog-stat">
-
 <span>
 Sesiones
 </span>
@@ -4506,12 +3952,9 @@ Sesiones
 <b>
 ${rows.length}
 </b>
-
 </div>
 
-
 <div class="prog-stat">
-
 <span>
 Última carga
 </span>
@@ -4528,11 +3971,9 @@ rows.length - 1
 }
 kg
 </b>
-
 </div>
 
 </div>
-
 
 <div class="panel">
 
@@ -4556,15 +3997,11 @@ exercise.name
 
 </div>
 
-
 <div class="mini-chart">
-
 ${progressSvg(rows)}
-
 </div>
 
 </div>
-
 
 <div class="list">
 
@@ -4584,41 +4021,22 @@ row.date
 </span>
 
 <b>
-
-${fmt(
-row.top
-)}
-kg
-
-·
-
-${fmt(
-row.reps
-)}
-reps
-
-·
-
-${fmt(
-row.volume
-)}
-kg vol.
-
+${fmt(row.top)} kg ·
+${fmt(row.reps)} reps ·
+${fmt(row.volume)} kg vol.
 </b>
 
 </div>
 `
 )
-.join('')
-
-||
-
+.join('') ||
 emptyList(
 'Todavía no hay datos de este ejercicio.'
 )
 }
 
 </div>
+
 `;
 
 }
@@ -4630,82 +4048,55 @@ if (!rows.length) {
 
 return `
 <div class="empty-state">
-
 <p>
 Completa algunas sesiones
 para ver la progresión.
 </p>
-
 </div>
 `;
 
 }
-
 
 const values =
 rows.map(
 row => row.top
 );
 
-
 const max =
-Math.max(
-...values
-);
-
+Math.max(...values);
 
 const min =
-Math.min(
-...values
-);
-
+Math.min(...values);
 
 const range =
 max - min || 1;
 
-
 const points =
 values
 .map(
-(value, index) => {
-
-const x =
+(value, index) =>
+`${
 (
 index /
-(
-values.length - 1 ||
-1
-)
+(values.length - 1 || 1)
 ) *
-100;
-
-
-const y =
+100
+},${
 90 -
 (
-(
-value - min
-) /
+(value - min) /
 range
 ) *
-70;
-
-
-return `${x},${y}`;
-
-}
+70
+}`
 )
 .join(' ');
-
 
 return `
 <svg
 viewBox="0 0 100 100"
 preserveAspectRatio="none"
-style="
-width:100%;
-height:100%;
-"
+style="width:100%;height:100%"
 >
 
 <line
@@ -4716,7 +4107,6 @@ y2="90"
 stroke="#2a323d"
 />
 
-
 <polyline
 points="${points}"
 fill="none"
@@ -4725,46 +4115,30 @@ stroke-width="2"
 vector-effect="non-scaling-stroke"
 />
 
-
 ${
 values
 .map(
-(value, index) => {
-
-const x =
+(value, index) => `
+<circle
+cx="${
 (
 index /
-(
-values.length -
-1 ||
-1
-)
+(values.length - 1 || 1)
 ) *
-100;
-
-
-const y =
+100
+}"
+cy="${
 90 -
 (
-(
-value -
-min
-) /
+(value - min) /
 range
 ) *
-70;
-
-
-return `
-<circle
-cx="${x}"
-cy="${y}"
+70
+}"
 r="2"
 fill="var(--accent)"
 />
-`;
-
-}
+`
 )
 .join('')
 }
@@ -4797,23 +4171,17 @@ b.date
 )
 );
 
-
 const current =
 progress[
 progress.length - 1
 ]?.weight;
 
-
 setText(
 'currentWeight',
 current != null
-? fmt(
-current,
-1
-)
+? fmt(current, 1)
 : '—'
 );
-
 
 setText(
 'startWeight',
@@ -4825,7 +4193,6 @@ progress[0].weight,
 : '—'
 );
 
-
 setText(
 'targetWeightDisplay',
 state.targetWeight != null
@@ -4836,28 +4203,25 @@ state.targetWeight,
 : '—'
 );
 
-
 setText(
 'weightEntries',
 progress.length
 );
 
-
 const range =
 Number(
 document.getElementById(
 'progressRange'
-)?.value || 30
+).value || 30
 );
-
 
 const filtered =
 progress.filter(
-entry =>
+item =>
 (
 Date.now() -
 new Date(
-entry.date +
+item.date +
 'T12:00:00'
 ).getTime()
 ) <=
@@ -4865,54 +4229,45 @@ range *
 86400000
 );
 
-
 drawWeightChart(
 filtered
 );
 
-
-const history =
 document.getElementById(
 'weightHistory'
-);
-
-
-if (!history) {
-return;
-}
-
-
-history.innerHTML =
+).innerHTML =
 progress
 .slice()
 .reverse()
 .slice(0, 10)
 .map(
-(entry, index) => `
+(item, index) => `
 <div class="list-row">
 
 <div>
 
 <b>
 ${fmt(
-entry.weight,
+item.weight,
 1
-)}
-kg
+)} kg
 </b>
 
 <small>
 ${fmtDate(
-entry.date
+item.date
 )}
 </small>
 
 </div>
 
-
 <button
 class="remove-btn"
-data-remove-progress="${index}"
+data-remove-progress="${
+progress.length -
+1 -
+index
+}"
 >
 ×
 </button>
@@ -4920,10 +4275,7 @@ data-remove-progress="${index}"
 </div>
 `
 )
-.join('')
-
-||
-
+.join('') ||
 emptyList(
 'No hay registros todavía.'
 );
@@ -4932,7 +4284,7 @@ emptyList(
 
 
 function drawWeightChart(
-entries
+values
 ) {
 
 const svg =
@@ -4940,13 +4292,7 @@ document.getElementById(
 'weightChart'
 );
 
-
-if (!svg) {
-return;
-}
-
-
-if (!entries.length) {
+if (!values.length) {
 
 svg.innerHTML = `
 <text
@@ -4964,30 +4310,22 @@ return;
 
 }
 
-
-const values =
-entries.map(
-entry => entry.weight
+const weights =
+values.map(
+item =>
+item.weight
 );
 
-
 const min =
-Math.min(
-...values
-) - 1;
-
+Math.min(...weights) - 1;
 
 const max =
-Math.max(
-...values
-) + 1;
-
+Math.max(...weights) + 1;
 
 let path = '';
 
-
-values.forEach(
-(value, index) => {
+weights.forEach(
+(weight, index) => {
 
 const x =
 30 +
@@ -4996,23 +4334,17 @@ index *
 740 /
 Math.max(
 1,
-values.length - 1
+weights.length - 1
 )
 );
-
 
 const y =
 270 -
 (
-(
-value - min
-) /
-(
-max - min
-)
+(weight - min) /
+(max - min)
 ) *
 230;
-
 
 path +=
 (
@@ -5028,7 +4360,6 @@ y +
 }
 );
 
-
 svg.innerHTML = `
 
 <line
@@ -5039,7 +4370,6 @@ x2="770"
 y2="270"
 />
 
-
 <line
 class="chart-grid"
 x1="30"
@@ -5048,17 +4378,15 @@ x2="30"
 y2="270"
 />
 
-
 <path
 class="chart-line"
 d="${path}"
 />
 
-
 ${
-values
+weights
 .map(
-(value, index) => {
+(weight, index) => {
 
 const x =
 30 +
@@ -5067,23 +4395,17 @@ index *
 740 /
 Math.max(
 1,
-values.length - 1
+weights.length - 1
 )
 );
-
 
 const y =
 270 -
 (
-(
-value - min
-) /
-(
-max - min
-)
+(weight - min) /
+(max - min)
 ) *
 230;
-
 
 return `
 <circle
@@ -5120,18 +4442,17 @@ prompt(
 'Peso actual (kg):'
 );
 
-
 if (weight === null) {
 return;
 }
 
-
 const number =
 Number(weight);
 
-
 if (
-!Number.isFinite(number) ||
+!Number.isFinite(
+number
+) ||
 number <= 0
 ) {
 
@@ -5143,12 +4464,10 @@ return;
 
 }
 
-
 const note =
 prompt(
 'Nota opcional:'
 ) || '';
-
 
 state.progress.push({
 
@@ -5156,7 +4475,9 @@ id:
 uid('weight'),
 
 date:
-dateKey(new Date()),
+dateKey(
+new Date()
+),
 
 weight:
 number,
@@ -5164,7 +4485,6 @@ number,
 note
 
 });
-
 
 save();
 
@@ -5177,23 +4497,19 @@ document.addEventListener(
 'click',
 event => {
 
-const button =
+const remove =
 event.target.closest(
 '[data-remove-progress]'
 );
 
-
 if (
-!button ||
-!confirm(
+remove &&
+confirm(
 '¿Eliminar este registro?'
 )
 ) {
-return;
-}
 
-
-const sorted =
+const progress =
 state.progress
 .slice()
 .sort(
@@ -5203,32 +4519,26 @@ b.date
 )
 );
 
-
-const entry =
-sorted[
+const item =
+progress[
 Number(
-button.dataset
+remove.dataset
 .removeProgress
 )
 ];
 
-
-if (!entry) {
-return;
-}
-
-
 state.progress =
 state.progress.filter(
-item =>
-item.id !==
-entry.id
+entry =>
+entry.id !==
+item.id
 );
-
 
 save();
 
 renderProgress();
+
+}
 
 }
 );
@@ -5245,14 +4555,12 @@ document.getElementById(
 'mSex'
 ).value;
 
-
 const age =
 Number(
 document.getElementById(
 'mAge'
 ).value
 );
-
 
 const weight =
 Number(
@@ -5261,14 +4569,12 @@ document.getElementById(
 ).value
 );
 
-
 const height =
 Number(
 document.getElementById(
 'mHeight'
 ).value
 );
-
 
 const activity =
 Number(
@@ -5277,14 +4583,12 @@ document.getElementById(
 ).value
 );
 
-
 const adjustment =
 Number(
 document.getElementById(
 'mAdjustment'
 ).value
 ) || 0;
-
 
 let bmr =
 10 * weight +
@@ -5296,18 +4600,16 @@ sex === 'male'
 : -161
 );
 
-
 let maintenance =
 Math.round(
-bmr * activity
+bmr *
+activity
 );
-
 
 const goal =
 document.getElementById(
 'mGoal'
 ).value;
-
 
 if (
 goal === 'cut' &&
@@ -5318,7 +4620,6 @@ maintenance -= 300;
 
 }
 
-
 if (
 goal === 'gain' &&
 adjustment === 0
@@ -5328,22 +4629,18 @@ maintenance += 200;
 
 }
 
-
 maintenance +=
 adjustment;
-
 
 const protein =
 Math.round(
 weight * 1.8
 );
 
-
 const fat =
 Math.round(
 weight * 0.8
 );
-
 
 const carbs =
 Math.max(
@@ -5356,7 +4653,6 @@ fat * 9
 ) / 4
 )
 );
-
 
 state.maintenance = {
 
@@ -5380,7 +4676,6 @@ maintenance
 
 };
 
-
 state.goals = {
 
 calories:
@@ -5394,7 +4689,6 @@ fat
 
 };
 
-
 save();
 
 renderMaintenance();
@@ -5407,10 +4701,8 @@ function renderMaintenance() {
 const maintenance =
 state.maintenance;
 
-
 const goals =
 state.goals;
-
 
 document.getElementById(
 'mSex'
@@ -5418,13 +4710,11 @@ document.getElementById(
 maintenance.sex ||
 'male';
 
-
 document.getElementById(
 'mAge'
 ).value =
 maintenance.age ||
 18;
-
 
 document.getElementById(
 'mWeight'
@@ -5432,13 +4722,11 @@ document.getElementById(
 maintenance.weight ||
 71;
 
-
 document.getElementById(
 'mHeight'
 ).value =
 maintenance.height ||
 176;
-
 
 document.getElementById(
 'mActivity'
@@ -5446,20 +4734,17 @@ document.getElementById(
 maintenance.activity ||
 1.55;
 
-
 document.getElementById(
 'mGoal'
 ).value =
 maintenance.goal ||
 'cut';
 
-
 document.getElementById(
 'mAdjustment'
 ).value =
 maintenance.adjustment ??
 0;
-
 
 setText(
 'maintenanceResult',
@@ -5469,51 +4754,38 @@ goals.calories
 )
 );
 
-
 setText(
 'goalProteinResult',
-fmt(
-goals.protein
-) +
+fmt(goals.protein) +
 ' g'
 );
-
 
 setText(
 'goalCarbsResult',
-fmt(
-goals.carbs
-) +
+fmt(goals.carbs) +
 ' g'
 );
-
 
 setText(
 'goalFatResult',
-fmt(
-goals.fat
-) +
+fmt(goals.fat) +
 ' g'
 );
-
 
 document.getElementById(
 'goalCalInput'
 ).value =
 goals.calories;
 
-
 document.getElementById(
 'goalProteinInput'
 ).value =
 goals.protein;
 
-
 document.getElementById(
 'goalCarbsInput'
 ).value =
 goals.carbs;
-
 
 document.getElementById(
 'goalFatInput'
@@ -5572,7 +4844,6 @@ document.getElementById(
 
 };
 
-
 save();
 
 renderMaintenance();
@@ -5581,7 +4852,7 @@ renderMaintenance();
 
 
 /* =========================================================
-ASISTENTE LOCAL
+ASISTENTE
 ========================================================= */
 
 function assistantAnswer(
@@ -5591,12 +4862,10 @@ question
 const query =
 question.toLowerCase();
 
-
 const totals =
 totalsForDate(
 dateKey(new Date())
 );
-
 
 if (
 query.includes('calor') ||
@@ -5613,7 +4882,6 @@ kcal.
 
 }
 
-
 if (
 query.includes('prote')
 ) {
@@ -5629,10 +4897,8 @@ g.
 
 }
 
-
 if (
 query.includes('sesion') ||
-query.includes('sesión') ||
 query.includes('entren')
 ) {
 
@@ -5653,14 +4919,12 @@ sesiones en los últimos
 
 }
 
-
 if (
 query.includes('volumen')
 ) {
 
 const volumes =
-state.workouts
-.flatMap(
+state.workouts.flatMap(
 workout =>
 workout.exercises.map(
 exercise => ({
@@ -5673,10 +4937,7 @@ volume:
 exercise.sets ||
 []
 ).reduce(
-(
-total,
-set
-) =>
+(total, set) =>
 total +
 (
 Number(
@@ -5693,40 +4954,35 @@ set.reps
 
 })
 )
-)
-.sort(
+);
+
+volumes.sort(
 (a, b) =>
 b.volume -
 a.volume
 );
 
-
-if (!volumes.length) {
-
-return `
+return volumes[0]
+? `
+El mayor volumen registrado
+recientemente es de
+${fmt(
+volumes[0].volume
+)}
+kg en
+${volumes[0].name}.
+`
+: `
 Todavía no hay suficiente
 historial.
 `;
 
 }
 
-
-return `
-El mayor volumen registrado
-recientemente es de
-${fmt(volumes[0].volume)}
-kg en
-${volumes[0].name}.
-`;
-
-}
-
-
 return `
 Puedo consultar tus calorías,
 macros de hoy, sesiones recientes
 y progresión guardada.
-
 Prueba con:
 “¿cuánta proteína llevo hoy?”
 `;
@@ -5742,14 +4998,12 @@ if (!question.trim()) {
 return;
 }
 
-
-const messages =
+const box =
 document.getElementById(
 'assistantMessages'
 );
 
-
-messages.insertAdjacentHTML(
+box.insertAdjacentHTML(
 'beforeend',
 `
 <div class="msg user">
@@ -5764,8 +5018,7 @@ ${esc(question)}
 `
 );
 
-
-messages.insertAdjacentHTML(
+box.insertAdjacentHTML(
 'beforeend',
 `
 <div class="msg">
@@ -5784,9 +5037,8 @@ question
 `
 );
 
-
-messages.scrollTop =
-messages.scrollHeight;
+box.scrollTop =
+box.scrollHeight;
 
 }
 
@@ -5801,11 +5053,9 @@ document.getElementById(
 'assistantInput'
 );
 
-
 sendAssistant(
 input.value
 );
-
 
 input.value = '';
 
@@ -5864,36 +5114,28 @@ document
 '.training-tab'
 )
 .forEach(
-button => {
-
+button =>
 button.classList.toggle(
 'active',
 button.dataset
 .trainingTab ===
 tab
+)
 );
-
-}
-);
-
 
 document
 .querySelectorAll(
 '.training-pane'
 )
 .forEach(
-pane => {
-
+pane =>
 pane.classList.toggle(
 'active',
 pane.id ===
 'training-' +
 tab
+)
 );
-
-}
-);
-
 
 if (
 tab ===
@@ -5926,12 +5168,13 @@ button.dataset
 
 
 /* =========================================================
-EXPORTAR DATOS
+EXPORTAR / IMPORTAR
 ========================================================= */
 
 document.getElementById(
 'exportData'
-).onclick = () => {
+).onclick =
+() => {
 
 const blob =
 new Blob(
@@ -5948,42 +5191,29 @@ type:
 }
 );
 
-
-const url =
-URL.createObjectURL(
-blob
-);
-
-
 const link =
 document.createElement(
 'a'
 );
 
-
 link.href =
-url;
-
+URL.createObjectURL(
+blob
+);
 
 link.download =
-`nutri-backup-${
-dateKey(new Date())
-}.json`;
-
+`nutri-backup-${dateKey(
+new Date()
+)}.json`;
 
 link.click();
 
-
 URL.revokeObjectURL(
-url
+link.href
 );
 
 };
 
-
-/* =========================================================
-IMPORTAR DATOS
-========================================================= */
 
 document.getElementById(
 'importData'
@@ -5993,17 +5223,15 @@ event => {
 const file =
 event.target.files[0];
 
-
 if (!file) {
 return;
 }
 
-
 const reader =
 new FileReader();
 
-
-reader.onload = () => {
+reader.onload =
+() => {
 
 try {
 
@@ -6015,21 +5243,13 @@ reader.result
 )
 );
 
-
 save();
-
 
 alert(
 'Datos importados correctamente.'
 );
 
-
 } catch (error) {
-
-console.error(
-error
-);
-
 
 alert(
 'El archivo no es un backup válido de Nutri.'
@@ -6039,7 +5259,6 @@ alert(
 
 };
 
-
 reader.readAsText(
 file
 );
@@ -6048,7 +5267,7 @@ file
 
 
 /* =========================================================
-RESTABLECER DATOS
+RESTABLECER
 ========================================================= */
 
 document.getElementById(
@@ -6057,32 +5276,27 @@ document.getElementById(
 () => {
 
 if (
-!confirm(
+confirm(
 'Esto borrará todos los datos guardados en este dispositivo. ¿Continuar?'
 )
 ) {
-
-return;
-
-}
-
 
 state =
 clone(
 initialState
 );
 
-
 localStorage.removeItem(
 STORAGE_KEY
 );
-
 
 renderAll();
 
 navigate(
 'dashboard'
 );
+
+}
 
 };
 
@@ -6103,19 +5317,11 @@ renderProgress();
 
 renderMaintenance();
 
-renderRoutines();
-
-renderExercises();
-
-renderHistory();
-
-renderProgression();
-
 }
 
 
 /* =========================================================
-INICIAR APP
+INICIO
 ========================================================= */
 
 renderAll();
