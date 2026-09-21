@@ -6,220 +6,692 @@
 
 <title>Nutri</title>
 
-<!-- Estilos -->
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- CABECERA -->
-<header>
-<div class="header-content">
+<header class="topbar">
+
+<div class="brand">
+<div class="brand-icon">N</div>
+
+<div>
 <h1>Nutri</h1>
-<p>Tu calculadora nutricional</p>
+<span>Nutrición · Entrenamiento · Progreso</span>
 </div>
+</div>
+
+<nav>
+
+<button class="nav-button active" data-section="inicio">
+Nutrición
+</button>
+
+<button class="nav-button" data-section="alimentos">
+Alimentos
+</button>
+
+<button class="nav-button" data-section="entrenamiento">
+Entrenamiento
+</button>
+
+<button class="nav-button" data-section="asistente">
+Asistente
+</button>
+
+</nav>
+
 </header>
 
 
 <main class="container">
 
-<!-- BUSCADOR -->
-<section class="card">
 
-<h2>Buscar alimento</h2>
+<!-- =====================================================
+NUTRICIÓN
+===================================================== -->
 
-<div class="search-container">
+<section id="inicio" class="section active">
 
-<input
-type="text"
-id="searchInput"
-placeholder="Busca un alimento..."
-autocomplete="off"
->
+<div class="hero">
 
-</div>
+<span class="eyebrow">NUTRI</span>
 
-<!-- Resultados del buscador -->
-<div id="searchResults" class="search-results">
-<p class="empty-message">
-Escribe para buscar un alimento.
+<h2>
+Controla tu alimentación
+<strong>y tu progreso.</strong>
+</h2>
+
+<p>
+Registra tus alimentos, controla tus macros y
+lleva también tus entrenamientos.
 </p>
-</div>
-
-</section>
-
-
-<!-- ALIMENTO SELECCIONADO -->
-<section class="card">
-
-<h2>Alimento seleccionado</h2>
-
-<div id="selectedFood">
-
-<div class="empty-selected">
-<p>No has seleccionado ningún alimento.</p>
-</div>
 
 </div>
 
 
-<!-- CANTIDAD -->
-<div
-id="amountSection"
-class="amount-section"
-style="display: none;"
->
+<!-- OBJETIVOS -->
 
-<label for="amountInput">
-Cantidad
-</label>
+<div class="card">
 
-<div class="amount-row">
+<div class="card-header">
 
-<input
-type="number"
-id="amountInput"
-min="0"
-step="1"
-value="100"
->
-
-<span id="amountUnit">
-g
-</span>
-
+<div>
+<h3>Objetivos diarios</h3>
+<p>Configura tus objetivos.</p>
 </div>
 
-
-<!-- MACROS DEL ALIMENTO -->
-<div class="food-macros">
-
-<div class="macro-box">
-<strong id="foodCalories">0</strong>
-<span>kcal</span>
-</div>
-
-<div class="macro-box">
-<strong id="foodProtein">0</strong>
-<span>proteína</span>
-</div>
-
-<div class="macro-box">
-<strong id="foodCarbs">0</strong>
-<span>carbohidratos</span>
-</div>
-
-<div class="macro-box">
-<strong id="foodFat">0</strong>
-<span>grasas</span>
-</div>
-
-</div>
-
-
-<button
-id="addFoodButton"
-type="button"
->
-Añadir a mi día
+<button id="saveGoals" class="secondary-button">
+Guardar
 </button>
 
 </div>
 
+
+<div class="goals-grid">
+
+<label>
+Calorías
+<input id="goalCalories" type="number" value="2300">
+</label>
+
+<label>
+Proteína
+<input id="goalProtein" type="number" value="130">
+</label>
+
+<label>
+Carbohidratos
+<input id="goalCarbs" type="number" value="250">
+</label>
+
+<label>
+Grasas
+<input id="goalFat" type="number" value="70">
+</label>
+
+</div>
+
+</div>
+
+
+<!-- RESUMEN -->
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+<h3>Resumen de hoy</h3>
+<p>Tu consumo diario.</p>
+</div>
+
+</div>
+
+
+<div class="macro-grid">
+
+<div class="macro-card">
+
+<span>Calorías</span>
+
+<strong id="totalCalories">0 kcal</strong>
+
+<div class="progress">
+<div id="calorieProgress"></div>
+</div>
+
+<small id="calorieGoalText">
+0 / 2300 kcal
+</small>
+
+</div>
+
+
+<div class="macro-card">
+
+<span>Proteína</span>
+
+<strong id="totalProtein">0 g</strong>
+
+<div class="progress">
+<div id="proteinProgress"></div>
+</div>
+
+<small id="proteinGoalText">
+0 / 130 g
+</small>
+
+</div>
+
+
+<div class="macro-card">
+
+<span>Carbohidratos</span>
+
+<strong id="totalCarbs">0 g</strong>
+
+<div class="progress">
+<div id="carbsProgress"></div>
+</div>
+
+<small id="carbsGoalText">
+0 / 250 g
+</small>
+
+</div>
+
+
+<div class="macro-card">
+
+<span>Grasas</span>
+
+<strong id="totalFat">0 g</strong>
+
+<div class="progress">
+<div id="fatProgress"></div>
+</div>
+
+<small id="fatGoalText">
+0 / 70 g
+</small>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- BUSCADOR -->
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+<h3>Añadir alimento</h3>
+<p>Busca un alimento.</p>
+</div>
+
+</div>
+
+
+<div class="search-box">
+
+<input
+id="foodSearch"
+type="text"
+autocomplete="off"
+placeholder="Buscar pollo, arroz, leche..."
+>
+
+<div id="searchResults" class="search-results"></div>
+
+</div>
+
+
+<div id="selectedFoodBox" class="selected-food hidden">
+
+<div class="selected-food-title">
+
+<div>
+
+<span>Alimento seleccionado</span>
+
+<h3 id="selectedFoodName">
+---
+</h3>
+
+</div>
+
+<button id="clearSelection" class="icon-button">
+×
+</button>
+
+</div>
+
+
+<div class="quantity-row">
+
+<label>
+Cantidad
+
+<div class="grams-input">
+
+<input
+id="grams"
+type="number"
+min="0"
+value="100"
+>
+
+<span>g</span>
+
+</div>
+
+</label>
+
+
+<button id="addFood" class="primary-button">
+Añadir al día
+</button>
+
+</div>
+
+
+<div class="food-preview">
+
+<div>
+<span>Calorías</span>
+<strong id="foodCalories">0 kcal</strong>
+</div>
+
+<div>
+<span>Proteína</span>
+<strong id="foodProtein">0 g</strong>
+</div>
+
+<div>
+<span>Carbohidratos</span>
+<strong id="foodCarbs">0 g</strong>
+</div>
+
+<div>
+<span>Grasas</span>
+<strong id="foodFat">0 g</strong>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ALIMENTOS DEL DÍA -->
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+<h3>Alimentos de hoy</h3>
+<p>Tu registro diario.</p>
+</div>
+
+<button id="clearDay" class="danger-button">
+Vaciar día
+</button>
+
+</div>
+
+
+<div id="dailyFoods" class="daily-foods"></div>
+
+</div>
+
 </section>
 
 
-<!-- RESUMEN DIARIO -->
-<section class="card">
 
-<h2>Resumen del día</h2>
+<!-- =====================================================
+ALIMENTOS
+===================================================== -->
 
+<section id="alimentos" class="section">
 
-<!-- TOTALES -->
-<div class="daily-macros">
+<div class="page-title">
 
-<div class="daily-macro calories">
+<span class="eyebrow">BASE DE DATOS</span>
 
-<span class="macro-label">
-Calorías
-</span>
+<h2>Alimentos</h2>
 
-<strong id="totalCalories">
-0
-</strong>
-
-<span>
-kcal
-</span>
+<p>
+Alimentos disponibles en Nutri.
+</p>
 
 </div>
 
 
-<div class="daily-macro">
+<div class="card">
 
-<span class="macro-label">
-Proteína
-</span>
+<div class="database-top">
 
-<strong id="totalProtein">
-0
-</strong>
+<div>
+<strong id="foodCount">0</strong>
+<span>alimentos disponibles</span>
+</div>
 
-<span>
-g
-</span>
+<input
+id="databaseSearch"
+type="text"
+placeholder="Buscar alimento..."
+>
 
 </div>
 
 
-<div class="daily-macro">
+<div id="foodDatabaseList" class="food-database-list"></div>
 
-<span class="macro-label">
-Carbohidratos
-</span>
+</div>
 
-<strong id="totalCarbs">
-0
-</strong>
+</section>
 
-<span>
-g
-</span>
+
+
+<!-- =====================================================
+ENTRENAMIENTO
+===================================================== -->
+
+<section id="entrenamiento" class="section">
+
+<div class="page-title">
+
+<span class="eyebrow">HIPERTROFIA</span>
+
+<h2>Entrenamiento</h2>
+
+<p>
+Registra tus ejercicios, series, repeticiones, peso y RIR.
+</p>
 
 </div>
 
 
-<div class="daily-macro">
+<!-- RESUMEN DEL ENTRENAMIENTO -->
 
-<span class="macro-label">
-Grasas
-</span>
+<div class="training-stats">
 
-<strong id="totalFat">
-0
-</strong>
+<div class="training-stat">
+<span>Sesiones</span>
+<strong id="trainingSessions">0</strong>
+</div>
 
-<span>
-g
-</span>
+<div class="training-stat">
+<span>Series registradas</span>
+<strong id="trainingSets">0</strong>
+</div>
 
+<div class="training-stat">
+<span>Volumen</span>
+<strong id="trainingVolume">0 kg</strong>
 </div>
 
 </div>
 
 
-<!-- LISTA DE ALIMENTOS DEL DÍA -->
-<div class="daily-foods-container">
+<!-- CREAR ENTRENAMIENTO -->
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+<h3>Nuevo entrenamiento</h3>
+<p>Selecciona un ejercicio y registra tus series.</p>
+</div>
+
+</div>
+
+
+<div class="training-form">
+
+<label>
+Grupo muscular
+
+<select id="muscleFilter">
+
+<option value="Todos">
+Todos
+</option>
+
+<option value="Pecho">
+Pecho
+</option>
+
+<option value="Espalda">
+Espalda
+</option>
+
+<option value="Hombros">
+Hombros
+</option>
+
+<option value="Bíceps">
+Bíceps
+</option>
+
+<option value="Tríceps">
+Tríceps
+</option>
+
+<option value="Cuádriceps">
+Cuádriceps
+</option>
+
+<option value="Femoral">
+Femoral
+</option>
+
+<option value="Gemelos">
+Gemelos
+</option>
+
+<option value="Abdomen">
+Abdomen
+</option>
+
+</select>
+
+</label>
+
+
+<label>
+
+Ejercicio
+
+<select id="exerciseSelect"></select>
+
+</label>
+
+</div>
+
+
+<div id="exerciseInfo" class="exercise-info"></div>
+
+
+<div class="set-form">
+
+<label>
+Peso (kg)
+
+<input
+id="setWeight"
+type="number"
+min="0"
+step="0.25"
+value="0"
+>
+
+</label>
+
+
+<label>
+Repeticiones
+
+<input
+id="setReps"
+type="number"
+min="1"
+value="10"
+>
+
+</label>
+
+
+<label>
+RIR
+
+<input
+id="setRir"
+type="number"
+min="0"
+max="5"
+value="1"
+>
+
+</label>
+
+
+<button
+id="addSet"
+class="primary-button"
+>
+Añadir serie
+</button>
+
+</div>
+
+
+<div class="current-exercise">
+
+<div class="current-exercise-header">
 
 <h3>
-Alimentos de hoy
+Series del ejercicio
 </h3>
 
-<div id="dailyFoods">
+<button
+id="finishExercise"
+class="secondary-button"
+>
+Guardar ejercicio
+</button>
 
-<p class="empty-message">
-Todavía no has añadido ningún alimento.
+</div>
+
+
+<div id="currentSets"></div>
+
+</div>
+
+</div>
+
+
+<!-- ENTRENAMIENTO ACTUAL -->
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+<h3>Entrenamiento actual</h3>
+
+<p>
+Ejercicios que has registrado en esta sesión.
 </p>
+</div>
+
+<button
+id="finishWorkout"
+class="primary-button"
+>
+Finalizar entrenamiento
+</button>
+
+</div>
+
+
+<div id="currentWorkout"></div>
+
+</div>
+
+
+<!-- HISTORIAL -->
+
+<div class="card">
+
+<div class="card-header">
+
+<div>
+<h3>Historial</h3>
+
+<p>
+Tus entrenamientos guardados.
+</p>
+</div>
+
+<button
+id="clearTrainingHistory"
+class="danger-button"
+>
+Borrar historial
+</button>
+
+</div>
+
+
+<div id="trainingHistory"></div>
+
+</div>
+
+</section>
+
+
+
+<!-- =====================================================
+ASISTENTE
+===================================================== -->
+
+<section id="asistente" class="section">
+
+<div class="page-title">
+
+<span class="eyebrow">ASISTENTE</span>
+
+<h2>Asistente nutricional</h2>
+
+<p>
+Pregunta sobre tus alimentos, macros o entrenamiento.
+</p>
+
+</div>
+
+
+<div class="assistant-card">
+
+<div id="assistantMessages" class="assistant-messages">
+
+<div class="assistant-message bot">
+
+<strong>Nutri</strong>
+
+<p>
+Hola. Puedo consultar tus datos de hoy y ayudarte
+con cálculos básicos de nutrición y entrenamiento.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="assistant-input">
+
+<input
+id="assistantInput"
+type="text"
+placeholder="Ej: ¿Cuánta proteína llevo hoy?"
+>
+
+<button
+id="assistantSend"
+class="primary-button"
+>
+Enviar
+</button>
 
 </div>
 
@@ -230,14 +702,17 @@ Todavía no has añadido ningún alimento.
 </main>
 
 
-<!--
-IMPORTANTE:
+<footer>
 
-La base de datos NO está aquí.
+<p>
+Nutri · Nutrición y entrenamiento
+</p>
 
-foods.js contendrá los 10.000–20.000 alimentos.
+</footer>
 
-script.js será el encargado de utilizar esa base de datos.
+
+<!-- IMPORTANTE:
+foods.js ANTES de script.js
 -->
 
 <script src="foods.js"></script>
