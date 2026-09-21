@@ -1,676 +1,331 @@
-// ======================================================
-// NUTRI - SCRIPT PRINCIPAL
-// ======================================================
+document.addEventListener("DOMContentLoaded", () => {
 
-// La base de datos se carga desde foods.js
-// y debe existir como variable global: foods
+// =========================
+// ELEMENTOS DE LA PÁGINA
+// =========================
 
-let selectedFood = null;
-let dailyFoods = [];
-
-
-// ======================================================
-// ELEMENTOS DE LA WEB
-// ======================================================
-
-const searchInput = document.getElementById("searchInput");
+const searchInput = document.getElementById("foodSearch");
 const searchResults = document.getElementById("searchResults");
 
-const selectedFoodContainer = document.getElementById("selectedFood");
-
-const amountSection = document.getElementById("amountSection");
-const amountInput = document.getElementById("amountInput");
-const amountUnit = document.getElementById("amountUnit");
-
+const selectedFoodName = document.getElementById("selectedFoodName");
+const gramsInput = document.getElementById("grams");
 const foodCalories = document.getElementById("foodCalories");
 const foodProtein = document.getElementById("foodProtein");
 const foodCarbs = document.getElementById("foodCarbs");
 const foodFat = document.getElementById("foodFat");
 
-const addFoodButton = document.getElementById("addFoodButton");
+const addFoodButton = document.getElementById("addFood");
+
+const dailyFoodsContainer = document.getElementById("dailyFoods");
 
 const totalCalories = document.getElementById("totalCalories");
 const totalProtein = document.getElementById("totalProtein");
 const totalCarbs = document.getElementById("totalCarbs");
 const totalFat = document.getElementById("totalFat");
 
-const dailyFoodsContainer = document.getElementById("dailyFoods");
 
-
-// ======================================================
+// =========================
 // COMPROBAR BASE DE DATOS
-// ======================================================
+// =========================
 
-if (!Array.isArray(window.foods)) {
-
-console.error(
-"No se ha encontrado la base de datos 'foods'. " +
-"Comprueba que foods.js está cargado correctamente."
-);
-
-searchResults.innerHTML = `
-<p class="empty-message">
-No se ha podido cargar la base de datos de alimentos.
-</p>
-`;
-
-} else {
-
-console.log(
-`Nutri: ${foods.length.toLocaleString("es-ES")} alimentos cargados.`
-);
-
+if (typeof foods === "undefined" || !Array.isArray(foods)) {
+console.error("No se ha podido cargar foods.js");
+return;
 }
 
+console.log("Base de datos cargada:", foods.length, "alimentos");
 
-// ======================================================
+
+// =========================
+// VARIABLES
+// =========================
+
+let selectedFood = null;
+let dailyFoods = [];
+
+
+// =========================
 // BUSCADOR
-// ======================================================
+// =========================
 
-let searchTimeout = null;
+if (searchInput) {
 
-searchInput.addEventListener("input", function () {
+searchInput.addEventListener("input", () => {
 
-const query = searchInput.value
-.trim()
-.toLowerCase();
+const search = normalizeText(searchInput.value.trim());
 
-clearTimeout(searchTimeout);
-
-searchTimeout = setTimeout(() => {
-
-searchFoods(query);
-
-}, 120);
-
-});
-
-
-// ======================================================
-// BUSCAR ALIMENTOS
-// ======================================================
-
-function searchFoods(query) {
-
-if (!Array.isArray(window.foods)) {
+if (!search) {
+if (searchResults) {
+searchResults.innerHTML = "";
+}
 return;
 }
 
-if (query.length === 0) {
+const results = foods
+.filter(food => {
 
-searchResults.innerHTML = `
-<p class="empty-message">
-Escribe para buscar un alimento.
-</p>
-`;
-
-return;
-}
-
-
-if (query.length < 2) {
-
-searchResults.innerHTML = `
-<p class="empty-message">
-Escribe al menos 2 caracteres.
-</p>
-`;
-
-return;
-}
-
-
-const normalizedQuery = normalizeText(query);
-
-const words = normalizedQuery
-.split(/\s+/)
-.filter(Boolean);
-
-
-const results = [];
-
-
-// Primero buscamos coincidencias exactas o muy relevantes
-for (const food of foods) {
-
-if (!food || !food.name) {
-continue;
-}
-
-const name = normalizeText(food.name);
+const name = normalizeText(food.name || "");
 const brand = normalizeText(food.brand || "");
 const category = normalizeText(food.category || "");
 
-
-let score = 0;
-
-
-// Nombre empieza por la búsqueda
-if (name.startsWith(normalizedQuery)) {
-score += 100;
-}
-
-// El nombre contiene la búsqueda
-else if (name.includes(normalizedQuery)) {
-score += 70;
-}
-
-
-// Marca
-if (brand.includes(normalizedQuery)) {
-score += 35;
-}
-
-
-// Categoría
-if (category.includes(normalizedQuery)) {
-score += 20;
-}
-
-
-// Comprobar cada palabra
-let allWordsFound = true;
-
-for (const word of words) {
-
-if (
-!name.includes(word) &&
-!brand.includes(word) &&
-!category.includes(word)
-) {
-allWordsFound = false;
-break;
-}
-
-}
-
-if (allWordsFound) {
-score += 40;
-}
-
-
-if (score > 0) {
-
-results.push({
-food,
-score
-});
-
-}
-
-
-// No necesitamos recorrer millones de resultados
-// una vez tenemos suficientes candidatos.
-}
-
-
-results.sort((a, b) => {
-
-if (b.score !== a.score) {
-return b.score - a.score;
-}
-
-return a.food.name.localeCompare(
-b.food.name,
-"es"
+return (
+name.includes(search) ||
+brand.includes(search) ||
+category.includes(search)
 );
 
+})
+.slice(0, 30);
+
+renderSearchResults(results);
 });
-
-
-const limitedResults = results
-.slice(0, 50)
-.map(result => result.food);
-
-
-renderSearchResults(
-limitedResults,
-results.length
-);
-
 }
 
 
-// ======================================================
-// NORMALIZAR TEXTO
-// ======================================================
-
-function normalizeText(text) {
-
-return String(text)
-.toLowerCase()
-.normalize("NFD")
-.replace(/[\u0300-\u036f]/g, "")
-.trim();
-
-}
-
-
-// ======================================================
+// =========================
 // MOSTRAR RESULTADOS
-// ======================================================
+// =========================
 
-function renderSearchResults(results, totalMatches) {
+function renderSearchResults(results) {
+
+if (!searchResults) return;
+
+searchResults.innerHTML = "";
 
 if (results.length === 0) {
 
 searchResults.innerHTML = `
-<p class="empty-message">
-No se ha encontrado ningún alimento.
-</p>
+<div class="no-results">
+No se han encontrado alimentos
+</div>
 `;
 
 return;
 }
 
-
-searchResults.innerHTML = "";
-
-
 results.forEach(food => {
 
-const item = document.createElement("div");
+const result = document.createElement("div");
 
-item.className = "food";
+result.className = "food-result";
 
-item.innerHTML = `
-
-<div class="food-name">
-${escapeHTML(food.name)}
-</div>
-
-<div class="food-info">
-
-${food.brand
-? escapeHTML(food.brand) + " · "
-: ""
-}
-
-${Number(food.calories || 0).toFixed(0)} kcal
-
-·
-
-${Number(food.protein || 0).toFixed(1)} g proteína
-
-·
-
-${Number(food.carbs || 0).toFixed(1)} g carbohidratos
-
-·
-
-${Number(food.fat || 0).toFixed(1)} g grasa
-
-<span>
-/ 100 g
-</span>
-
-</div>
+result.innerHTML = `
+<strong>${escapeHTML(food.name)}</strong>
+${food.brand ? `<span>${escapeHTML(food.brand)}</span>` : ""}
+<small>
+${formatNumber(food.calories)} kcal ·
+${formatNumber(food.protein)} g proteína
+</small>
 `;
 
-
-item.addEventListener("click", () => {
-
+result.addEventListener("click", () => {
 selectFood(food);
-
 });
 
-
-searchResults.appendChild(item);
-
+searchResults.appendChild(result);
 });
-
-
-if (totalMatches > results.length) {
-
-const info = document.createElement("p");
-
-info.className = "empty-message";
-
-info.textContent =
-`Mostrando ${results.length} de ` +
-`${totalMatches.toLocaleString("es-ES")} resultados. ` +
-`Sigue escribiendo para afinar la búsqueda.`;
-
-searchResults.appendChild(info);
-
-}
-
 }
 
 
-// ======================================================
+// =========================
 // SELECCIONAR ALIMENTO
-// ======================================================
+// =========================
 
 function selectFood(food) {
 
 selectedFood = food;
 
+if (selectedFoodName) {
+selectedFoodName.textContent = food.name;
+}
 
-const brandHTML = food.brand
-? `
-<div class="food-selected-brand">
-${escapeHTML(food.brand)}
-</div>
-`
-: "";
+if (gramsInput) {
+gramsInput.value = 100;
+}
 
+if (searchResults) {
+searchResults.innerHTML = "";
+}
 
-const categoryHTML = food.category
-? `
-<div class="food-selected-category">
-${escapeHTML(food.category)}
-</div>
-`
-: "";
-
-
-selectedFoodContainer.innerHTML = `
-
-<div class="selected-food-card">
-
-<h3>
-${escapeHTML(food.name)}
-</h3>
-
-${brandHTML}
-
-${categoryHTML}
-
-<div class="selected-food-nutrition">
-
-<div>
-<strong>
-${formatNumber(food.calories)}
-</strong>
-<span>kcal / 100 g</span>
-</div>
-
-<div>
-<strong>
-${formatNumber(food.protein)} g
-</strong>
-<span>proteína</span>
-</div>
-
-<div>
-<strong>
-${formatNumber(food.carbs)} g
-</strong>
-<span>carbohidratos</span>
-</div>
-
-<div>
-<strong>
-${formatNumber(food.fat)} g
-</strong>
-<span>grasas</span>
-</div>
-
-</div>
-
-</div>
-`;
-
-
-amountSection.style.display = "block";
-
-amountInput.value = 100;
+if (searchInput) {
+searchInput.value = food.name;
+}
 
 updateFoodCalculation();
-
 }
 
 
-// ======================================================
-// CAMBIAR CANTIDAD
-// ======================================================
-
-amountInput.addEventListener(
-"input",
-updateFoodCalculation
-);
-
+// =========================
+// CALCULAR MACROS
+// =========================
 
 function updateFoodCalculation() {
 
-if (!selectedFood) {
-return;
+if (!selectedFood) return;
+
+const grams = Number(gramsInput?.value) || 0;
+
+const multiplier = grams / 100;
+
+const calories = selectedFood.calories * multiplier;
+const protein = selectedFood.protein * multiplier;
+const carbs = selectedFood.carbs * multiplier;
+const fat = selectedFood.fat * multiplier;
+
+
+if (foodCalories) {
+foodCalories.textContent = `${formatNumber(calories)} kcal`;
+}
+
+if (foodProtein) {
+foodProtein.textContent = `${formatNumber(protein)} g`;
+}
+
+if (foodCarbs) {
+foodCarbs.textContent = `${formatNumber(carbs)} g`;
+}
+
+if (foodFat) {
+foodFat.textContent = `${formatNumber(fat)} g`;
+}
 }
 
 
-let amount = Number(
-amountInput.value
-);
+// =========================
+// CAMBIAR GRAMOS
+// =========================
 
-
-if (!Number.isFinite(amount) || amount < 0) {
-amount = 0;
+if (gramsInput) {
+gramsInput.addEventListener("input", updateFoodCalculation);
 }
 
 
-const multiplier = amount / 100;
+// =========================
+// AÑADIR AL DÍA
+// =========================
 
+if (addFoodButton) {
 
-const calories =
-Number(selectedFood.calories || 0)
-* multiplier;
-
-
-const protein =
-Number(selectedFood.protein || 0)
-* multiplier;
-
-
-const carbs =
-Number(selectedFood.carbs || 0)
-* multiplier;
-
-
-const fat =
-Number(selectedFood.fat || 0)
-* multiplier;
-
-
-foodCalories.textContent =
-formatNumber(calories);
-
-
-foodProtein.textContent =
-formatNumber(protein);
-
-
-foodCarbs.textContent =
-formatNumber(carbs);
-
-
-foodFat.textContent =
-formatNumber(fat);
-
-}
-
-
-// ======================================================
-// AÑADIR ALIMENTACIÓN AL DÍA
-// ======================================================
-
-addFoodButton.addEventListener(
-"click",
-addFoodToDay
-);
-
-
-function addFoodToDay() {
+addFoodButton.addEventListener("click", () => {
 
 if (!selectedFood) {
+alert("Primero selecciona un alimento.");
 return;
 }
 
+const grams = Number(gramsInput?.value) || 0;
 
-let amount = Number(
-amountInput.value
-);
-
-
-if (!Number.isFinite(amount) || amount <= 0) {
-
-alert(
-"Introduce una cantidad válida."
-);
-
+if (grams <= 0) {
+alert("Introduce una cantidad válida.");
 return;
 }
 
-
-const multiplier = amount / 100;
-
-
-const dailyFood = {
-
-id:
-selectedFood.id ||
-crypto.randomUUID(),
-
-name:
-selectedFood.name,
-
-brand:
-selectedFood.brand || "",
-
-amount:
-amount,
-
-calories:
-Number(selectedFood.calories || 0)
-* multiplier,
-
-protein:
-Number(selectedFood.protein || 0)
-* multiplier,
-
-carbs:
-Number(selectedFood.carbs || 0)
-* multiplier,
-
-fat:
-Number(selectedFood.fat || 0)
-* multiplier
-
-};
-
-
-dailyFoods.push(dailyFood);
-
+dailyFoods.push({
+id: generateId(),
+food: selectedFood,
+grams: grams
+});
 
 renderDailyFoods();
-
 updateDailyTotals();
 
+});
 }
 
 
-// ======================================================
+// =========================
 // MOSTRAR ALIMENTOS DEL DÍA
-// ======================================================
+// =========================
 
 function renderDailyFoods() {
+
+if (!dailyFoodsContainer) return;
+
+dailyFoodsContainer.innerHTML = "";
 
 if (dailyFoods.length === 0) {
 
 dailyFoodsContainer.innerHTML = `
-<p class="empty-message">
-Todavía no has añadido ningún alimento.
-</p>
+<div class="empty-day">
+Todavía no has añadido alimentos.
+</div>
 `;
 
 return;
 }
 
+dailyFoods.forEach(item => {
 
-dailyFoodsContainer.innerHTML = "";
+const food = item.food;
+const grams = item.grams;
+
+const multiplier = grams / 100;
+
+const calories = food.calories * multiplier;
+const protein = food.protein * multiplier;
+const carbs = food.carbs * multiplier;
+const fat = food.fat * multiplier;
 
 
-dailyFoods.forEach((food, index) => {
+const element = document.createElement("div");
 
-const row = document.createElement("div");
+element.className = "daily-food";
 
-row.className = "food-row";
+element.innerHTML = `
+<div class="daily-food-info">
 
+<strong>${escapeHTML(food.name)}</strong>
 
-row.innerHTML = `
+<span>${formatNumber(grams)} g</span>
 
-<div class="food-row-info">
-
-<strong>
-${escapeHTML(food.name)}
-</strong>
-
-${
-food.brand
-? `<small>${escapeHTML(food.brand)}</small>`
-: ""
-}
-
-<span>
-${formatNumber(food.amount)} g
-</span>
-
-<span>
-${formatNumber(food.calories)} kcal
-</span>
+<small>
+${formatNumber(calories)} kcal ·
+${formatNumber(protein)} P ·
+${formatNumber(carbs)} C ·
+${formatNumber(fat)} G
+</small>
 
 </div>
 
-
 <button
+class="remove-food"
+data-id="${item.id}"
 type="button"
-class="remove"
-data-index="${index}"
 >
 Eliminar
 </button>
 `;
 
 
-const removeButton =
-row.querySelector(".remove");
+const removeButton = element.querySelector(".remove-food");
 
-
-removeButton.addEventListener(
-"click",
-() => {
-
-removeFoodFromDay(index);
-
-}
-);
-
-
-dailyFoodsContainer.appendChild(row);
-
+removeButton.addEventListener("click", () => {
+removeFoodFromDay(item.id);
 });
 
+
+dailyFoodsContainer.appendChild(element);
+
+});
 }
 
 
-// ======================================================
+// =========================
 // ELIMINAR ALIMENTO
-// ======================================================
+// =========================
 
-function removeFoodFromDay(index) {
+function removeFoodFromDay(id) {
 
-dailyFoods.splice(index, 1);
+dailyFoods = dailyFoods.filter(item => item.id !== id);
 
 renderDailyFoods();
-
 updateDailyTotals();
-
 }
 
 
-// ======================================================
-// TOTALES DIARIOS
-// ======================================================
+// =========================
+// TOTALES DEL DÍA
+// =========================
 
 function updateDailyTotals() {
 
@@ -680,77 +335,64 @@ let carbs = 0;
 let fat = 0;
 
 
-dailyFoods.forEach(food => {
+dailyFoods.forEach(item => {
 
-calories += Number(
-food.calories || 0
-);
+const multiplier = item.grams / 100;
 
-protein += Number(
-food.protein || 0
-);
-
-carbs += Number(
-food.carbs || 0
-);
-
-fat += Number(
-food.fat || 0
-);
+calories += item.food.calories * multiplier;
+protein += item.food.protein * multiplier;
+carbs += item.food.carbs * multiplier;
+fat += item.food.fat * multiplier;
 
 });
 
 
-totalCalories.textContent =
-formatNumber(calories);
+if (totalCalories) {
+totalCalories.textContent = `${formatNumber(calories)} kcal`;
+}
 
+if (totalProtein) {
+totalProtein.textContent = `${formatNumber(protein)} g`;
+}
 
-totalProtein.textContent =
-formatNumber(protein);
+if (totalCarbs) {
+totalCarbs.textContent = `${formatNumber(carbs)} g`;
+}
 
-
-totalCarbs.textContent =
-formatNumber(carbs);
-
-
-totalFat.textContent =
-formatNumber(fat);
-
+if (totalFat) {
+totalFat.textContent = `${formatNumber(fat)} g`;
+}
 }
 
 
-// ======================================================
-// FORMATEAR NÚMEROS
-// ======================================================
+// =========================
+// UTILIDADES
+// =========================
+
+function normalizeText(text) {
+
+return text
+.toLowerCase()
+.normalize("NFD")
+.replace(/[\u0300-\u036f]/g, "");
+
+}
+
 
 function formatNumber(number) {
 
-const value = Number(number);
-
-
-if (!Number.isFinite(value)) {
+if (!Number.isFinite(number)) {
 return "0";
 }
 
-
-return value.toLocaleString(
-"es-ES",
-{
-minimumFractionDigits: 0,
-maximumFractionDigits: 1
-}
-);
+return Number(number.toFixed(1)).toString();
 
 }
 
 
-// ======================================================
-// SEGURIDAD HTML
-// ======================================================
+function escapeHTML(text) {
 
-function escapeHTML(value) {
-
-return String(value)
+return String(text)
 .replace(/&/g, "&amp;")
 .replace(/</g, "&lt;")
 .replace(/>/g, "&gt;")
@@ -760,12 +402,26 @@ return String(value)
 }
 
 
-// ======================================================
-// INICIO
-// ======================================================
+function generateId() {
+
+if (
+typeof crypto !== "undefined" &&
+typeof crypto.randomUUID === "function"
+) {
+return crypto.randomUUID();
+}
+
+return Date.now().toString() + Math.random().toString(16).slice(2);
+
+}
+
+
+// =========================
+// INICIALIZAR
+// =========================
 
 renderDailyFoods();
-
 updateDailyTotals();
 
-console.log("Nutri iniciado correctamente.");
+});
+
