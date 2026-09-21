@@ -1,4 +1,4 @@
-/* Nutri — aplicación local.
+* Nutri — aplicación local.
 foods.js se mantiene separado e intacto.
 */
 
@@ -66,6 +66,7 @@ ESTADO INICIAL
 ========================================================= */
 
 const initialState = {
+
 goals: {
 calories: 2300,
 protein: 130,
@@ -84,6 +85,10 @@ adjustment: -400
 },
 
 nutrition: {},
+
+/* NUEVO:
+aquí se guardan los alimentos creados por ti */
+customFoods: [],
 
 progress: [],
 
@@ -107,7 +112,8 @@ let selectedFood = null;
 let selectedRoutineId = null;
 let editingRoutineId = null;
 
-let currentNutritionDate = dateKey(new Date());
+let currentNutritionDate =
+dateKey(new Date());
 
 let workoutTimer = null;
 
@@ -117,30 +123,56 @@ UTILIDADES
 ========================================================= */
 
 function clone(value) {
-return JSON.parse(JSON.stringify(value));
+
+return JSON.parse(
+JSON.stringify(value)
+);
+
 }
 
 
 function loadState() {
+
 try {
-const raw = localStorage.getItem(STORAGE_KEY);
+
+const raw =
+localStorage.getItem(
+STORAGE_KEY
+);
 
 if (!raw) {
-return clone(initialState);
+
+return clone(
+initialState
+);
+
 }
 
-return merge(initialState, JSON.parse(raw));
+return merge(
+initialState,
+JSON.parse(raw)
+);
 
 } catch (error) {
-console.error('Error cargando datos:', error);
-return clone(initialState);
+
+console.error(
+'Error cargando datos:',
+error
+);
+
+return clone(
+initialState
+);
+
 }
+
 }
 
 
 function merge(a, b) {
 
-const out = clone(a);
+const out =
+clone(a);
 
 for (const key in b) {
 
@@ -150,16 +182,24 @@ typeof b[key] === 'object' &&
 !Array.isArray(b[key]) &&
 typeof out[key] === 'object'
 ) {
-out[key] = merge(out[key], b[key]);
+
+out[key] =
+merge(
+out[key],
+b[key]
+);
 
 } else {
 
-out[key] = b[key];
+out[key] =
+b[key];
 
 }
+
 }
 
 return out;
+
 }
 
 
@@ -171,6 +211,7 @@ JSON.stringify(state)
 );
 
 renderAll();
+
 }
 
 
@@ -179,10 +220,14 @@ function uid(prefix = 'id') {
 return (
 prefix +
 '_' +
-Math.random().toString(36).slice(2, 9) +
+Math.random()
+.toString(36)
+.slice(2, 9) +
 '_' +
-Date.now().toString(36)
+Date.now()
+.toString(36)
 );
+
 }
 
 
@@ -190,10 +235,12 @@ function dateKey(date) {
 
 return new Date(
 date.getTime() -
-date.getTimezoneOffset() * 60000
+date.getTimezoneOffset() *
+60000
 )
 .toISOString()
 .slice(0, 10);
+
 }
 
 
@@ -212,12 +259,15 @@ key + 'T12:00:00'
 'es-ES',
 opts
 );
+
 }
 
 
 function esc(value) {
 
-return String(value ?? '').replace(
+return String(
+value ?? ''
+).replace(
 /[&<>'"]/g,
 char => ({
 '&': '&amp;',
@@ -227,27 +277,72 @@ char => ({
 '"': '&quot;'
 }[char])
 );
+
 }
 
 
-function allExercises() {
+function fmt(
+number,
+decimals = 0
+) {
 
-return [
-...defaultExercises,
-...state.customExercises
-];
+return Number(
+number || 0
+).toLocaleString(
+'es-ES',
+{
+maximumFractionDigits:
+decimals
 }
-
-
-function getExercise(id) {
-
-return allExercises().find(
-exercise => exercise.id === id
 );
+
 }
 
 
-function pct(value, goal) {
+function setText(
+id,
+value
+) {
+
+const element =
+document.getElementById(id);
+
+if (element) {
+
+element.textContent =
+value;
+
+}
+
+}
+
+
+function setBar(
+id,
+value,
+goal
+) {
+
+const element =
+document.getElementById(id);
+
+if (element) {
+
+element.style.width =
+pct(
+value,
+goal
+) + '%';
+
+}
+
+}
+
+
+function pct(
+value,
+goal
+) {
 
 return goal
 ? Math.min(
@@ -258,25 +353,122 @@ value / goal * 100
 )
 )
 : 0;
+
+}
+
+
+function withinDays(
+date,
+days
+) {
+
+return (
+Date.now() -
+new Date(
+date + 'T23:59:59'
+).getTime()
+) <=
+days * 86400000;
+
+}
+
+
+function emptyList(text) {
+
+return `
+<div class="list-row">
+<span>${esc(text)}</span>
+</div>
+`;
+
+}
+
+
+/* =========================================================
+EJERCICIOS
+========================================================= */
+
+function allExercises() {
+
+return [
+...defaultExercises,
+...state.customExercises
+];
+
+}
+
+
+function getExercise(id) {
+
+return allExercises().find(
+exercise =>
+exercise.id === id
+);
+
+}
+
+
+/* =========================================================
+ALIMENTOS
+========================================================= */
+
+/*
+NUEVO:
+
+Junta los 358 alimentos de foods.js
+con los alimentos que tú hayas creado.
+*/
+
+function allFoods() {
+
+return [
+...FOOD_DATABASE,
+...(state.customFoods || [])
+];
+
+}
+
+
+function getFood(id) {
+
+return allFoods().find(
+food =>
+String(food.id) ===
+String(id)
+);
+
 }
 
 
 function todayLog() {
 
-return state.nutrition[currentNutritionDate] || [];
+return (
+state.nutrition[
+currentNutritionDate
+] || []
+);
+
 }
 
 
 function totalsForDate(key) {
 
-return (state.nutrition[key] || [])
-.reduce(
+return (
+state.nutrition[key] || []
+).reduce(
 (total, food) => {
 
-total.calories += Number(food.calories) || 0;
-total.protein += Number(food.protein) || 0;
-total.carbs += Number(food.carbs) || 0;
-total.fat += Number(food.fat) || 0;
+total.calories +=
+Number(food.calories) || 0;
+
+total.protein +=
+Number(food.protein) || 0;
+
+total.carbs +=
+Number(food.carbs) || 0;
+
+total.fat +=
+Number(food.fat) || 0;
 
 return total;
 
@@ -288,60 +480,7 @@ carbs: 0,
 fat: 0
 }
 );
-}
 
-
-function fmt(number, decimals = 0) {
-
-return Number(number || 0)
-.toLocaleString(
-'es-ES',
-{
-maximumFractionDigits: decimals
-}
-);
-}
-
-
-function setText(id, value) {
-
-const element = document.getElementById(id);
-
-if (element) {
-element.textContent = value;
-}
-}
-
-
-function setBar(id, value, goal) {
-
-const element = document.getElementById(id);
-
-if (element) {
-element.style.width =
-pct(value, goal) + '%';
-}
-}
-
-
-function withinDays(date, days) {
-
-return (
-Date.now() -
-new Date(
-date + 'T23:59:59'
-).getTime()
-) <= days * 86400000;
-}
-
-
-function emptyList(text) {
-
-return `
-<div class="list-row">
-<span>${esc(text)}</span>
-</div>
-`;
 }
 
 
@@ -357,7 +496,8 @@ document
 
 section.classList.toggle(
 'active',
-section.id === 'view-' + view
+section.id ===
+'view-' + view
 );
 
 });
@@ -369,7 +509,8 @@ document
 
 button.classList.toggle(
 'active',
-button.dataset.view === view
+button.dataset.view ===
+view
 );
 
 });
@@ -382,20 +523,29 @@ behavior: 'smooth'
 
 
 if (view === 'nutrition') {
+
 renderNutrition();
+
 }
 
 if (view === 'training') {
+
 renderTraining();
+
 }
 
 if (view === 'progress') {
+
 renderProgress();
+
 }
 
 if (view === 'maintenance') {
+
 renderMaintenance();
+
 }
+
 }
 
 
@@ -404,7 +554,9 @@ document.addEventListener(
 event => {
 
 const navigation =
-event.target.closest('[data-view]');
+event.target.closest(
+'[data-view]'
+);
 
 if (navigation) {
 
@@ -413,6 +565,7 @@ navigation.dataset.view
 );
 
 return;
+
 }
 
 
@@ -527,6 +680,7 @@ var(--accent)
 ${degrees}deg,
 #2b323d 0deg
 )`;
+
 }
 
 
@@ -616,7 +770,10 @@ sessions
 <div class="list-row">
 
 <div>
-<b>${esc(workout.name)}</b>
+
+<b>
+${esc(workout.name)}
+</b>
 
 <small>
 ${fmtDate(workout.date)}
@@ -624,6 +781,7 @@ ${fmtDate(workout.date)}
 ${workout.exercises.length}
 ejercicios
 </small>
+
 </div>
 
 <b>
@@ -637,6 +795,7 @@ ${fmt(workoutVolume(workout))} kg
 emptyList(
 'Todavía no hay sesiones.'
 );
+
 }
 
 
@@ -657,7 +816,9 @@ todayLog()
 
 <div>
 
-<b>${esc(food.name)}</b>
+<b>
+${esc(food.name)}
+</b>
 
 <small>
 ${fmt(food.grams, 1)} g
@@ -676,7 +837,9 @@ ${fmt(food.calories)} kcal
 emptyList(
 'No hay alimentos registrados hoy.'
 );
+
 }
+
 }
 
 
@@ -716,9 +879,9 @@ fmt(totals.calories)
 
 setText(
 'nutCalGoal',
-fmt(goals.calories) + ' kcal'
+fmt(goals.calories) +
+' kcal'
 );
-
 
 setText(
 'nutCalRemaining',
@@ -741,17 +904,20 @@ goals.calories
 
 setText(
 'nutProtein',
-fmt(totals.protein) + ' g'
+fmt(totals.protein) +
+' g'
 );
 
 setText(
 'nutCarbs',
-fmt(totals.carbs) + ' g'
+fmt(totals.carbs) +
+' g'
 );
 
 setText(
 'nutFat',
-fmt(totals.fat) + ' g'
+fmt(totals.fat) +
+' g'
 );
 
 
@@ -794,6 +960,9 @@ setBar(
 totals.fat,
 goals.fat
 );
+
+
+renderCustomFoods();
 
 
 const foodLog =
@@ -885,6 +1054,7 @@ Añade un alimento para empezar.
 
 </div>
 `;
+
 }
 
 
@@ -914,7 +1084,9 @@ return;
 state.nutrition[
 currentNutritionDate
 ].splice(
-Number(button.dataset.removeFood),
+Number(
+button.dataset.removeFood
+),
 1
 );
 
@@ -922,6 +1094,463 @@ Number(button.dataset.removeFood),
 save();
 
 renderNutrition();
+
+}
+);
+
+
+/* =========================================================
+MIS ALIMENTOS
+========================================================= */
+
+function renderCustomFoods() {
+
+const container =
+document.getElementById(
+'customFoodList'
+);
+
+
+if (!container) {
+return;
+}
+
+
+const customFoods =
+state.customFoods || [];
+
+
+if (!customFoods.length) {
+
+container.innerHTML = `
+<div class="empty-state">
+
+<h3>
+Aún no tienes alimentos propios
+</h3>
+
+<p>
+Guarda un alimento de tu casa
+y aparecerá siempre en el buscador.
+</p>
+
+</div>
+`;
+
+return;
+}
+
+
+container.innerHTML =
+customFoods
+.map(
+food => `
+<div class="food-row">
+
+<div>
+
+<strong>
+${esc(food.name)}
+</strong>
+
+<small>
+
+${
+food.brand
+? esc(food.brand) +
+' · '
+: ''
+}
+
+${fmt(food.calories)}
+kcal ·
+
+${fmt(food.protein, 1)}P ·
+
+${fmt(food.carbs, 1)}C ·
+
+${fmt(food.fat, 1)}G
+
+/ 100 g
+
+</small>
+
+</div>
+
+
+<div class="food-actions">
+
+<button
+type="button"
+class="secondary-btn"
+data-edit-custom-food="${esc(food.id)}"
+>
+Editar
+</button>
+
+
+<button
+type="button"
+class="remove-btn"
+data-delete-custom-food="${esc(food.id)}"
+>
+×
+</button>
+
+</div>
+
+</div>
+`
+)
+.join('');
+
+}
+
+
+function openCustomFoodModal(
+id = null
+) {
+
+const modal =
+document.getElementById(
+'customFoodModal'
+);
+
+
+if (!modal) {
+return;
+}
+
+
+const food =
+id
+? state.customFoods.find(
+item =>
+String(item.id) ===
+String(id)
+)
+: null;
+
+
+document.getElementById(
+'customFoodModalTitle'
+).textContent =
+food
+? 'Editar alimento'
+: 'Añadir alimento propio';
+
+
+document.getElementById(
+'customFoodId'
+).value =
+food?.id || '';
+
+
+document.getElementById(
+'customFoodName'
+).value =
+food?.name || '';
+
+
+document.getElementById(
+'customFoodBrand'
+).value =
+food?.brand || '';
+
+
+document.getElementById(
+'customFoodCalories'
+).value =
+food?.calories ?? '';
+
+
+document.getElementById(
+'customFoodProtein'
+).value =
+food?.protein ?? '';
+
+
+document.getElementById(
+'customFoodCarbs'
+).value =
+food?.carbs ?? '';
+
+
+document.getElementById(
+'customFoodFat'
+).value =
+food?.fat ?? '';
+
+
+modal.showModal();
+
+}
+
+
+document
+.getElementById(
+'openCustomFoodModal'
+)
+?.addEventListener(
+'click',
+() =>
+openCustomFoodModal()
+);
+
+
+document
+.getElementById(
+'closeCustomFoodModal'
+)
+?.addEventListener(
+'click',
+() =>
+document
+.getElementById(
+'customFoodModal'
+)
+?.close()
+);
+
+
+document
+.getElementById(
+'customFoodForm'
+)
+?.addEventListener(
+'submit',
+event => {
+
+event.preventDefault();
+
+
+const name =
+document
+.getElementById(
+'customFoodName'
+)
+.value
+.trim();
+
+
+const brand =
+document
+.getElementById(
+'customFoodBrand'
+)
+.value
+.trim();
+
+
+const calories =
+Number(
+document
+.getElementById(
+'customFoodCalories'
+)
+.value
+);
+
+
+const protein =
+Number(
+document
+.getElementById(
+'customFoodProtein'
+)
+.value
+);
+
+
+const carbs =
+Number(
+document
+.getElementById(
+'customFoodCarbs'
+)
+.value
+);
+
+
+const fat =
+Number(
+document
+.getElementById(
+'customFoodFat'
+)
+.value
+);
+
+
+if (
+!name ||
+!Number.isFinite(calories) ||
+!Number.isFinite(protein) ||
+!Number.isFinite(carbs) ||
+!Number.isFinite(fat) ||
+calories < 0 ||
+protein < 0 ||
+carbs < 0 ||
+fat < 0
+) {
+
+alert(
+'Completa todos los datos correctamente.'
+);
+
+return;
+
+}
+
+
+const id =
+document.getElementById(
+'customFoodId'
+).value;
+
+
+const existing =
+id
+? state.customFoods.find(
+item =>
+String(item.id) ===
+String(id)
+)
+: null;
+
+
+const food = {
+
+id:
+id ||
+uid('custom-food'),
+
+name,
+
+brand,
+
+category:
+'Mis alimentos',
+
+calories,
+
+protein,
+
+carbs,
+
+fat,
+
+custom:
+true,
+
+createdAt:
+existing?.createdAt ||
+new Date().toISOString()
+
+};
+
+
+if (id) {
+
+const index =
+state.customFoods.findIndex(
+item =>
+String(item.id) ===
+String(id)
+);
+
+
+if (index !== -1) {
+
+state.customFoods[index] =
+food;
+
+}
+
+} else {
+
+state.customFoods.push(
+food
+);
+
+}
+
+
+save();
+
+
+document
+.getElementById(
+'customFoodModal'
+)
+?.close();
+
+
+renderCustomFoods();
+
+}
+);
+
+
+document.addEventListener(
+'click',
+event => {
+
+const edit =
+event.target.closest(
+'[data-edit-custom-food]'
+);
+
+
+if (edit) {
+
+openCustomFoodModal(
+edit.dataset
+.editCustomFood
+);
+
+return;
+
+}
+
+
+const remove =
+event.target.closest(
+'[data-delete-custom-food]'
+);
+
+
+if (!remove) {
+return;
+}
+
+
+if (
+!confirm(
+'¿Eliminar este alimento personalizado?'
+)
+) {
+return;
+}
+
+
+const id =
+remove.dataset
+.deleteCustomFood;
+
+
+state.customFoods =
+state.customFoods.filter(
+food =>
+String(food.id) !==
+String(id)
+);
+
+
+save();
+
+renderCustomFoods();
+
 }
 );
 
@@ -945,7 +1574,9 @@ document
 .getElementById(
 'foodAmount'
 )
-.classList.add('hidden');
+.classList.add(
+'hidden'
+);
 
 
 document
@@ -970,12 +1601,14 @@ document
 .focus(),
 50
 );
+
 }
 
 
 document.getElementById(
 'openFoodModal'
-).onclick = openFoodModal;
+).onclick =
+openFoodModal;
 
 
 document.getElementById(
@@ -989,7 +1622,9 @@ event.target.value
 );
 
 
-function renderFoodResults(query) {
+function renderFoodResults(
+query
+) {
 
 const term =
 query
@@ -997,13 +1632,20 @@ query
 .toLowerCase();
 
 
+/*
+IMPORTANTE:
+usamos allFoods(), no FOOD_DATABASE,
+para que también aparezcan tus alimentos.
+*/
+
 const results =
-FOOD_DATABASE
+allFoods()
 .filter(food => {
 
 if (!term) {
 return true;
 }
+
 
 return `${food.name} ${
 food.brand || ''
@@ -1027,7 +1669,7 @@ food => `
 <button
 type="button"
 class="food-result"
-data-food-id="${food.id}"
+data-food-id="${esc(food.id)}"
 >
 
 <span>
@@ -1037,7 +1679,10 @@ ${esc(food.name)}
 </b>
 
 <small>
-${esc(food.category || '')}
+
+${esc(
+food.category || ''
+)}
 
 ${
 food.brand
@@ -1045,13 +1690,16 @@ food.brand
 esc(food.brand)
 : ''
 }
+
 </small>
 
 </span>
 
 <strong>
+
 ${fmt(food.calories)}
 kcal
+
 </strong>
 
 </button>
@@ -1070,6 +1718,7 @@ No se encontraron alimentos.
 
 </div>
 `;
+
 }
 
 
@@ -1088,11 +1737,19 @@ return;
 }
 
 
+/*
+También usamos allFoods() aquí.
+Así funciona tanto para los 358 originales
+como para los creados por ti.
+*/
+
 selectedFood =
-FOOD_DATABASE.find(
+allFoods().find(
 food =>
 String(food.id) ===
-String(button.dataset.foodId)
+String(
+button.dataset.foodId
+)
 );
 
 
@@ -1120,7 +1777,9 @@ document
 .getElementById(
 'foodAmount'
 )
-.classList.remove('hidden');
+.classList.remove(
+'hidden'
+);
 
 
 document
@@ -1128,6 +1787,7 @@ document
 'foodGrams'
 )
 .focus();
+
 }
 );
 
@@ -1160,7 +1820,8 @@ grams / 100;
 
 const item = {
 
-id: uid('food'),
+id:
+uid('food'),
 
 foodId:
 selectedFood.id,
@@ -1215,6 +1876,7 @@ document
 
 
 selectedFood = null;
+
 };
 
 
@@ -1239,6 +1901,7 @@ dateKey(date);
 
 
 renderNutrition();
+
 };
 
 
@@ -1263,6 +1926,7 @@ dateKey(date);
 
 
 renderNutrition();
+
 };
 
 
@@ -1274,6 +1938,7 @@ currentNutritionDate =
 dateKey(new Date());
 
 renderNutrition();
+
 };
 
 
@@ -1285,7 +1950,8 @@ function blankSet() {
 
 return {
 
-id: uid('set'),
+id:
+uid('set'),
 
 weight: '',
 reps: '',
@@ -1300,10 +1966,13 @@ rightWeight: '',
 rightReps: ''
 
 };
+
 }
 
 
-function exerciseForSession(exercise) {
+function exerciseForSession(
+exercise
+) {
 
 return {
 
@@ -1328,6 +1997,7 @@ blankSet()
 ]
 
 };
+
 }
 
 
@@ -1389,10 +2059,13 @@ exercises
 save();
 
 renderTraining();
+
 }
 
 
-function workoutVolume(workout) {
+function workoutVolume(
+workout
+) {
 
 return (
 workout.exercises || []
@@ -1404,7 +2077,10 @@ total +
 (
 exercise.sets || []
 ).reduce(
-(subtotal, set) => {
+(
+subtotal,
+set
+) => {
 
 if (!set.done) {
 return subtotal;
@@ -1422,13 +2098,21 @@ return (
 subtotal +
 
 (
-(Number(set.leftWeight) || 0) *
-(Number(set.leftReps) || 0)
+(Number(
+set.leftWeight
+) || 0) *
+(Number(
+set.leftReps
+) || 0)
 ) +
 
 (
-(Number(set.rightWeight) || 0) *
-(Number(set.rightReps) || 0)
+(Number(
+set.rightWeight
+) || 0) *
+(Number(
+set.rightReps
+) || 0)
 )
 );
 
@@ -1445,8 +2129,12 @@ exercise.type ===
 return (
 subtotal +
 (
-(Number(set.weight) || 0) *
-(Number(set.reps) || 0) *
+(Number(
+set.weight
+) || 0) *
+(Number(
+set.reps
+) || 0) *
 multiplier
 )
 );
@@ -1459,6 +2147,7 @@ multiplier
 },
 0
 );
+
 }
 
 
@@ -1469,10 +2158,13 @@ return state.activeWorkout
 state.activeWorkout
 )
 : 0;
+
 }
 
 
-function formatDuration(seconds) {
+function formatDuration(
+seconds
+) {
 
 return (
 
@@ -1505,6 +2197,7 @@ seconds % 60
 ).padStart(2, '0')
 
 );
+
 }
 
 
@@ -1519,6 +2212,7 @@ renderExercises();
 renderHistory();
 
 renderProgression();
+
 }
 
 
@@ -1539,7 +2233,10 @@ document.getElementById(
 );
 
 
-if (!noSession || !activeSession) {
+if (
+!noSession ||
+!activeSession
+) {
 return;
 }
 
@@ -1607,7 +2304,9 @@ Number(set.rir)
 )
 .filter(
 value =>
-Number.isFinite(value)
+Number.isFinite(
+value
+)
 )
 );
 
@@ -1617,9 +2316,11 @@ setText(
 rirs.length
 ? fmt(
 rirs.reduce(
-(a, b) => a + b,
+(a, b) =>
+a + b,
 0
-) / rirs.length,
+) /
+rirs.length,
 1
 )
 : '—'
@@ -1631,7 +2332,10 @@ document.getElementById(
 ).innerHTML =
 session.exercises
 .map(
-(exercise, exerciseIndex) =>
+(
+exercise,
+exerciseIndex
+) =>
 renderSessionExercise(
 exercise,
 exerciseIndex
@@ -1673,6 +2377,7 @@ seconds
 },
 1000
 );
+
 }
 
 
@@ -1691,7 +2396,10 @@ exercise.unilateralMode ===
 const rows =
 exercise.sets
 .map(
-(set, setIndex) => {
+(
+set,
+setIndex
+) => {
 
 if (separateSides) {
 
@@ -1770,6 +2478,7 @@ ${set.done ? 'checked' : ''}
 
 </tr>
 `;
+
 }
 
 
@@ -1836,6 +2545,7 @@ ${set.done ? 'checked' : ''}
 
 </tr>
 `;
+
 }
 )
 .join('');
@@ -1951,6 +2661,7 @@ data-add-set="${exerciseIndex}"
 
 </article>
 `;
+
 }
 
 
@@ -1977,20 +2688,26 @@ return;
 
 
 const exercise =
-state.activeWorkout.exercises[
-Number(field.dataset.ei)
+state.activeWorkout
+.exercises[
+Number(
+field.dataset.ei
+)
 ];
 
 
 const set =
 exercise.sets[
-Number(field.dataset.si)
+Number(
+field.dataset.si
+)
 ];
 
 
 set[
 field.dataset.setField
-] = field.value;
+] =
+field.value;
 
 
 localStorage.setItem(
@@ -2000,6 +2717,7 @@ JSON.stringify(state)
 
 
 updateSessionStatsOnly();
+
 }
 );
 
@@ -2024,10 +2742,14 @@ return;
 
 state.activeWorkout
 .exercises[
-Number(checkbox.dataset.ei)
+Number(
+checkbox.dataset.ei
+)
 ]
 .sets[
-Number(checkbox.dataset.si)
+Number(
+checkbox.dataset.si
+)
 ]
 .done =
 checkbox.checked;
@@ -2036,6 +2758,7 @@ checkbox.checked;
 save();
 
 renderSession();
+
 }
 );
 
@@ -2053,8 +2776,11 @@ event.target.closest(
 if (addSet) {
 
 const exercise =
-state.activeWorkout.exercises[
-Number(addSet.dataset.addSet)
+state.activeWorkout
+.exercises[
+Number(
+addSet.dataset.addSet
+)
 ];
 
 
@@ -2068,6 +2794,7 @@ save();
 renderSession();
 
 return;
+
 }
 
 
@@ -2093,7 +2820,9 @@ removeExercise.dataset
 save();
 
 renderSession();
+
 }
+
 }
 );
 
@@ -2107,7 +2836,9 @@ return;
 
 setText(
 'sessionSets',
-state.activeWorkout.exercises.reduce(
+state.activeWorkout
+.exercises
+.reduce(
 (total, exercise) =>
 total +
 exercise.sets.filter(
@@ -2120,9 +2851,12 @@ set => set.done
 
 setText(
 'sessionVolume',
-fmt(sessionVolume()) +
+fmt(
+sessionVolume()
+) +
 ' kg'
 );
+
 }
 
 
@@ -2165,7 +2899,8 @@ session
 );
 
 
-state.activeWorkout = null;
+state.activeWorkout =
+null;
 
 
 clearInterval(
@@ -2178,24 +2913,28 @@ save();
 renderTraining();
 
 navigate('training');
+
 }
 
 
 document.getElementById(
 'quickWorkout'
-).onclick = () =>
+).onclick =
+() =>
 startWorkout();
 
 
 document.getElementById(
 'startFreeBtn'
-).onclick = () =>
+).onclick =
+() =>
 startWorkout();
 
 
 document.getElementById(
 'emptyStartBtn'
-).onclick = () =>
+).onclick =
+() =>
 startWorkout();
 
 
@@ -2213,7 +2952,8 @@ openExerciseChooserForSession;
 
 document.getElementById(
 'sessionNoteBtn'
-).onclick = () =>
+).onclick =
+() =>
 document
 .getElementById(
 'noteModal'
@@ -2223,7 +2963,8 @@ document
 
 document.getElementById(
 'saveSessionNote'
-).onclick = () => {
+).onclick =
+() => {
 
 if (!state.activeWorkout) {
 return;
@@ -2244,6 +2985,7 @@ document
 'noteModal'
 )
 .close();
+
 };
 
 
@@ -2387,6 +3129,7 @@ item.textContent
 : 'none';
 
 });
+
 };
 
 
@@ -2430,13 +3173,16 @@ modal.close();
 modal.remove();
 
 renderSession();
+
 };
 
 
 modal.addEventListener(
 'close',
-() => modal.remove()
+() =>
+modal.remove()
 );
+
 }
 
 
@@ -2589,6 +3335,7 @@ los ejercicios que quieras.
 
 </div>
 `;
+
 }
 
 
@@ -2596,13 +3343,15 @@ function openRoutineModal(
 id = null
 ) {
 
-editingRoutineId = id;
+editingRoutineId =
+id;
 
 
 const routine =
 id
 ? state.routines.find(
-item => item.id === id
+item =>
+item.id === id
 )
 : null;
 
@@ -2637,6 +3386,7 @@ document
 'routineModal'
 )
 .showModal();
+
 }
 
 
@@ -2699,19 +3449,22 @@ exercise.type ===
 `
 )
 .join('');
+
 }
 
 
 document.getElementById(
 'newRoutineBtn'
 ).onclick =
-() => openRoutineModal();
+() =>
+openRoutineModal();
 
 
 document.getElementById(
 'newRoutineBtn2'
 ).onclick =
-() => openRoutineModal();
+() =>
+openRoutineModal();
 
 
 document.getElementById(
@@ -2736,7 +3489,8 @@ renderRoutines;
 
 document.getElementById(
 'saveRoutineBtn'
-).onclick = () => {
+).onclick =
+() => {
 
 const name =
 document.getElementById(
@@ -2756,7 +3510,8 @@ const exercises =
 )
 ]
 .map(
-input => input.value
+input =>
+input.value
 );
 
 
@@ -2818,6 +3573,7 @@ document
 
 
 renderRoutines();
+
 };
 
 
@@ -2837,7 +3593,8 @@ const routine =
 state.routines.find(
 item =>
 item.id ===
-start.dataset.startRoutine
+start.dataset
+.startRoutine
 );
 
 
@@ -2851,6 +3608,7 @@ routine
 }
 
 return;
+
 }
 
 
@@ -2863,10 +3621,12 @@ event.target.closest(
 if (edit) {
 
 openRoutineModal(
-edit.dataset.editRoutine
+edit.dataset
+.editRoutine
 );
 
 return;
+
 }
 
 
@@ -2887,13 +3647,15 @@ state.routines =
 state.routines.filter(
 routine =>
 routine.id !==
-remove.dataset.deleteRoutine
+remove.dataset
+.deleteRoutine
 );
 
 
 save();
 
 renderRoutines();
+
 }
 
 }
@@ -2941,6 +3703,7 @@ return (
 matchesSearch &&
 matchesMuscle
 );
+
 }
 );
 
@@ -3072,11 +3835,14 @@ exercise.name
 
 
 if (previous) {
+
 select.value =
 previous;
+
 }
 
 }
+
 }
 
 
@@ -3094,7 +3860,8 @@ renderExercises;
 
 document.getElementById(
 'newExerciseBtn'
-).onclick = () => {
+).onclick =
+() => {
 
 document.getElementById(
 'exerciseModalTitle'
@@ -3117,6 +3884,7 @@ document
 'exerciseModal'
 )
 .showModal();
+
 };
 
 
@@ -3141,12 +3909,14 @@ document.getElementById(
 'unilateral'
 ? 'grid'
 : 'none';
+
 }
 
 
 document.getElementById(
 'exerciseForm'
-).onsubmit = event => {
+).onsubmit =
+event => {
 
 event.preventDefault();
 
@@ -3208,6 +3978,7 @@ document
 
 
 renderExercises();
+
 };
 
 
@@ -3289,7 +4060,10 @@ kg
 ${
 workout.exercises
 .reduce(
-(total, exercise) =>
+(
+total,
+exercise
+) =>
 total +
 exercise.sets.filter(
 set => set.done
@@ -3378,6 +4152,7 @@ set.rightReps ||
 0
 }
 `;
+
 }
 
 
@@ -3401,6 +4176,7 @@ set.rir ||
 '—'
 }
 `;
+
 }
 )
 .join(' · ')
@@ -3456,6 +4232,7 @@ aparecerá aquí.
 
 </div>
 `;
+
 }
 
 
@@ -3471,7 +4248,9 @@ event.target.closest(
 
 if (
 item &&
-!event.target.closest('button')
+!event.target.closest(
+'button'
+)
 ) {
 
 item.classList.toggle(
@@ -3485,7 +4264,7 @@ item.classList.toggle(
 
 
 /* =========================================================
-PROGRESIÓN DE EJERCICIOS
+PROGRESIÓN
 ========================================================= */
 
 function renderProgression() {
@@ -3518,9 +4297,11 @@ getExercise(id);
 
 if (!exercise) {
 
-content.innerHTML = '';
+content.innerHTML =
+'';
 
 return;
+
 }
 
 
@@ -3538,9 +4319,7 @@ id
 );
 
 
-if (
-!exerciseData
-) {
+if (!exerciseData) {
 return;
 }
 
@@ -3615,6 +4394,7 @@ set.reps
 ) || 0
 ) *
 multiplier;
+
 }
 
 }
@@ -3779,9 +4559,7 @@ exercise.name
 
 <div class="mini-chart">
 
-${
-progressSvg(rows)
-}
+${progressSvg(rows)}
 
 </div>
 
@@ -3842,6 +4620,7 @@ emptyList(
 
 </div>
 `;
+
 }
 
 
@@ -3859,6 +4638,7 @@ para ver la progresión.
 
 </div>
 `;
+
 }
 
 
@@ -3869,11 +4649,15 @@ row => row.top
 
 
 const max =
-Math.max(...values);
+Math.max(
+...values
+);
 
 
 const min =
-Math.min(...values);
+Math.min(
+...values
+);
 
 
 const range =
@@ -3892,7 +4676,8 @@ index /
 values.length - 1 ||
 1
 )
-) * 100;
+) *
+100;
 
 
 const y =
@@ -3902,10 +4687,12 @@ const y =
 value - min
 ) /
 range
-) * 70;
+) *
+70;
 
 
 return `${x},${y}`;
+
 }
 )
 .join(' ');
@@ -3952,7 +4739,8 @@ values.length -
 1 ||
 1
 )
-) * 100;
+) *
+100;
 
 
 const y =
@@ -3963,7 +4751,8 @@ value -
 min
 ) /
 range
-) * 70;
+) *
+70;
 
 
 return `
@@ -3974,6 +4763,7 @@ r="2"
 fill="var(--accent)"
 />
 `;
+
 }
 )
 .join('')
@@ -3981,6 +4771,7 @@ fill="var(--accent)"
 
 </svg>
 `;
+
 }
 
 
@@ -4016,7 +4807,10 @@ progress.length - 1
 setText(
 'currentWeight',
 current != null
-? fmt(current, 1)
+? fmt(
+current,
+1
+)
 : '—'
 );
 
@@ -4133,6 +4927,7 @@ data-remove-progress="${index}"
 emptyList(
 'No hay registros todavía.'
 );
+
 }
 
 
@@ -4166,6 +4961,7 @@ para ver la gráfica
 `;
 
 return;
+
 }
 
 
@@ -4228,6 +5024,7 @@ x +
 ' ' +
 y +
 ' ';
+
 }
 );
 
@@ -4296,12 +5093,14 @@ cy="${y}"
 r="5"
 />
 `;
+
 }
 )
 .join('')
 }
 
 `;
+
 }
 
 
@@ -4313,7 +5112,8 @@ renderProgress;
 
 document.getElementById(
 'addProgressBtn'
-).onclick = () => {
+).onclick =
+() => {
 
 const weight =
 prompt(
@@ -4340,6 +5140,7 @@ alert(
 );
 
 return;
+
 }
 
 
@@ -4368,6 +5169,7 @@ note
 save();
 
 renderProgress();
+
 };
 
 
@@ -4427,6 +5229,7 @@ entry.id
 save();
 
 renderProgress();
+
 }
 );
 
@@ -4595,6 +5398,7 @@ fat
 save();
 
 renderMaintenance();
+
 }
 
 
@@ -4715,6 +5519,7 @@ document.getElementById(
 'goalFatInput'
 ).value =
 goals.fat;
+
 }
 
 
@@ -4732,7 +5537,8 @@ calculateMaintenance();
 
 document.getElementById(
 'saveManualGoals'
-).onclick = () => {
+).onclick =
+() => {
 
 state.goals = {
 
@@ -4770,6 +5576,7 @@ document.getElementById(
 save();
 
 renderMaintenance();
+
 };
 
 
@@ -4803,6 +5610,7 @@ kcal de un objetivo de
 ${fmt(state.goals.calories)}
 kcal.
 `;
+
 }
 
 
@@ -4818,6 +5626,7 @@ Tu objetivo guardado es
 ${fmt(state.goals.protein)}
 g.
 `;
+
 }
 
 
@@ -4841,6 +5650,7 @@ workout.date,
 sesiones en los últimos
 7 días.
 `;
+
 }
 
 
@@ -4897,6 +5707,7 @@ return `
 Todavía no hay suficiente
 historial.
 `;
+
 }
 
 
@@ -4907,6 +5718,7 @@ ${fmt(volumes[0].volume)}
 kg en
 ${volumes[0].name}.
 `;
+
 }
 
 
@@ -4918,6 +5730,7 @@ y progresión guardada.
 Prueba con:
 “¿cuánta proteína llevo hoy?”
 `;
+
 }
 
 
@@ -4974,12 +5787,14 @@ question
 
 messages.scrollTop =
 messages.scrollHeight;
+
 }
 
 
 document.getElementById(
 'assistantSend'
-).onclick = () => {
+).onclick =
+() => {
 
 const input =
 document.getElementById(
@@ -4993,6 +5808,7 @@ input.value
 
 
 input.value = '';
+
 };
 
 
@@ -5013,6 +5829,7 @@ document
 .click();
 
 }
+
 };
 
 
@@ -5086,6 +5903,7 @@ tab ===
 renderProgression();
 
 }
+
 }
 
 
@@ -5159,6 +5977,7 @@ link.click();
 URL.revokeObjectURL(
 url
 );
+
 };
 
 
@@ -5224,6 +6043,7 @@ alert(
 reader.readAsText(
 file
 );
+
 };
 
 
@@ -5233,7 +6053,8 @@ RESTABLECER DATOS
 
 document.getElementById(
 'resetData'
-).onclick = () => {
+).onclick =
+() => {
 
 if (
 !confirm(
@@ -5242,6 +6063,7 @@ if (
 ) {
 
 return;
+
 }
 
 
@@ -5261,6 +6083,7 @@ renderAll();
 navigate(
 'dashboard'
 );
+
 };
 
 
@@ -5287,6 +6110,7 @@ renderExercises();
 renderHistory();
 
 renderProgression();
+
 }
 
 
