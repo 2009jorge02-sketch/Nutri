@@ -1,0 +1,924 @@
+:root {
+--bg: #f5f7fb;
+--card: #ffffff;
+--card-2: #f8fafc;
+--text: #111827;
+--muted: #6b7280;
+--border: #e5e7eb;
+--primary: #2563eb;
+--primary-dark: #1d4ed8;
+--green: #16a34a;
+--orange: #f59e0b;
+--red: #ef4444;
+--purple: #7c3aed;
+--shadow: 0 10px 30px rgba(15, 23, 42, .06);
+--radius: 18px;
+}
+
+* {
+box-sizing: border-box;
+}
+
+body {
+margin: 0;
+font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+background: var(--bg);
+color: var(--text);
+}
+
+button,
+input,
+select,
+textarea {
+font: inherit;
+}
+
+button {
+cursor: pointer;
+}
+
+button:disabled {
+opacity: .5;
+cursor: not-allowed;
+}
+
+.sidebar {
+position: fixed;
+left: 0;
+top: 0;
+bottom: 0;
+width: 245px;
+background: var(--card);
+border-right: 1px solid var(--border);
+padding: 24px 16px;
+display: flex;
+flex-direction: column;
+z-index: 20;
+}
+
+.brand {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 4px 10px 30px;
+}
+
+.brand-logo {
+width: 42px;
+height: 42px;
+border-radius: 13px;
+display: grid;
+place-items: center;
+background: linear-gradient(135deg, #2563eb, #7c3aed);
+color: white;
+font-weight: 900;
+font-size: 20px;
+}
+
+.brand strong {
+display: block;
+font-size: 20px;
+}
+
+.brand span {
+color: var(--muted);
+font-size: 12px;
+}
+
+.nav {
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+
+.nav-item {
+width: 100%;
+border: 0;
+background: transparent;
+color: var(--muted);
+padding: 12px 14px;
+border-radius: 12px;
+text-align: left;
+display: flex;
+align-items: center;
+gap: 12px;
+font-weight: 600;
+}
+
+.nav-item:hover {
+background: var(--card-2);
+color: var(--text);
+}
+
+.nav-item.active {
+background: #eff6ff;
+color: var(--primary);
+}
+
+.sidebar-bottom {
+margin-top: auto;
+}
+
+.theme-btn {
+width: 100%;
+padding: 11px;
+border: 1px solid var(--border);
+border-radius: 12px;
+background: var(--card);
+color: var(--text);
+}
+
+.main {
+margin-left: 245px;
+min-height: 100vh;
+padding: 30px 34px 60px;
+max-width: 1600px;
+}
+
+.topbar {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 28px;
+}
+
+.eyebrow {
+color: var(--primary);
+font-size: 11px;
+font-weight: 800;
+letter-spacing: .12em;
+margin-bottom: 5px;
+}
+
+h1,
+h2,
+h3,
+p {
+margin-top: 0;
+}
+
+h1 {
+margin-bottom: 0;
+font-size: 30px;
+}
+
+h2 {
+font-size: 20px;
+margin-bottom: 16px;
+}
+
+h3 {
+font-size: 16px;
+}
+
+.primary-btn,
+.secondary-btn,
+.danger-btn,
+.small-btn {
+border: 0;
+border-radius: 11px;
+padding: 10px 15px;
+font-weight: 700;
+}
+
+.primary-btn {
+background: var(--primary);
+color: white;
+}
+
+.primary-btn:hover {
+background: var(--primary-dark);
+}
+
+.secondary-btn,
+.small-btn {
+background: var(--card-2);
+color: var(--text);
+border: 1px solid var(--border);
+}
+
+.danger-btn {
+background: #fef2f2;
+color: var(--red);
+}
+
+.small-btn {
+padding: 7px 10px;
+font-size: 12px;
+}
+
+.card {
+background: var(--card);
+border: 1px solid var(--border);
+border-radius: var(--radius);
+box-shadow: var(--shadow);
+padding: 20px;
+}
+
+.grid {
+display: grid;
+gap: 18px;
+}
+
+.grid-2 {
+grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-4 {
+grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.stat-card {
+padding: 20px;
+}
+
+.stat-label {
+color: var(--muted);
+font-size: 13px;
+font-weight: 600;
+}
+
+.stat-value {
+font-size: 28px;
+font-weight: 800;
+margin: 8px 0 3px;
+}
+
+.stat-sub {
+color: var(--muted);
+font-size: 12px;
+}
+
+.progress {
+height: 8px;
+background: #eef2f7;
+border-radius: 100px;
+overflow: hidden;
+margin-top: 12px;
+}
+
+.progress > div {
+height: 100%;
+border-radius: inherit;
+background: var(--primary);
+}
+
+.progress.green > div {
+background: var(--green);
+}
+
+.progress.orange > div {
+background: var(--orange);
+}
+
+.progress.purple > div {
+background: var(--purple);
+}
+
+.section-head {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 12px;
+margin-bottom: 15px;
+}
+
+.section-head h2 {
+margin: 0;
+}
+
+.date-row {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.date-row button {
+width: 38px;
+height: 38px;
+border: 1px solid var(--border);
+background: var(--card);
+border-radius: 10px;
+}
+
+.date-display {
+min-width: 180px;
+text-align: center;
+font-weight: 800;
+}
+
+.form-grid {
+display: grid;
+grid-template-columns: repeat(2, minmax(0, 1fr));
+gap: 14px;
+}
+
+.form-group {
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+
+.form-group.full {
+grid-column: 1 / -1;
+}
+
+label {
+font-size: 12px;
+font-weight: 700;
+color: var(--muted);
+}
+
+input,
+select,
+textarea {
+width: 100%;
+border: 1px solid var(--border);
+border-radius: 10px;
+background: var(--card);
+color: var(--text);
+padding: 11px 12px;
+outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+border-color: var(--primary);
+}
+
+textarea {
+min-height: 90px;
+resize: vertical;
+}
+
+.food-row,
+.history-row,
+.workout-row {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 15px;
+padding: 14px 0;
+border-bottom: 1px solid var(--border);
+}
+
+.food-row:last-child,
+.history-row:last-child,
+.workout-row:last-child {
+border-bottom: 0;
+}
+
+.food-info strong,
+.workout-info strong {
+display: block;
+}
+
+.food-info span,
+.workout-info span {
+color: var(--muted);
+font-size: 12px;
+}
+
+.row-actions {
+display: flex;
+gap: 6px;
+flex-wrap: wrap;
+}
+
+.empty {
+text-align: center;
+padding: 35px 15px;
+color: var(--muted);
+}
+
+.kcal-big {
+font-size: 46px;
+font-weight: 900;
+line-height: 1;
+}
+
+.kcal-label {
+color: var(--muted);
+margin-top: 5px;
+}
+
+.macro-line {
+display: flex;
+justify-content: space-between;
+margin-top: 16px;
+font-size: 13px;
+}
+
+.ring-wrap {
+display: flex;
+align-items: center;
+gap: 22px;
+}
+
+.ring {
+width: 150px;
+height: 150px;
+border-radius: 50%;
+display: grid;
+place-items: center;
+background: conic-gradient(var(--primary) 0deg, #e9eef5 0deg);
+position: relative;
+}
+
+.ring::after {
+content: "";
+width: 112px;
+height: 112px;
+background: var(--card);
+border-radius: 50%;
+position: absolute;
+}
+
+.ring-content {
+position: relative;
+z-index: 1;
+text-align: center;
+}
+
+.ring-content strong {
+display: block;
+font-size: 25px;
+}
+
+.search {
+margin-bottom: 14px;
+}
+
+.tabs {
+display: flex;
+gap: 8px;
+overflow-x: auto;
+margin-bottom: 18px;
+}
+
+.tab {
+white-space: nowrap;
+border: 1px solid var(--border);
+background: var(--card);
+padding: 9px 13px;
+border-radius: 10px;
+font-weight: 700;
+}
+
+.tab.active {
+background: var(--primary);
+color: white;
+border-color: var(--primary);
+}
+
+/* TRAINING */
+
+.training-hero {
+background: linear-gradient(135deg, #111827, #1e3a8a);
+color: white;
+border-radius: 22px;
+padding: 25px;
+display: flex;
+justify-content: space-between;
+gap: 20px;
+align-items: center;
+margin-bottom: 20px;
+}
+
+.training-hero h2 {
+margin-bottom: 7px;
+font-size: 26px;
+}
+
+.training-hero p {
+margin: 0;
+color: #cbd5e1;
+}
+
+.training-hero .primary-btn {
+background: white;
+color: #1d4ed8;
+}
+
+.training-stat {
+text-align: center;
+padding: 18px;
+}
+
+.training-stat strong {
+display: block;
+font-size: 28px;
+}
+
+.training-stat span {
+color: var(--muted);
+font-size: 12px;
+}
+
+.exercise-card {
+border: 1px solid var(--border);
+border-radius: 15px;
+padding: 16px;
+margin-bottom: 12px;
+background: var(--card-2);
+}
+
+.exercise-head {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+gap: 10px;
+margin-bottom: 12px;
+}
+
+.exercise-head h3 {
+margin-bottom: 4px;
+}
+
+.exercise-head span {
+color: var(--muted);
+font-size: 12px;
+}
+
+.set-table {
+width: 100%;
+border-collapse: collapse;
+}
+
+.set-table th {
+color: var(--muted);
+font-size: 11px;
+text-align: left;
+padding: 7px;
+}
+
+.set-table td {
+padding: 6px;
+}
+
+.set-table input {
+padding: 8px;
+min-width: 65px;
+}
+
+.set-number {
+width: 30px;
+font-weight: 800;
+color: var(--muted);
+}
+
+.set-actions {
+display: flex;
+gap: 5px;
+}
+
+.workout-editor {
+display: flex;
+flex-direction: column;
+gap: 18px;
+}
+
+.editor-toolbar {
+display: flex;
+justify-content: space-between;
+gap: 10px;
+align-items: center;
+}
+
+.exercise-progress {
+display: grid;
+grid-template-columns: 1fr auto;
+gap: 15px;
+align-items: center;
+}
+
+.pr-badge {
+padding: 6px 9px;
+border-radius: 8px;
+background: #fef3c7;
+color: #92400e;
+font-size: 11px;
+font-weight: 800;
+}
+
+.mini-chart {
+width: 100%;
+height: 130px;
+margin-top: 15px;
+}
+
+.chart-svg {
+width: 100%;
+height: 100%;
+}
+
+.chart-line {
+fill: none;
+stroke: var(--primary);
+stroke-width: 3;
+}
+
+.chart-dot {
+fill: var(--primary);
+}
+
+.metric-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 10px;
+}
+
+.metric {
+background: var(--card-2);
+padding: 12px;
+border-radius: 12px;
+}
+
+.metric span {
+display: block;
+color: var(--muted);
+font-size: 11px;
+}
+
+.metric strong {
+display: block;
+margin-top: 4px;
+font-size: 17px;
+}
+
+.modal-backdrop {
+position: fixed;
+inset: 0;
+background: rgba(15, 23, 42, .55);
+z-index: 100;
+display: grid;
+place-items: center;
+padding: 20px;
+}
+
+.modal {
+width: min(760px, 100%);
+max-height: 90vh;
+overflow: auto;
+background: var(--card);
+border-radius: 20px;
+padding: 22px;
+box-shadow: 0 30px 80px rgba(0,0,0,.2);
+}
+
+.modal.large {
+width: min(1000px, 100%);
+}
+
+.modal-head {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 18px;
+}
+
+.modal-head h2 {
+margin: 0;
+}
+
+.close-btn {
+border: 0;
+background: var(--card-2);
+border-radius: 10px;
+width: 36px;
+height: 36px;
+}
+
+.modal-actions {
+display: flex;
+justify-content: flex-end;
+gap: 8px;
+margin-top: 20px;
+}
+
+.toast-container {
+position: fixed;
+right: 20px;
+bottom: 20px;
+z-index: 200;
+}
+
+.toast {
+background: #111827;
+color: white;
+padding: 12px 16px;
+border-radius: 10px;
+margin-top: 8px;
+box-shadow: var(--shadow);
+}
+
+.weight-chart {
+height: 230px;
+}
+
+.chart-bars {
+display: flex;
+height: 100%;
+align-items: flex-end;
+gap: 7px;
+}
+
+.bar {
+flex: 1;
+background: var(--primary);
+border-radius: 6px 6px 0 0;
+min-height: 4px;
+}
+
+.setting-row {
+display: flex;
+justify-content: space-between;
+gap: 15px;
+align-items: center;
+padding: 15px 0;
+border-bottom: 1px solid var(--border);
+}
+
+.setting-row:last-child {
+border-bottom: 0;
+}
+
+.switch {
+position: relative;
+width: 48px;
+height: 26px;
+}
+
+.switch input {
+display: none;
+}
+
+.slider {
+position: absolute;
+inset: 0;
+background: #d1d5db;
+border-radius: 100px;
+}
+
+.slider::after {
+content: "";
+position: absolute;
+width: 20px;
+height: 20px;
+left: 3px;
+top: 3px;
+background: white;
+border-radius: 50%;
+transition: .2s;
+}
+
+.switch input:checked + .slider {
+background: var(--primary);
+}
+
+.switch input:checked + .slider::after {
+transform: translateX(22px);
+}
+
+.dark {
+--bg: #0b1120;
+--card: #111827;
+--card-2: #172033;
+--text: #f8fafc;
+--muted: #94a3b8;
+--border: #243047;
+--shadow: 0 10px 30px rgba(0,0,0,.18);
+}
+
+.dark .nav-item.active {
+background: #172554;
+}
+
+.dark .progress {
+background: #253044;
+}
+
+.dark .danger-btn {
+background: #3b1515;
+}
+
+.dark .ring::after {
+background: var(--card);
+}
+
+@media (max-width: 1050px) {
+.grid-4 {
+grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3 {
+grid-template-columns: repeat(2, 1fr);
+}
+}
+
+@media (max-width: 800px) {
+.sidebar {
+width: 70px;
+padding: 15px 9px;
+}
+
+.brand {
+justify-content: center;
+padding: 5px 0 20px;
+}
+
+.brand > div:last-child,
+.nav-item span,
+.theme-btn {
+display: none;
+}
+
+.brand-logo {
+width: 42px;
+}
+
+.nav-item {
+justify-content: center;
+padding: 13px 5px;
+font-size: 19px;
+}
+
+.main {
+margin-left: 70px;
+padding: 20px 15px 80px;
+}
+
+.topbar {
+align-items: flex-start;
+}
+
+.top-actions .primary-btn {
+font-size: 12px;
+padding: 9px 11px;
+}
+
+.grid-2,
+.grid-3,
+.grid-4 {
+grid-template-columns: 1fr;
+}
+
+.training-hero {
+flex-direction: column;
+align-items: flex-start;
+}
+
+.form-grid {
+grid-template-columns: 1fr;
+}
+
+.form-group.full {
+grid-column: auto;
+}
+
+.ring-wrap {
+flex-direction: column;
+}
+
+.metric-grid {
+grid-template-columns: 1fr 1fr 1fr;
+}
+
+.set-table {
+font-size: 12px;
+}
+
+.set-table input {
+min-width: 55px;
+padding: 7px 5px;
+}
+}
+
+@media (max-width: 500px) {
+h1 {
+font-size: 24px;
+}
+
+.card {
+padding: 15px;
+}
+
+.date-display {
+min-width: 130px;
+}
+
+.food-row,
+.history-row,
+.workout-row {
+align-items: flex-start;
+}
+
+.exercise-progress {
+grid-template-columns: 1fr;
+}
+}

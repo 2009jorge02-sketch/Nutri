@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>Nutri</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div id="app">
+
+<aside class="sidebar">
+<div class="brand">
+<div class="brand-logo">N</div>
+<div>
+<strong>Nutri</strong>
+<span>Tu progreso</span>
+</div>
+</div>
+
+<nav class="nav">
+<button class="nav-item active" data-view="dashboard">⌂ <span>Inicio</span></button>
+<button class="nav-item" data-view="day">☷ <span>Diario</span></button>
+<button class="nav-item" data-view="training">🏋️ <span>Entrenamiento</span></button>
+<button class="nav-item" data-view="foods">🥗 <span>Alimentos</span></button>
+<button class="nav-item" data-view="recipes">🍳 <span>Recetas</span></button>
+<button class="nav-item" data-view="history">📈 <span>Historial</span></button>
+<button class="nav-item" data-view="settings">⚙️ <span>Ajustes</span></button>
+</nav>
+
+<div class="sidebar-bottom">
+<button id="themeBtn" class="theme-btn">🌙 Modo oscuro</button>
+</div>
+</aside>
+
+<main class="main">
+<header class="topbar">
+<div>
+<div class="eyebrow">NUTRICIÓN + ENTRENAMIENTO</div>
+<h1 id="pageTitle">Inicio</h1>
+</div>
+<div class="top-actions">
+<button id="quickTrainingBtn" class="primary-btn">＋ Entrenamiento</button>
+</div>
+</header>
+
+<section id="content"></section>
+</main>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toastContainer"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
