@@ -1,4 +1,4 @@
-windows.foods = [
+const foods = [
 {
 id: "1",
 name: "Arroz blanco",
