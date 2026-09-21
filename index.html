@@ -3,330 +3,203 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0b0d12">
-<title>Nutri — nutrición y entrenamiento</title>
+<title>Nutri</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
 <div class="app-shell">
 
 <header class="topbar">
-
-<button class="brand" data-view="dashboard" aria-label="Ir al inicio">
+<button class="brand" data-view="dashboard">
 <span class="brand-mark">N</span>
 <span>
-<b>Nutri</b>
-<small>Tu panel personal</small>
+<b>NUTRI</b>
+<small>Nutrición y entrenamiento</small>
 </span>
 </button>
 
-<nav class="topnav" id="topnav">
+<nav class="topnav">
 <button class="nav-link active" data-view="dashboard">Inicio</button>
-<button class="nav-link" data-view="nutrition">Comida</button>
+<button class="nav-link" data-view="nutrition">Alimentación</button>
 <button class="nav-link" data-view="training">Entrenamiento</button>
 <button class="nav-link" data-view="progress">Progreso</button>
-<button class="nav-link" data-view="maintenance">Objetivos</button>
+<button class="nav-link" data-view="maintenance">Mantenimiento</button>
 <button class="nav-link" data-view="assistant">Asistente</button>
 </nav>
 
-<button class="icon-btn" id="settingsBtn" title="Ajustes">⚙</button>
-
+<button class="icon-btn" data-view="settings">⚙</button>
 </header>
 
-
-<main>
-
-<!-- =========================
-DASHBOARD
-========================== -->
-
+<!-- INICIO -->
 <section class="view active" id="view-dashboard">
-
 <div class="welcome-row">
-
 <div>
-<p class="eyebrow">PANEL DE HOY</p>
-<h1>Todo en un solo sitio.</h1>
-<p class="muted">
-Controla tu comida, tus entrenamientos y tu evolución sin perderte entre pantallas.
-</p>
+<p class="eyebrow">RESUMEN</p>
+<h1>Hola 👋</h1>
+<p class="muted">Tu resumen de nutrición y entrenamiento.</p>
 </div>
-
 <div class="date-chip" id="todayLabel"></div>
-
 </div>
-
 
 <div class="hero-grid">
-
-<article class="hero-card calories-card">
-
+<article class="hero-card">
 <div class="hero-card-head">
 <span>Calorías de hoy</span>
-<button class="mini-link" data-view="nutrition">
-Abrir diario →
-</button>
+<span id="dashCalGoal">2300 kcal</span>
 </div>
 
 <div class="calorie-main">
-
 <div class="donut" id="calorieDonut">
 <div>
 <strong id="dashCalories">0</strong>
-<small>
-/ <span id="dashCalGoal">0</span> kcal
-</small>
+<small>kcal</small>
 </div>
 </div>
-
 
 <div class="macro-stack">
+<div class="macro-line">
+<span><i class="dot"></i>Proteína</span>
+<b id="dashProtein">0 g</b>
+</div>
+<div class="bar"><i id="dashProteinBar"></i></div>
 
 <div class="macro-line">
-<span>
-<i class="dot protein"></i>
-Proteína
-</span>
-
-<b>
-<span id="dashProtein">0</span> g
-</b>
+<span><i class="dot carbs"></i>Carbohidratos</span>
+<b id="dashCarbs">0 g</b>
 </div>
-
-<div class="bar">
-<i id="dashProteinBar"></i>
-</div>
-
+<div class="bar"><i id="dashCarbsBar"></i></div>
 
 <div class="macro-line">
-<span>
-<i class="dot carbs"></i>
-Carbohidratos
-</span>
-
-<b>
-<span id="dashCarbs">0</span> g
-</b>
+<span><i class="dot fat"></i>Grasas</span>
+<b id="dashFat">0 g</b>
 </div>
-
-<div class="bar">
-<i id="dashCarbsBar"></i>
+<div class="bar"><i id="dashFatBar"></i></div>
 </div>
-
-
-<div class="macro-line">
-<span>
-<i class="dot fat"></i>
-Grasas
-</span>
-
-<b>
-<span id="dashFat">0</span> g
-</b>
 </div>
-
-<div class="bar">
-<i id="dashFatBar"></i>
-</div>
-
-</div>
-
-</div>
-
 </article>
 
-
-<article class="hero-card workout-card">
-
+<article class="hero-card">
 <div class="hero-card-head">
-<span>Entrenamiento</span>
-
-<button class="mini-link" data-view="training">
-Ver todo →
-</button>
+<span>Último entrenamiento</span>
 </div>
 
-
-<div class="workout-focus" id="dashWorkoutFocus">
-
-<span class="big-icon">◆</span>
-
+<div class="workout-focus">
+<div class="big-icon">🏋️</div>
 <div>
-<strong id="dashWorkoutTitle">
-Ningún entrenamiento hoy
-</strong>
-
-<p id="dashWorkoutText">
-Crea una rutina o empieza un entrenamiento libre.
-</p>
+<strong id="dashWorkoutTitle">Ningún entrenamiento</strong>
+<p id="dashWorkoutText">Crea una rutina o empieza uno libre.</p>
 </div>
-
 </div>
-
 
 <button class="primary-btn wide" id="quickWorkout">
-+ Empezar entrenamiento
+Empezar entrenamiento
 </button>
 
-
 <div class="three-stats">
-
 <div>
 <b id="dashSessions">0</b>
-<span>sesiones / 7 días</span>
+<span>Sesiones 7 días</span>
 </div>
-
 <div>
 <b id="dashSets">0</b>
-<span>series / 7 días</span>
+<span>Series</span>
 </div>
-
 <div>
 <b id="dashVolume">0</b>
-<span>kg de volumen</span>
+<span>Volumen kg</span>
 </div>
-
 </div>
-
 </article>
-
 </div>
-
 
 <div class="section-title">
-
-<div>
-<p class="eyebrow">ACCESOS RÁPIDOS</p>
-<h2>¿Qué vas a hacer?</h2>
+<h2>Accesos rápidos</h2>
 </div>
-
-</div>
-
 
 <div class="quick-grid">
-
 <button class="quick-card" data-view="nutrition">
-<span class="quick-icon food">⌁</span>
-<b>Añadir comida</b>
-<small>Busca entre tus 358 alimentos</small>
+<div class="quick-icon">🥗</div>
+<b>Alimentación</b>
+<small>Registrar alimentos y macros</small>
 </button>
 
 <button class="quick-card" data-view="training">
-<span class="quick-icon train">↗</span>
-<b>Entrenar</b>
-<small>Series, kg, reps y RIR</small>
+<div class="quick-icon">🏋️</div>
+<b>Entrenamiento</b>
+<small>Rutinas y sesiones</small>
 </button>
 
 <button class="quick-card" data-view="progress">
-<span class="quick-icon progress">◒</span>
-<b>Ver progreso</b>
-<small>Peso y rendimiento</small>
+<div class="quick-icon">📈</div>
+<b>Progreso</b>
+<small>Peso y progresión</small>
 </button>
 
 <button class="quick-card" data-view="maintenance">
-<span class="quick-icon target">◎</span>
-<b>Objetivos</b>
-<small>Calorías y macros</small>
+<div class="quick-icon">🧮</div>
+<b>Mantenimiento</b>
+<small>Calcula tus objetivos</small>
 </button>
-
 </div>
-
 
 <div class="split-grid">
-
 <article class="panel">
-
 <div class="panel-head">
-
-<div>
-<p class="eyebrow">ÚLTIMAS SESIONES</p>
-<h3>Entrenamiento reciente</h3>
+<h3>Alimentación de hoy</h3>
 </div>
-
-<button class="text-btn" data-view="training">
-Historial
-</button>
-
-</div>
-
-<div id="dashRecentWorkouts" class="list"></div>
-
+<div class="list" id="dashMeals"></div>
 </article>
 
-
 <article class="panel">
-
 <div class="panel-head">
-
-<div>
-<p class="eyebrow">DIARIO</p>
-<h3>Comidas de hoy</h3>
+<h3>Entrenamientos recientes</h3>
 </div>
-
-<button class="text-btn" data-view="nutrition">
-Diario
-</button>
-
-</div>
-
-<div id="dashMeals" class="list"></div>
-
+<div class="list" id="dashRecentWorkouts"></div>
 </article>
-
 </div>
-
 </section>
 
 
-
-<!-- =========================
-NUTRITION
-========================== -->
-
+<!-- ALIMENTACIÓN -->
 <section class="view" id="view-nutrition">
 
 <div class="page-head">
-
 <div>
 <p class="eyebrow">ALIMENTACIÓN</p>
-<h1>Tu diario de comida</h1>
+<h1>Alimentación</h1>
 <p class="muted">
-Añade cantidades y Nutri calcula automáticamente las calorías y macros.
+Busca alimentos, registra cantidades y controla tus macros.
 </p>
 </div>
 
+<div class="head-actions">
 <button class="primary-btn" id="openFoodModal">
 + Añadir alimento
 </button>
-
+</div>
 </div>
 
+<div class="day-picker">
+<button id="prevDay">‹</button>
+<button class="text-btn" id="todayDay">Hoy</button>
+<span id="nutritionDate"></span>
+<button id="nextDay">›</button>
+</div>
 
 <div class="nutrition-overview">
-
 <div class="nutrition-total">
-<span>Consumido</span>
+<span>Calorías</span>
 <strong id="nutCalories">0</strong>
-<small>kcal</small>
+<small>/ <span id="nutCalGoal">2300 kcal</span></small>
 </div>
 
 <div class="goal-meter">
-
 <div>
-<span>Objetivo</span>
-<b id="nutCalGoal">0 kcal</b>
+<span>Objetivo diario</span>
+<span id="nutCalRemaining">2300 kcal restantes</span>
 </div>
-
-<div class="big-bar">
-<i id="nutCalBar"></i>
-</div>
-
-<small id="nutCalRemaining">
-0 kcal restantes
-</small>
-
+<div class="big-bar"><i id="nutCalBar"></i></div>
 </div>
 
 <div class="macro-pill">
@@ -335,7 +208,7 @@ Añade cantidades y Nutri calcula automáticamente las calorías y macros.
 </div>
 
 <div class="macro-pill">
-<span>Carbos</span>
+<span>Carbohidratos</span>
 <b id="nutCarbs">0 g</b>
 </div>
 
@@ -343,307 +216,134 @@ Añade cantidades y Nutri calcula automáticamente las calorías y macros.
 <span>Grasas</span>
 <b id="nutFat">0 g</b>
 </div>
-
 </div>
-
-
-<div class="day-picker panel">
-
-<button id="prevDay">‹</button>
-
-<strong id="nutritionDate"></strong>
-
-<button id="nextDay">›</button>
-
-<button class="text-btn" id="todayDay">
-Hoy
-</button>
-
-</div>
-
 
 <div class="food-layout">
-
-<article class="panel meal-panel">
-
-<div class="panel-head">
-
 <div>
-<p class="eyebrow">DIARIO</p>
-<h3>Alimentos registrados</h3>
+<article class="panel">
+<div class="panel-head">
+<div>
+<h3>Diario</h3>
+<small class="muted" id="foodCount">0 alimentos</small>
+</div>
 </div>
 
-<span class="count-badge" id="foodCount">
-0
-</span>
-
-</div>
-
-<div id="foodLog" class="food-log"></div>
-
+<div class="food-log" id="foodLog"></div>
 </article>
+</div>
 
-
-<aside class="panel nutrition-side">
-
-<p class="eyebrow">OBJETIVO DE MACROS</p>
-<h3>Distribución</h3>
-
+<aside>
+<article class="panel">
+<div class="panel-head">
+<h3>Macros</h3>
+</div>
 
 <div class="side-macro">
 <span>Proteína</span>
-<b id="sideProtein">0 / 0 g</b>
-
-<div class="bar">
-<i id="sideProteinBar"></i>
+<b id="sideProtein">0 / 130 g</b>
+<div class="bar"><i id="sideProteinBar"></i></div>
 </div>
-</div>
-
 
 <div class="side-macro">
 <span>Carbohidratos</span>
-<b id="sideCarbs">0 / 0 g</b>
-
-<div class="bar">
-<i id="sideCarbsBar"></i>
+<b id="sideCarbs">0 / 260 g</b>
+<div class="bar"><i id="sideCarbsBar"></i></div>
 </div>
-</div>
-
 
 <div class="side-macro">
 <span>Grasas</span>
-<b id="sideFat">0 / 0 g</b>
-
-<div class="bar">
-<i id="sideFatBar"></i>
+<b id="sideFat">0 / 70 g</b>
+<div class="bar"><i id="sideFatBar"></i></div>
 </div>
-</div>
-
-
-<button class="secondary-btn wide" data-view="maintenance">
-Editar objetivos
-</button>
-
+</article>
 </aside>
-
 </div>
-
 </section>
 
 
-
-<!-- =========================
-TRAINING
-========================== -->
-
+<!-- ENTRENAMIENTO -->
 <section class="view" id="view-training">
 
-<div class="page-head training-head">
-
+<div class="page-head">
 <div>
-<p class="eyebrow">TRAINING STUDIO</p>
-<h1>Entrenamiento</h1>
-<p class="muted">
-Construye rutinas y registra cada serie con precisión.
-</p>
+<p class="eyebrow">ENTRENAMIENTO</p>
+<h1>Workout Studio</h1>
+<p class="muted">Rutinas, sesiones y progresión.</p>
 </div>
-
-<div class="head-actions">
-
-<button class="secondary-btn" id="newRoutineBtn">
-+ Nueva rutina
-</button>
 
 <button class="primary-btn" id="startFreeBtn">
-Empezar libre
++ Entrenamiento libre
 </button>
-
 </div>
-
-</div>
-
 
 <div class="training-tabs">
-
-<button class="training-tab active" data-training-tab="session">
-Sesión
-</button>
-
-<button class="training-tab" data-training-tab="routines">
-Rutinas
-</button>
-
-<button class="training-tab" data-training-tab="history">
-Historial
-</button>
-
-<button class="training-tab" data-training-tab="exercises">
-Ejercicios
-</button>
-
-<button class="training-tab" data-training-tab="progression">
-Progresión
-</button>
-
+<button class="training-tab active" data-training-tab="session">Sesión</button>
+<button class="training-tab" data-training-tab="routines">Rutinas</button>
+<button class="training-tab" data-training-tab="exercises">Ejercicios</button>
+<button class="training-tab" data-training-tab="history">Historial</button>
+<button class="training-tab" data-training-tab="progression">Progresión</button>
 </div>
-
 
 <div class="training-pane active" id="training-session">
 
 <div id="noSession" class="empty-state large">
+<span>🏋️</span>
+<h2>No hay entrenamiento activo</h2>
+<p>Empieza un entrenamiento libre o selecciona una rutina.</p>
+<button class="primary-btn" id="emptyStartBtn">Empezar libre</button>
+<button class="secondary-btn" id="emptyRoutineBtn">Ver rutinas</button>
+</div>
 
-<span>↗</span>
-
-<h2>Tu sesión empieza aquí</h2>
-
-<p>
-Elige una rutina guardada o empieza una sesión libre.
-Después registra kg, repeticiones y RIR serie por serie.
-</p>
-
+<div id="activeSession" class="hidden">
+<div class="session-top">
 <div>
-
-<button class="primary-btn" id="emptyStartBtn">
-Empezar libre
-</button>
-
-<button class="secondary-btn" id="emptyRoutineBtn">
-Elegir rutina
-</button>
-
+<span class="live-dot">● SESIÓN ACTIVA</span>
+<h2 id="sessionName">Entrenamiento</h2>
+<p><span id="sessionTimer">00:00:00</span></p>
 </div>
-
-</div>
-
-
-<div id="activeSession" class="session-shell hidden">
-
-<div class="session-top panel">
-
-<div>
-
-<span class="live-dot">
-● EN CURSO
-</span>
-
-<h2 id="sessionName">
-Entrenamiento
-</h2>
-
-<p id="sessionTimer">
-00:00
-</p>
-
-</div>
-
 
 <div class="session-actions">
-
-<button class="secondary-btn" id="sessionNoteBtn">
-Añadir nota
-</button>
-
-<button class="danger-btn" id="finishWorkoutBtn">
-Terminar sesión
-</button>
-
+<button class="secondary-btn" id="sessionNoteBtn">Nota</button>
+<button class="primary-btn" id="finishWorkoutBtn">Terminar</button>
 </div>
-
 </div>
-
 
 <div class="session-stats">
-
-<div>
-<span>Series</span>
-<b id="sessionSets">0</b>
+<div><span>Series</span><b id="sessionSets">0</b></div>
+<div><span>Volumen</span><b id="sessionVolume">0 kg</b></div>
+<div><span>Ejercicios</span><b id="sessionExercises">0</b></div>
+<div><span>RIR medio</span><b id="sessionRir">—</b></div>
 </div>
-
-<div>
-<span>Volumen</span>
-<b id="sessionVolume">0 kg</b>
-</div>
-
-<div>
-<span>Ejercicios</span>
-<b id="sessionExercises">0</b>
-</div>
-
-<div>
-<span>RIR medio</span>
-<b id="sessionRir">—</b>
-</div>
-
-</div>
-
 
 <div id="sessionExercisesList"></div>
-
 
 <button class="add-exercise-session" id="addExerciseToSession">
 + Añadir ejercicio
 </button>
-
 </div>
-
 </div>
 
 
 <div class="training-pane" id="training-routines">
-
 <div class="routine-toolbar">
+<input class="search-input" id="routineSearch" placeholder="Buscar rutina...">
+<button class="primary-btn" id="newRoutineBtn">+ Nueva rutina</button>
+</div>
 
-<input
-class="search-input"
-id="routineSearch"
-placeholder="Buscar rutina..."
->
+<div class="routine-grid" id="routineGrid"></div>
 
-<button class="primary-btn" id="newRoutineBtn2">
+<button class="primary-btn" id="newRoutineBtn2" style="margin-top:15px">
 + Crear rutina
 </button>
-
-</div>
-
-<div id="routineGrid" class="routine-grid"></div>
-
-</div>
-
-
-<div class="training-pane" id="training-history">
-
-<div class="history-filter">
-
-<select id="historyRange">
-<option value="30">Últimos 30 días</option>
-<option value="90">Últimos 90 días</option>
-<option value="365">Último año</option>
-<option value="all">Todo</option>
-</select>
-
-</div>
-
-<div id="workoutHistory" class="history-list"></div>
-
 </div>
 
 
 <div class="training-pane" id="training-exercises">
-
 <div class="exercise-toolbar">
-
-<input
-class="search-input"
-id="exerciseSearch"
-placeholder="Buscar ejercicio..."
->
+<input class="search-input" id="exerciseSearch" placeholder="Buscar ejercicio...">
 
 <select id="exerciseMuscle">
-
-<option value="">
-Todos los músculos
-</option>
-
+<option value="">Todos</option>
 <option>Pecho</option>
 <option>Espalda</option>
 <option>Hombros</option>
@@ -653,313 +353,214 @@ Todos los músculos
 <option>Glúteos</option>
 <option>Abdomen</option>
 <option>Antebrazo</option>
-<option>Cardio</option>
-
 </select>
 
 <button class="primary-btn" id="newExerciseBtn">
 + Crear ejercicio
 </button>
-
 </div>
 
-<div id="exerciseGrid" class="exercise-grid"></div>
+<div class="exercise-grid" id="exerciseGrid"></div>
+</div>
 
+
+<div class="training-pane" id="training-history">
+<div class="history-filter">
+<input class="search-input" id="historySearch" placeholder="Buscar entrenamiento...">
+<span class="count-badge" id="historyCount">0 sesiones</span>
+</div>
+
+<div id="workoutHistory"></div>
 </div>
 
 
 <div class="training-pane" id="training-progression">
-
 <div class="progression-toolbar">
-
 <select id="progressExerciseSelect"></select>
-
 </div>
 
 <div id="progressionContent"></div>
-
 </div>
 
 </section>
 
 
-
-<!-- =========================
-PROGRESS
-========================== -->
-
+<!-- PROGRESO -->
 <section class="view" id="view-progress">
 
 <div class="page-head">
-
 <div>
-<p class="eyebrow">EVOLUCIÓN</p>
-<h1>Tu progreso</h1>
-<p class="muted">
-Registra datos y observa cómo cambia tu rendimiento.
-</p>
+<p class="eyebrow">SEGUIMIENTO</p>
+<h1>Progreso</h1>
+<p class="muted">Registra tu evolución a lo largo del tiempo.</p>
 </div>
 
 <button class="primary-btn" id="addProgressBtn">
 + Registrar peso
 </button>
-
 </div>
 
-
 <div class="progress-cards">
-
 <div class="metric-card">
 <span>Peso actual</span>
-<strong id="currentWeight">—</strong>
-<small>kg</small>
+<strong id="currentWeight">—</strong><small>kg</small>
 </div>
 
 <div class="metric-card">
 <span>Peso inicial</span>
-<strong id="startWeight">—</strong>
-<small>kg</small>
+<strong id="startWeight">—</strong><small>kg</small>
 </div>
 
 <div class="metric-card">
 <span>Objetivo</span>
-<strong id="targetWeightDisplay">—</strong>
-<small>kg</small>
+<strong id="targetWeightDisplay">—</strong><small>kg</small>
 </div>
 
 <div class="metric-card">
 <span>Registros</span>
 <strong id="weightEntries">0</strong>
-<small>mediciones</small>
 </div>
-
 </div>
-
 
 <div class="progress-layout">
-
 <article class="panel">
-
 <div class="panel-head">
-
-<div>
-<p class="eyebrow">PESO</p>
-<h3>Evolución</h3>
-</div>
+<h3>Evolución del peso</h3>
 
 <select id="progressRange">
 <option value="30">30 días</option>
 <option value="90">90 días</option>
 <option value="365">1 año</option>
+<option value="9999">Todo</option>
 </select>
-
 </div>
 
 <div class="chart-wrap">
-<svg
-id="weightChart"
-viewBox="0 0 800 300"
-preserveAspectRatio="none"
-></svg>
+<svg id="weightChart" viewBox="0 0 800 300"></svg>
 </div>
-
 </article>
-
 
 <article class="panel">
-
 <div class="panel-head">
-
-<div>
-<p class="eyebrow">REGISTROS</p>
-<h3>Últimas mediciones</h3>
+<h3>Historial</h3>
 </div>
 
-</div>
-
-<div id="weightHistory" class="list"></div>
-
+<div class="list" id="weightHistory"></div>
 </article>
-
 </div>
-
 </section>
 
 
-
-<!-- =========================
-MAINTENANCE
-========================== -->
-
+<!-- MANTENIMIENTO -->
 <section class="view" id="view-maintenance">
 
 <div class="page-head">
-
 <div>
 <p class="eyebrow">OBJETIVOS</p>
-<h1>Calorías y macros</h1>
-
-<p class="muted">
-Configura tus objetivos. El cálculo es una estimación
-y puedes ajustarlo según tus datos.
-</p>
+<h1>Mantenimiento</h1>
+<p class="muted">Calcula una estimación y configura tus objetivos.</p>
 </div>
-
 </div>
-
 
 <div class="goal-layout">
 
 <article class="panel form-panel">
+<h3>Calculadora</h3>
 
-<div class="panel-head">
+<form id="maintenanceForm">
 
-<div>
-<p class="eyebrow">DATOS</p>
-<h3>Estimación de mantenimiento</h3>
-</div>
-
-</div>
-
-
-<form id="maintenanceForm" class="form-grid">
+<div class="form-grid">
 
 <label>
 Sexo
-
 <select id="mSex">
 <option value="male">Hombre</option>
 <option value="female">Mujer</option>
 </select>
 </label>
 
-
 <label>
 Edad
-<input
-id="mAge"
-type="number"
-min="13"
-max="100"
->
+<input type="number" id="mAge">
 </label>
-
 
 <label>
-Peso (kg)
-<input
-id="mWeight"
-type="number"
-step="0.1"
-min="30"
->
+Peso
+<input type="number" step="0.1" id="mWeight">
 </label>
-
 
 <label>
-Altura (cm)
-<input
-id="mHeight"
-type="number"
-min="100"
->
+Altura
+<input type="number" id="mHeight">
 </label>
-
 
 <label>
 Actividad
-
 <select id="mActivity">
 <option value="1.2">Sedentario</option>
-<option value="1.375">Ligera</option>
-<option value="1.55">Moderada</option>
-<option value="1.725">Alta</option>
-<option value="1.9">Muy alta</option>
+<option value="1.375">Actividad ligera</option>
+<option value="1.55">Actividad moderada</option>
+<option value="1.725">Actividad alta</option>
+<option value="1.9">Actividad muy alta</option>
 </select>
 </label>
-
 
 <label>
 Objetivo
-
 <select id="mGoal">
-<option value="maintain">Mantener</option>
-<option value="cut">Déficit moderado</option>
-<option value="gain">Superávit moderado</option>
-<option value="custom">Personalizado</option>
+<option value="cut">Déficit</option>
+<option value="maintain">Mantenimiento</option>
+<option value="gain">Superávit</option>
 </select>
 </label>
 
-
 <label class="full">
-
-Ajuste de calorías
-
-<input
-id="mAdjustment"
-type="number"
-step="50"
-value="0"
->
-
-<small>
-Negativo = menos calorías; positivo = más calorías.
-</small>
-
+Ajuste manual de kcal
+<input type="number" id="mAdjustment" value="0">
+<small>Pon 0 para utilizar el cálculo automático.</small>
 </label>
 
+</div>
 
-<div class="full">
-
-<button class="primary-btn" type="submit">
-Calcular y guardar
+<button class="primary-btn wide" type="submit">
+Calcular
 </button>
 
-</div>
-
 </form>
-
 </article>
 
-
-<aside class="panel result-panel">
-
-<p class="eyebrow">RESULTADO</p>
+<article class="panel">
+<h3>Resultado</h3>
 
 <div class="maintenance-number">
-
-<strong id="maintenanceResult">—</strong>
-
-<span>
-kcal/día
-</span>
-
+<strong id="maintenanceResult">0</strong>
+<span>kcal/día</span>
 </div>
-
 
 <div class="result-row">
 <span>Proteína</span>
-<b id="goalProteinResult">—</b>
+<b id="goalProteinResult">0 g</b>
 </div>
 
 <div class="result-row">
 <span>Carbohidratos</span>
-<b id="goalCarbsResult">—</b>
+<b id="goalCarbsResult">0 g</b>
 </div>
 
 <div class="result-row">
 <span>Grasas</span>
-<b id="goalFatResult">—</b>
+<b id="goalFatResult">0 g</b>
 </div>
 
-
 <p class="fineprint">
-Puedes modificar los macros manualmente desde los campos de objetivos.
+La estimación es orientativa y debe ajustarse según tus datos reales y evolución.
 </p>
+</article>
 
+<article class="panel">
+<h3>Objetivos manuales</h3>
 
 <div class="manual-goals">
-
 <label>
 Calorías
 <input id="goalCalInput" type="number">
@@ -980,328 +581,213 @@ Grasas
 <input id="goalFatInput" type="number">
 </label>
 
-<button
-class="secondary-btn wide"
-id="saveManualGoals"
->
+<button class="primary-btn" id="saveManualGoals">
 Guardar objetivos
 </button>
+</div>
+</article>
 
 </div>
-
-</aside>
-
-</div>
-
 </section>
 
 
-
-<!-- =========================
-ASSISTANT
-========================== -->
-
+<!-- ASISTENTE -->
 <section class="view" id="view-assistant">
 
 <div class="page-head">
-
 <div>
-<p class="eyebrow">NUTRI AI LOCAL</p>
-<h1>Asistente</h1>
-
-<p class="muted">
-Consultas rápidas usando los datos que tienes guardados en Nutri.
-</p>
+<p class="eyebrow">ASISTENTE</p>
+<h1>Asistente personal</h1>
+<p class="muted">Consulta los datos que tienes guardados en Nutri.</p>
 </div>
-
 </div>
-
 
 <div class="assistant-layout">
 
-<div class="assistant-chat panel">
-
-<div
-id="assistantMessages"
-class="assistant-messages"
-></div>
+<article class="panel assistant-chat">
+<div class="assistant-messages" id="assistantMessages">
+<div class="msg">
+<small>Nutri</small>
+Puedo consultar tus calorías, macros, entrenamientos y progresión.
+</div>
+</div>
 
 <div class="assistant-input">
-
-<input
-id="assistantInput"
-placeholder="Ej.: ¿cuántas kcal llevo hoy?"
-autocomplete="off"
->
-
-<button
-class="primary-btn"
-id="assistantSend"
->
-Enviar
-</button>
-
+<input id="assistantInput" placeholder="Pregunta algo...">
+<button class="primary-btn" id="assistantSend">Enviar</button>
 </div>
-
-</div>
-
+</article>
 
 <aside class="panel suggestions">
-
-<p class="eyebrow">
-PREGUNTAS RÁPIDAS
-</p>
+<h3>Preguntas rápidas</h3>
 
 <button data-question="¿Cuántas calorías llevo hoy?">
-Calorías de hoy
+¿Cuántas calorías llevo?
 </button>
 
 <button data-question="¿Cuánta proteína llevo hoy?">
-Proteína de hoy
+¿Cuánta proteína llevo?
 </button>
 
-<button data-question="¿Cuántas sesiones he hecho esta semana?">
-Sesiones esta semana
+<button data-question="¿Cuántos entrenamientos hice?">
+¿Cuántos entrenamientos hice?
 </button>
 
-<button data-question="¿Cuál es mi ejercicio con más volumen reciente?">
-Rendimiento reciente
+<button data-question="¿Cuál es mi mayor volumen?">
+¿Cuál es mi mayor volumen?
 </button>
-
 </aside>
 
 </div>
-
 </section>
 
 
-
-<!-- =========================
-SETTINGS
-========================== -->
-
+<!-- AJUSTES -->
 <section class="view" id="view-settings">
 
 <div class="page-head">
-
 <div>
 <p class="eyebrow">CONFIGURACIÓN</p>
 <h1>Ajustes</h1>
-
-<p class="muted">
-Tus datos se guardan en este dispositivo.
-</p>
+<p class="muted">Gestiona tus datos de Nutri.</p>
 </div>
-
 </div>
-
 
 <div class="settings-grid">
 
 <article class="panel setting-card">
-
-<span class="setting-icon">⇩</span>
-
+<div class="setting-icon">💾</div>
 <div>
 <h3>Exportar datos</h3>
-<p>
-Descarga una copia de tus rutinas,
-comidas, progreso y objetivos.
-</p>
+<p>Guarda una copia de toda tu información.</p>
 </div>
-
-<button
-class="secondary-btn"
-id="exportData"
->
-Exportar JSON
-</button>
-
+<button class="secondary-btn" id="exportData">Exportar</button>
 </article>
 
-
 <article class="panel setting-card">
-
-<span class="setting-icon">⇧</span>
-
+<div class="setting-icon">📥</div>
 <div>
 <h3>Importar datos</h3>
-<p>
-Restaura una copia anterior de Nutri.
-</p>
+<p>Restaura una copia anterior.</p>
 </div>
 
 <label class="secondary-btn file-btn">
-
-Importar JSON
-
-<input
-type="file"
-id="importData"
-accept="application/json"
->
-
+Importar
+<input type="file" id="importData" accept=".json">
 </label>
-
 </article>
 
-
-<article class="panel setting-card danger-card">
-
-<span class="setting-icon">!</span>
-
+<article class="panel setting-card">
+<div class="setting-icon">⚠️</div>
 <div>
-<h3>Borrar datos</h3>
-<p>
-Elimina los datos guardados de Nutri
-en este dispositivo.
-</p>
+<h3>Restablecer</h3>
+<p>Borra todos los datos guardados en este dispositivo.</p>
 </div>
-
-<button
-class="danger-btn"
-id="resetData"
->
-Restablecer
-</button>
-
+<button class="danger-btn" id="resetData">Borrar</button>
 </article>
 
 </div>
-
 </section>
 
-</main>
-
 </div>
 
 
-
-<!-- =========================
-FOOD MODAL
-========================== -->
-
-<dialog id="foodModal" class="modal">
-
+<!-- MODAL ALIMENTO -->
+<dialog class="modal" id="foodModal">
 <form method="dialog" class="modal-box">
 
 <div class="modal-head">
-
 <div>
-<p class="eyebrow">AÑADIR AL DIARIO</p>
-<h2>Buscar alimento</h2>
+<h2>Añadir alimento</h2>
+<p class="muted">Busca en tu base de alimentos.</p>
 </div>
-
-<button class="close-btn">
-×
-</button>
-
+<button class="close-btn">×</button>
 </div>
-
 
 <input
-id="foodSearch"
 class="search-input big"
-placeholder="Busca arroz, pollo, leche..."
-autofocus
+id="foodSearch"
+placeholder="Buscar alimento..."
+autocomplete="off"
 >
 
+<div class="food-results" id="foodResults"></div>
 
-<div
-id="foodResults"
-class="food-results"
-></div>
-
-
-<div
-id="foodAmount"
-class="amount-box hidden"
->
+<div class="amount-box hidden" id="foodAmount">
 
 <div>
-
 <strong id="selectedFoodName"></strong>
-
 <small id="selectedFoodMacros"></small>
-
 </div>
-
 
 <label>
-
-Cantidad
-
-<input
-id="foodGrams"
-type="number"
-value="100"
-min="0.1"
-step="0.1"
->
-
+Gramos
+<input id="foodGrams" type="number" min="0" step="0.1" value="100">
 </label>
 
-
-<button
-type="button"
-class="primary-btn"
-id="confirmFood"
->
+<button type="button" class="primary-btn" id="confirmFood">
 Añadir
 </button>
 
 </div>
 
 </form>
-
 </dialog>
 
 
-
-<!-- =========================
-EXERCISE MODAL
-========================== -->
-
-<dialog id="exerciseModal" class="modal">
-
-<form
-method="dialog"
-class="modal-box"
-id="exerciseForm"
->
+<!-- MODAL RUTINA -->
+<dialog class="modal" id="routineModal">
+<div class="modal-box">
 
 <div class="modal-head">
-
-<div>
-<p class="eyebrow">BIBLIOTECA</p>
-<h2 id="exerciseModalTitle">
-Crear ejercicio
-</h2>
+<h2 id="routineModalTitle">Crear rutina</h2>
+<button class="close-btn" onclick="document.getElementById('routineModal').close()">×</button>
 </div>
 
-<button class="close-btn">
-×
+<input id="rName" placeholder="Nombre de la rutina">
+
+<textarea
+id="rDescription"
+rows="3"
+placeholder="Descripción opcional"
+style="margin-top:10px"
+></textarea>
+
+<div class="section-divider"></div>
+
+<h3>Ejercicios</h3>
+
+<div class="routine-picker" id="routineExercisePicker"></div>
+
+<button class="primary-btn wide" id="saveRoutineBtn">
+Guardar rutina
 </button>
 
 </div>
+</dialog>
 
+
+<!-- MODAL EJERCICIO -->
+<dialog class="modal" id="exerciseModal">
+
+<div class="modal-box">
+
+<div class="modal-head">
+<h2 id="exerciseModalTitle">Crear ejercicio</h2>
+<button class="close-btn" onclick="document.getElementById('exerciseModal').close()">×</button>
+</div>
+
+<form id="exerciseForm">
 
 <div class="form-grid">
 
 <label>
 Nombre
-
-<input
-id="eName"
-required
-placeholder="Ej. Remo unilateral en polea"
->
+<input id="eName" required>
 </label>
 
-
 <label>
-Músculo
-
+Grupo muscular
 <select id="eMuscle">
 <option>Pecho</option>
 <option>Espalda</option>
@@ -1312,191 +798,63 @@ Músculo
 <option>Glúteos</option>
 <option>Abdomen</option>
 <option>Antebrazo</option>
-<option>Cardio</option>
 </select>
-
 </label>
-
 
 <label>
-Equipo
-
-<input
-id="eEquipment"
-placeholder="Polea, máquina, mancuernas..."
->
+Equipamiento
+<input id="eEquipment" placeholder="Polea, máquina, mancuernas...">
 </label>
-
 
 <label>
 Tipo
-
 <select id="eType">
-
-<option value="bilateral">
-Bilateral
-</option>
-
-<option value="unilateral">
-Unilateral
-</option>
-
+<option value="bilateral">Bilateral</option>
+<option value="unilateral">Unilateral</option>
 </select>
-
 </label>
-
 
 <label id="unilateralModeLabel">
-
 Registro unilateral
-
 <select id="eUnilateralMode">
-
-<option value="same">
-Mismo peso/reps en ambos lados
-</option>
-
-<option value="separate">
-Registrar cada lado por separado
-</option>
-
+<option value="same">Mismo peso/reps en ambos lados</option>
+<option value="separate">Registrar cada lado por separado</option>
 </select>
-
 </label>
 
+</div>
 
-<div class="full">
-
-<button
-class="primary-btn wide"
-type="submit"
->
+<button class="primary-btn wide" type="submit">
 Guardar ejercicio
 </button>
 
-</div>
-
-</div>
-
 </form>
 
+</div>
 </dialog>
 
 
+<!-- MODAL NOTA -->
+<dialog class="modal" id="noteModal">
 
-<!-- =========================
-ROUTINE MODAL
-========================== -->
-
-<dialog id="routineModal" class="modal">
-
-<form method="dialog" class="modal-box">
+<div class="modal-box">
 
 <div class="modal-head">
-
-<div>
-<p class="eyebrow">RUTINAS</p>
-<h2 id="routineModalTitle">
-Crear rutina
-</h2>
+<h2>Nota del entrenamiento</h2>
+<button class="close-btn" onclick="document.getElementById('noteModal').close()">×</button>
 </div>
 
-<button class="close-btn">
-×
-</button>
+<textarea id="sessionNote" rows="6" placeholder="Escribe una nota..."></textarea>
 
-</div>
-
-
-<label>
-Nombre de la rutina
-
-<input
-id="rName"
-required
-placeholder="Ej. Upper A"
->
-</label>
-
-
-<label>
-Descripción
-
-<input
-id="rDescription"
-placeholder="Ej. Espalda + bíceps"
->
-</label>
-
-
-<p class="eyebrow routine-select-label">
-EJERCICIOS
-</p>
-
-
-<div
-id="routineExercisePicker"
-class="routine-picker"
-></div>
-
-
-<button
-type="button"
-class="primary-btn wide"
-id="saveRoutineBtn"
->
-Guardar rutina
-</button>
-
-</form>
-
-</dialog>
-
-
-
-<!-- =========================
-NOTE MODAL
-========================== -->
-
-<dialog id="noteModal" class="modal">
-
-<form method="dialog" class="modal-box">
-
-<div class="modal-head">
-
-<h2>Nota de sesión</h2>
-
-<button class="close-btn">
-×
-</button>
-
-</div>
-
-
-<textarea
-id="sessionNote"
-rows="6"
-placeholder="Sensaciones, técnica, energía..."
-></textarea>
-
-
-<button
-type="button"
-class="primary-btn wide"
-id="saveSessionNote"
->
+<button class="primary-btn wide" id="saveSessionNote">
 Guardar nota
 </button>
 
-</form>
-
+</div>
 </dialog>
 
 
-
-<!-- IMPORTANTE:
-foods.js debe estar antes que script.js -->
-
+<!-- MUY IMPORTANTE: foods.js ANTES que script.js -->
 <script src="foods.js"></script>
 <script src="script.js"></script>
 
