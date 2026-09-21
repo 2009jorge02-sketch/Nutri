@@ -1,67 +1,92 @@
-"use strict";
-
-/*
-=========================================================
-NUTRI — SCRIPT PRINCIPAL
-=========================================================
-
-Incluye:
-
-- Alimentación
-- Base de alimentos desde foods.js
-- Calorías y macros
-- Objetivos
-- Mantenimiento
-- Progreso de peso
-- Entrenamientos
-- Rutinas
-- Ejercicios personalizados
-- Unilateral / bilateral
-- Series
-- Repeticiones
-- Peso
-- RIR
-- Historial
-- Progresión por ejercicio
-- Asistente local
-- Importación / exportación
-- LocalStorage
-=========================================================
+/* Nutri — aplicación local.
+foods.js se mantiene separado e intacto.
 */
 
-document.addEventListener("DOMContentLoaded", () => {
-
-/* =====================================================
-BASE DE ALIMENTOS
-===================================================== */
-
 const FOOD_DATABASE =
-typeof foods !== "undefined"
+typeof foods !== 'undefined'
 ? foods
 : (window.foods || []);
 
-/* =====================================================
-STORAGE
-===================================================== */
+const STORAGE_KEY = 'nutri_app_v4';
 
-const STORAGE_KEY = "nutri_complete_app_v1";
 
-const defaultState = {
-dailyFoods: [],
+/* =========================================================
+EJERCICIOS PREDETERMINADOS
+========================================================= */
+
+const defaultExercises = [
+['Press banca máquina', 'Pecho', 'Máquina', 'bilateral', 'same'],
+['Press inclinado con mancuernas', 'Pecho', 'Mancuernas', 'bilateral', 'same'],
+['Aperturas en polea', 'Pecho', 'Polea', 'bilateral', 'same'],
+['Pec deck', 'Pecho', 'Máquina', 'bilateral', 'same'],
+
+['Jalón al pecho agarre ancho', 'Espalda', 'Polea', 'bilateral', 'same'],
+['Remo T-bar', 'Espalda', 'Máquina', 'bilateral', 'same'],
+['Remo unilateral en polea', 'Espalda', 'Polea', 'unilateral', 'same'],
+['Pullover en polea', 'Espalda', 'Polea', 'bilateral', 'same'],
+
+['Press hombros máquina', 'Hombros', 'Máquina', 'bilateral', 'same'],
+['Elevación lateral', 'Hombros', 'Mancuernas', 'bilateral', 'same'],
+['Elevación lateral unilateral en polea', 'Hombros', 'Polea', 'unilateral', 'same'],
+['Pájaros en máquina', 'Hombros', 'Máquina', 'bilateral', 'same'],
+
+['Curl bíceps detrás del torso', 'Bíceps', 'Polea', 'unilateral', 'same'],
+['Curl predicador', 'Bíceps', 'Máquina', 'bilateral', 'same'],
+['Curl martillo', 'Bíceps', 'Mancuernas', 'unilateral', 'same'],
+
+['Extensión de tríceps en polea', 'Tríceps', 'Polea', 'bilateral', 'same'],
+['Extensión de tríceps unilateral', 'Tríceps', 'Polea', 'unilateral', 'same'],
+['Press cerrado', 'Tríceps', 'Máquina', 'bilateral', 'same'],
+
+['Extensión de cuádriceps', 'Pierna', 'Máquina', 'bilateral', 'same'],
+['Curl femoral', 'Pierna', 'Máquina', 'bilateral', 'same'],
+['Prensa', 'Pierna', 'Máquina', 'bilateral', 'same'],
+['Elevación de gemelo de pie', 'Pierna', 'Máquina', 'bilateral', 'same'],
+
+['Hip thrust', 'Glúteos', 'Máquina', 'bilateral', 'same'],
+['Abducción de cadera', 'Glúteos', 'Máquina', 'bilateral', 'same'],
+
+['Crunch en polea', 'Abdomen', 'Polea', 'bilateral', 'same'],
+['Elevación de piernas', 'Abdomen', 'Peso corporal', 'bilateral', 'same'],
+
+['Curl de muñeca', 'Antebrazo', 'Mancuernas', 'bilateral', 'same']
+].map((x, i) => ({
+id: 'def-' + (i + 1),
+name: x[0],
+muscle: x[1],
+equipment: x[2],
+type: x[3],
+unilateralMode: x[4],
+custom: false
+}));
+
+
+/* =========================================================
+ESTADO INICIAL
+========================================================= */
+
+const initialState = {
 goals: {
 calories: 2300,
 protein: 130,
-carbs: 250,
+carbs: 260,
 fat: 70
 },
 
 maintenance: {
-calories: 0,
-bmr: 0,
-data: {}
+sex: 'male',
+age: 18,
+weight: 71,
+height: 176,
+activity: 1.55,
+goal: 'cut',
+adjustment: -400
 },
 
+nutrition: {},
+
 progress: [],
+
 targetWeight: null,
 
 customExercises: [],
@@ -70,335 +95,188 @@ routines: [],
 
 workouts: [],
 
-currentWorkout: [],
+activeWorkout: null,
 
 settings: {}
 };
 
-function loadState() {
-try {
-const saved = localStorage.getItem(STORAGE_KEY);
-
-if (!saved) {
-return structuredClone(defaultState);
-}
-
-const parsed = JSON.parse(saved);
-
-return {
-...structuredClone(defaultState),
-...parsed,
-goals: {
-...defaultState.goals,
-...(parsed.goals || {})
-},
-maintenance: {
-...defaultState.maintenance,
-...(parsed.maintenance || {})
-}
-};
-
-} catch (error) {
-console.error("Error cargando datos:", error);
-return structuredClone(defaultState);
-}
-}
 
 let state = loadState();
 
-function saveState() {
-localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-/* =====================================================
-HELPERS
-===================================================== */
-
-const $ = id => document.getElementById(id);
-
-function number(value) {
-const n = Number(value);
-return Number.isFinite(n) ? n : 0;
-}
-
-function round(value, decimals = 1) {
-const multiplier = 10 ** decimals;
-return Math.round((number(value) + Number.EPSILON) * multiplier) / multiplier;
-}
-
-function today() {
-const d = new Date();
-
-const year = d.getFullYear();
-const month = String(d.getMonth() + 1).padStart(2, "0");
-const day = String(d.getDate()).padStart(2, "0");
-
-return `${year}-${month}-${day}`;
-}
-
-function formatDate(dateString) {
-if (!dateString) return "—";
-
-const d = new Date(dateString + "T12:00:00");
-
-return d.toLocaleDateString("es-ES", {
-day: "2-digit",
-month: "2-digit",
-year: "numeric"
-});
-}
-
-function uid(prefix = "id") {
-return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function escapeHTML(value) {
-return String(value ?? "")
-.replaceAll("&", "&amp;")
-.replaceAll("<", "&lt;")
-.replaceAll(">", "&gt;")
-.replaceAll('"', "&quot;")
-.replaceAll("'", "&#039;");
-}
-
-function normalize(text) {
-return String(text || "")
-.toLowerCase()
-.normalize("NFD")
-.replace(/[\u0300-\u036f]/g, "");
-}
-
-/* =====================================================
-NAVEGACIÓN
-===================================================== */
-
-document.querySelectorAll("[data-page]").forEach(button => {
-
-button.addEventListener("click", () => {
-
-const page = button.dataset.page;
-
-document.querySelectorAll(".page").forEach(section => {
-section.classList.remove("active");
-});
-
-const target = $(`page-${page}`);
-
-if (target) {
-target.classList.add("active");
-}
-
-document.querySelectorAll("[data-page]").forEach(item => {
-item.classList.toggle(
-"active",
-item.dataset.page === page
-);
-});
-
-window.scrollTo({
-top: 0,
-behavior: "smooth"
-});
-});
-});
-
-/* =====================================================
-ALIMENTACIÓN
-===================================================== */
-
 let selectedFood = null;
+let selectedRoutineId = null;
+let editingRoutineId = null;
 
-function renderFoodSearch() {
+let currentNutritionDate = dateKey(new Date());
 
-const input = $("foodSearch");
+let workoutTimer = null;
 
-if (!input) return;
 
-const query = normalize(input.value);
+/* =========================================================
+UTILIDADES
+========================================================= */
 
-const container = $("searchResults");
-
-if (!query) {
-container.innerHTML = "";
-return;
+function clone(value) {
+return JSON.parse(JSON.stringify(value));
 }
 
-const results = FOOD_DATABASE
-.filter(food => {
-return normalize(food.name).includes(query) ||
-normalize(food.category).includes(query);
-})
-.slice(0, 25);
 
-if (!results.length) {
-container.innerHTML =
-`<div class="empty">No se encontraron alimentos.</div>`;
-return;
+function loadState() {
+try {
+const raw = localStorage.getItem(STORAGE_KEY);
+
+if (!raw) {
+return clone(initialState);
 }
 
-container.innerHTML = results.map(food => `
-<div class="food-result">
-<div>
-<strong>${escapeHTML(food.name)}</strong>
-<small>
-${food.calories} kcal ·
-P ${food.protein} g ·
-C ${food.carbs} g ·
-G ${food.fat} g
-</small>
-</div>
+return merge(initialState, JSON.parse(raw));
 
-<button
-class="btn small select-food"
-data-id="${food.id}">
-Seleccionar
-</button>
-</div>
-`).join("");
+} catch (error) {
+console.error('Error cargando datos:', error);
+return clone(initialState);
+}
+}
 
-container.querySelectorAll(".select-food").forEach(button => {
 
-button.addEventListener("click", () => {
+function merge(a, b) {
 
-const food = FOOD_DATABASE.find(
-item => String(item.id) === String(button.dataset.id)
+const out = clone(a);
+
+for (const key in b) {
+
+if (
+b[key] &&
+typeof b[key] === 'object' &&
+!Array.isArray(b[key]) &&
+typeof out[key] === 'object'
+) {
+out[key] = merge(out[key], b[key]);
+
+} else {
+
+out[key] = b[key];
+
+}
+}
+
+return out;
+}
+
+
+function save() {
+
+localStorage.setItem(
+STORAGE_KEY,
+JSON.stringify(state)
 );
 
-selectedFood = food || null;
-
-renderSelectedFood();
-});
-
-});
+renderAll();
 }
 
-function renderSelectedFood() {
 
-const box = $("selectedFoodBox");
+function uid(prefix = 'id') {
 
-if (!selectedFood) {
-box.innerHTML = "";
-return;
-}
-
-box.innerHTML = `
-<div class="selected-food">
-<strong>${escapeHTML(selectedFood.name)}</strong>
-
-<div style="color:#8f9ab5;margin-top:5px;font-size:13px">
-${selectedFood.calories} kcal /
-${selectedFood.protein} g proteína /
-${selectedFood.carbs} g carbohidratos /
-${selectedFood.fat} g grasa por 100 g
-</div>
-</div>
-`;
-}
-
-function addFood() {
-
-if (!selectedFood) {
-alert("Selecciona primero un alimento.");
-return;
-}
-
-const amount = number($("foodAmount").value);
-
-if (amount <= 0) {
-alert("Introduce una cantidad válida.");
-return;
-}
-
-const factor = amount / 100;
-
-state.dailyFoods.push({
-id: uid("food"),
-date: today(),
-foodId: selectedFood.id,
-name: selectedFood.name,
-amount,
-
-calories: round(selectedFood.calories * factor),
-protein: round(selectedFood.protein * factor),
-carbs: round(selectedFood.carbs * factor),
-fat: round(selectedFood.fat * factor)
-});
-
-saveState();
-
-$("foodAmount").value = 100;
-
-renderFoodTable();
-updateFoodTotals();
-updateDashboard();
-}
-
-function renderFoodTable() {
-
-const tbody = $("foodTable");
-
-if (!tbody) return;
-
-if (!state.dailyFoods.length) {
-
-tbody.innerHTML = `
-<tr>
-<td colspan="7">
-<div class="empty">
-Todavía no has añadido alimentos.
-</div>
-</td>
-</tr>
-`;
-
-return;
-}
-
-tbody.innerHTML = state.dailyFoods.map(food => `
-<tr>
-<td>${escapeHTML(food.name)}</td>
-<td>${round(food.amount)} g</td>
-<td>${round(food.calories)}</td>
-<td>${round(food.protein)} g</td>
-<td>${round(food.carbs)} g</td>
-<td>${round(food.fat)} g</td>
-<td>
-<button
-class="btn danger small delete-food"
-data-id="${food.id}">
-×
-</button>
-</td>
-</tr>
-`).join("");
-
-tbody.querySelectorAll(".delete-food").forEach(button => {
-
-button.addEventListener("click", () => {
-
-state.dailyFoods = state.dailyFoods.filter(
-food => food.id !== button.dataset.id
+return (
+prefix +
+'_' +
+Math.random().toString(36).slice(2, 9) +
+'_' +
+Date.now().toString(36)
 );
-
-saveState();
-
-renderFoodTable();
-updateFoodTotals();
-updateDashboard();
-});
-
-});
 }
 
-function getFoodTotals() {
 
-return state.dailyFoods.reduce(
+function dateKey(date) {
+
+return new Date(
+date.getTime() -
+date.getTimezoneOffset() * 60000
+)
+.toISOString()
+.slice(0, 10);
+}
+
+
+function fmtDate(
+key,
+opts = {
+day: 'numeric',
+month: 'short',
+year: 'numeric'
+}
+) {
+
+return new Date(
+key + 'T12:00:00'
+).toLocaleDateString(
+'es-ES',
+opts
+);
+}
+
+
+function esc(value) {
+
+return String(value ?? '').replace(
+/[&<>'"]/g,
+char => ({
+'&': '&amp;',
+'<': '&lt;',
+'>': '&gt;',
+"'": '&#39;',
+'"': '&quot;'
+}[char])
+);
+}
+
+
+function allExercises() {
+
+return [
+...defaultExercises,
+...state.customExercises
+];
+}
+
+
+function getExercise(id) {
+
+return allExercises().find(
+exercise => exercise.id === id
+);
+}
+
+
+function pct(value, goal) {
+
+return goal
+? Math.min(
+100,
+Math.max(
+0,
+value / goal * 100
+)
+)
+: 0;
+}
+
+
+function todayLog() {
+
+return state.nutrition[currentNutritionDate] || [];
+}
+
+
+function totalsForDate(key) {
+
+return (state.nutrition[key] || [])
+.reduce(
 (total, food) => {
 
-total.calories += number(food.calories);
-total.protein += number(food.protein);
-total.carbs += number(food.carbs);
-total.fat += number(food.fat);
+total.calories += Number(food.calories) || 0;
+total.protein += Number(food.protein) || 0;
+total.carbs += Number(food.carbs) || 0;
+total.fat += Number(food.fat) || 0;
 
 return total;
 
@@ -412,2073 +290,5008 @@ fat: 0
 );
 }
 
-function updateFoodTotals() {
 
-const totals = getFoodTotals();
+function fmt(number, decimals = 0) {
 
-$("foodCalories").textContent =
-round(totals.calories);
-
-$("foodProtein").textContent =
-`${round(totals.protein)} g`;
-
-$("foodCarbs").textContent =
-`${round(totals.carbs)} g`;
-
-$("foodFat").textContent =
-`${round(totals.fat)} g`;
-}
-
-$("foodSearch")?.addEventListener(
-"input",
-renderFoodSearch
-);
-
-$("addFoodBtn")?.addEventListener(
-"click",
-addFood
-);
-
-$("clearFoodsBtn")?.addEventListener(
-"click",
-() => {
-
-if (!confirm("¿Vaciar todos los alimentos del día?")) {
-return;
-}
-
-state.dailyFoods = [];
-
-saveState();
-
-renderFoodTable();
-updateFoodTotals();
-updateDashboard();
+return Number(number || 0)
+.toLocaleString(
+'es-ES',
+{
+maximumFractionDigits: decimals
 }
 );
-
-/* =====================================================
-EJERCICIOS
-===================================================== */
-
-const defaultExercises = [
-
-/* PECHO */
-{
-id: "bench_press",
-name: "Press banca",
-muscle: "Pecho",
-type: "bilateral"
-},
-
-{
-id: "incline_press",
-name: "Press inclinado",
-muscle: "Pecho",
-type: "bilateral"
-},
-
-{
-id: "machine_chest_press",
-name: "Press de pecho en máquina",
-muscle: "Pecho",
-type: "bilateral"
-},
-
-{
-id: "pec_deck",
-name: "Pec deck",
-muscle: "Pecho",
-type: "bilateral"
-},
-
-{
-id: "cable_fly",
-name: "Aperturas en polea",
-muscle: "Pecho",
-type: "bilateral"
-},
-
-/* ESPALDA */
-{
-id: "pullup",
-name: "Dominadas",
-muscle: "Espalda",
-type: "bilateral"
-},
-
-{
-id: "lat_pulldown",
-name: "Jalón al pecho",
-muscle: "Espalda",
-type: "bilateral"
-},
-
-{
-id: "straight_bar_pulldown",
-name: "Pulldown con barra recta",
-muscle: "Espalda",
-type: "bilateral"
-},
-
-{
-id: "tbar_row",
-name: "Remo T-bar",
-muscle: "Espalda",
-type: "bilateral"
-},
-
-{
-id: "seated_row",
-name: "Remo sentado",
-muscle: "Espalda",
-type: "bilateral"
-},
-
-{
-id: "one_arm_row",
-name: "Remo unilateral",
-muscle: "Espalda",
-type: "unilateral"
-},
-
-{
-id: "one_arm_pulldown",
-name: "Jalón unilateral",
-muscle: "Espalda",
-type: "unilateral"
-},
-
-/* BÍCEPS */
-{
-id: "barbell_curl",
-name: "Curl con barra",
-muscle: "Bíceps",
-type: "bilateral"
-},
-
-{
-id: "preacher_curl",
-name: "Curl predicador",
-muscle: "Bíceps",
-type: "bilateral"
-},
-
-{
-id: "cable_curl",
-name: "Curl en polea",
-muscle: "Bíceps",
-type: "bilateral"
-},
-
-{
-id: "single_cable_curl",
-name: "Curl unilateral en polea",
-muscle: "Bíceps",
-type: "unilateral"
-},
-
-{
-id: "hammer_curl",
-name: "Curl martillo",
-muscle: "Bíceps",
-type: "bilateral"
-},
-
-{
-id: "single_hammer_curl",
-name: "Curl martillo unilateral",
-muscle: "Bíceps",
-type: "unilateral"
-},
-
-/* TRÍCEPS */
-{
-id: "triceps_pushdown",
-name: "Extensión de tríceps en polea",
-muscle: "Tríceps",
-type: "bilateral"
-},
-
-{
-id: "single_triceps_pushdown",
-name: "Extensión unilateral de tríceps",
-muscle: "Tríceps",
-type: "unilateral"
-},
-
-{
-id: "overhead_extension",
-name: "Extensión de tríceps por encima de la cabeza",
-muscle: "Tríceps",
-type: "bilateral"
-},
-
-/* HOMBROS */
-{
-id: "shoulder_press",
-name: "Press militar",
-muscle: "Hombros",
-type: "bilateral"
-},
-
-{
-id: "machine_shoulder_press",
-name: "Press de hombros en máquina",
-muscle: "Hombros",
-type: "bilateral"
-},
-
-{
-id: "lateral_raise",
-name: "Elevaciones laterales",
-muscle: "Hombros",
-type: "bilateral"
-},
-
-{
-id: "single_lateral_raise",
-name: "Elevación lateral unilateral",
-muscle: "Hombros",
-type: "unilateral"
-},
-
-{
-id: "rear_delt_fly",
-name: "Pájaros",
-muscle: "Hombros",
-type: "bilateral"
-},
-
-/* CUÁDRICEPS */
-{
-id: "leg_extension",
-name: "Extensión de cuádriceps",
-muscle: "Cuádriceps",
-type: "bilateral"
-},
-
-{
-id: "single_leg_extension",
-name: "Extensión unilateral de cuádriceps",
-muscle: "Cuádriceps",
-type: "unilateral"
-},
-
-{
-id: "leg_press",
-name: "Prensa",
-muscle: "Cuádriceps",
-type: "bilateral"
-},
-
-/* ISQUIOS */
-{
-id: "leg_curl",
-name: "Curl femoral",
-muscle: "Isquiosurales",
-type: "bilateral"
-},
-
-{
-id: "single_leg_curl",
-name: "Curl femoral unilateral",
-muscle: "Isquiosurales",
-type: "unilateral"
-},
-
-/* GLÚTEOS */
-{
-id: "hip_thrust",
-name: "Hip thrust",
-muscle: "Glúteos",
-type: "bilateral"
-},
-
-{
-id: "cable_kickback",
-name: "Patada de glúteo en polea",
-muscle: "Glúteos",
-type: "unilateral"
-},
-
-/* GEMELOS */
-{
-id: "standing_calf_raise",
-name: "Elevación de gemelos de pie",
-muscle: "Gemelos",
-type: "bilateral"
-},
-
-{
-id: "single_calf_raise",
-name: "Elevación unilateral de gemelo",
-muscle: "Gemelos",
-type: "unilateral"
-},
-
-/* ABDOMINALES */
-{
-id: "cable_crunch",
-name: "Crunch en polea",
-muscle: "Abdominales",
-type: "bilateral"
-},
-
-{
-id: "leg_raise",
-name: "Elevaciones de piernas",
-muscle: "Abdominales",
-type: "bilateral"
-},
-
-/* ANTEBRAZO */
-{
-id: "wrist_curl",
-name: "Curl de muñeca",
-muscle: "Antebrazo",
-type: "bilateral"
-},
-
-{
-id: "reverse_wrist_curl",
-name: "Curl inverso de muñeca",
-muscle: "Antebrazo",
-type: "bilateral"
-}
-];
-
-function getAllExercises() {
-
-return [
-...defaultExercises,
-...(state.customExercises || [])
-];
 }
 
-function renderExerciseSelects() {
 
-const exercises = getAllExercises();
+function setText(id, value) {
 
-const options = exercises.map(exercise => `
-<option value="${exercise.id}">
-${escapeHTML(exercise.name)}
-— ${escapeHTML(exercise.muscle)}
-— ${exercise.type === "unilateral" ? "Unilateral" : "Bilateral"}
-</option>
-`).join("");
+const element = document.getElementById(id);
 
-$("exerciseSelect").innerHTML =
-`<option value="">Selecciona ejercicio...</option>${options}`;
-
-$("progressExerciseSelect").innerHTML =
-`<option value="">Selecciona ejercicio...</option>${options}`;
+if (element) {
+element.textContent = value;
+}
 }
 
-/* =====================================================
-CREAR EJERCICIO PERSONALIZADO
-===================================================== */
 
-$("createExerciseBtn")?.addEventListener(
-"click",
-() => {
+function setBar(id, value, goal) {
 
-const name =
-$("customExerciseName").value.trim();
+const element = document.getElementById(id);
 
-const muscle =
-$("customExerciseMuscle").value;
-
-const type =
-$("customExerciseType").value;
-
-if (!name) {
-alert("Escribe el nombre del ejercicio.");
-return;
+if (element) {
+element.style.width =
+pct(value, goal) + '%';
+}
 }
 
-const exercise = {
-id: uid("exercise"),
-name,
-muscle,
-type,
-custom: true
-};
 
-state.customExercises.push(exercise);
+function withinDays(date, days) {
 
-saveState();
-
-$("customExerciseName").value = "";
-
-renderExerciseSelects();
-
-updateTrainingStats();
-
-alert("Ejercicio creado correctamente.");
-}
-);
-
-/* =====================================================
-ENTRENAMIENTO ACTUAL
-===================================================== */
-
-function addExerciseToCurrentWorkout() {
-
-const exerciseId =
-$("exerciseSelect").value;
-
-if (!exerciseId) {
-alert("Selecciona un ejercicio.");
-return;
+return (
+Date.now() -
+new Date(
+date + 'T23:59:59'
+).getTime()
+) <= days * 86400000;
 }
 
-const exercise =
-getAllExercises().find(
-item => item.id === exerciseId
-);
 
-if (!exercise) return;
-
-const workoutExercise = {
-id: uid("workout_exercise"),
-exerciseId: exercise.id,
-name: exercise.name,
-muscle: exercise.muscle,
-type: exercise.type,
-
-sets: [
-{
-id: uid("set"),
-weight: 0,
-reps: 0,
-rir: 0
-}
-]
-};
-
-state.currentWorkout.push(workoutExercise);
-
-saveState();
-
-renderCurrentWorkout();
-}
-
-function renderCurrentWorkout() {
-
-const container =
-$("currentWorkoutExercises");
-
-if (!state.currentWorkout.length) {
-
-container.innerHTML =
-`<div class="empty">No has añadido ejercicios todavía.</div>`;
-
-return;
-}
-
-container.innerHTML =
-state.currentWorkout.map(exercise => {
+function emptyList(text) {
 
 return `
-<div class="exercise-card">
+<div class="list-row">
+<span>${esc(text)}</span>
+</div>
+`;
+}
 
-<div class="exercise-title">
+
+/* =========================================================
+NAVEGACIÓN
+========================================================= */
+
+function navigate(view) {
+
+document
+.querySelectorAll('.view')
+.forEach(section => {
+
+section.classList.toggle(
+'active',
+section.id === 'view-' + view
+);
+
+});
+
+
+document
+.querySelectorAll('.nav-link')
+.forEach(button => {
+
+button.classList.toggle(
+'active',
+button.dataset.view === view
+);
+
+});
+
+
+window.scrollTo({
+top: 0,
+behavior: 'smooth'
+});
+
+
+if (view === 'nutrition') {
+renderNutrition();
+}
+
+if (view === 'training') {
+renderTraining();
+}
+
+if (view === 'progress') {
+renderProgress();
+}
+
+if (view === 'maintenance') {
+renderMaintenance();
+}
+}
+
+
+document.addEventListener(
+'click',
+event => {
+
+const navigation =
+event.target.closest('[data-view]');
+
+if (navigation) {
+
+navigate(
+navigation.dataset.view
+);
+
+return;
+}
+
+
+if (
+event.target.id ===
+'settingsBtn'
+) {
+
+navigate('settings');
+
+}
+
+}
+);
+
+
+/* =========================================================
+DASHBOARD
+========================================================= */
+
+function renderDashboard() {
+
+const today =
+dateKey(new Date());
+
+const totals =
+totalsForDate(today);
+
+const goals =
+state.goals;
+
+
+setText(
+'todayLabel',
+fmtDate(
+today,
+{
+weekday: 'long',
+day: 'numeric',
+month: 'long'
+}
+)
+);
+
+
+setText(
+'dashCalories',
+fmt(totals.calories)
+);
+
+setText(
+'dashCalGoal',
+fmt(goals.calories)
+);
+
+setText(
+'dashProtein',
+fmt(totals.protein)
+);
+
+setText(
+'dashCarbs',
+fmt(totals.carbs)
+);
+
+setText(
+'dashFat',
+fmt(totals.fat)
+);
+
+
+setBar(
+'dashProteinBar',
+totals.protein,
+goals.protein
+);
+
+setBar(
+'dashCarbsBar',
+totals.carbs,
+goals.carbs
+);
+
+setBar(
+'dashFatBar',
+totals.fat,
+goals.fat
+);
+
+
+const donut =
+document.getElementById(
+'calorieDonut'
+);
+
+if (donut) {
+
+const degrees =
+Math.min(
+360,
+totals.calories /
+Math.max(
+1,
+goals.calories
+) *
+360
+);
+
+donut.style.background =
+`conic-gradient(
+var(--accent)
+${degrees}deg,
+#2b323d 0deg
+)`;
+}
+
+
+const sessions =
+state.workouts.filter(
+workout =>
+withinDays(
+workout.date,
+7
+)
+);
+
+
+const sets =
+sessions.reduce(
+(total, workout) =>
+total +
+workout.exercises.reduce(
+(subTotal, exercise) =>
+subTotal +
+exercise.sets.filter(
+set => set.done
+).length,
+0
+),
+0
+);
+
+
+const volume =
+sessions.reduce(
+(total, workout) =>
+total +
+workoutVolume(workout),
+0
+);
+
+
+setText(
+'dashSessions',
+sessions.length
+);
+
+setText(
+'dashSets',
+sets
+);
+
+setText(
+'dashVolume',
+fmt(volume)
+);
+
+
+const last =
+state.workouts[0];
+
+
+setText(
+'dashWorkoutTitle',
+last
+? last.name
+: 'Ningún entrenamiento hoy'
+);
+
+
+setText(
+'dashWorkoutText',
+last
+? `${fmtDate(last.date)} · ${last.exercises.length} ejercicios`
+: 'Crea una rutina o empieza un entrenamiento libre.'
+);
+
+
+const recentWorkouts =
+document.getElementById(
+'dashRecentWorkouts'
+);
+
+
+if (recentWorkouts) {
+
+recentWorkouts.innerHTML =
+sessions
+.slice(0, 4)
+.map(workout => `
+<div class="list-row">
 
 <div>
+<b>${esc(workout.name)}</b>
+
+<small>
+${fmtDate(workout.date)}
+·
+${workout.exercises.length}
+ejercicios
+</small>
+</div>
+
+<b>
+${fmt(workoutVolume(workout))} kg
+</b>
+
+</div>
+`)
+.join('')
+||
+emptyList(
+'Todavía no hay sesiones.'
+);
+}
+
+
+const meals =
+document.getElementById(
+'dashMeals'
+);
+
+
+if (meals) {
+
+meals.innerHTML =
+todayLog()
+.slice(-4)
+.reverse()
+.map(food => `
+<div class="list-row">
+
+<div>
+
+<b>${esc(food.name)}</b>
+
+<small>
+${fmt(food.grams, 1)} g
+</small>
+
+</div>
+
+<b>
+${fmt(food.calories)} kcal
+</b>
+
+</div>
+`)
+.join('')
+||
+emptyList(
+'No hay alimentos registrados hoy.'
+);
+}
+}
+
+
+/* =========================================================
+NUTRICIÓN
+========================================================= */
+
+function renderNutrition() {
+
+const totals =
+totalsForDate(
+currentNutritionDate
+);
+
+const goals =
+state.goals;
+
+
+setText(
+'nutritionDate',
+fmtDate(
+currentNutritionDate,
+{
+weekday: 'long',
+day: 'numeric',
+month: 'long',
+year: 'numeric'
+}
+)
+);
+
+
+setText(
+'nutCalories',
+fmt(totals.calories)
+);
+
+setText(
+'nutCalGoal',
+fmt(goals.calories) + ' kcal'
+);
+
+
+setText(
+'nutCalRemaining',
+`${fmt(
+Math.max(
+0,
+goals.calories -
+totals.calories
+)
+)} kcal restantes`
+);
+
+
+setBar(
+'nutCalBar',
+totals.calories,
+goals.calories
+);
+
+
+setText(
+'nutProtein',
+fmt(totals.protein) + ' g'
+);
+
+setText(
+'nutCarbs',
+fmt(totals.carbs) + ' g'
+);
+
+setText(
+'nutFat',
+fmt(totals.fat) + ' g'
+);
+
+
+setText(
+'foodCount',
+todayLog().length
+);
+
+
+setText(
+'sideProtein',
+`${fmt(totals.protein)} / ${fmt(goals.protein)} g`
+);
+
+setText(
+'sideCarbs',
+`${fmt(totals.carbs)} / ${fmt(goals.carbs)} g`
+);
+
+setText(
+'sideFat',
+`${fmt(totals.fat)} / ${fmt(goals.fat)} g`
+);
+
+
+setBar(
+'sideProteinBar',
+totals.protein,
+goals.protein
+);
+
+setBar(
+'sideCarbsBar',
+totals.carbs,
+goals.carbs
+);
+
+setBar(
+'sideFatBar',
+totals.fat,
+goals.fat
+);
+
+
+const foodLog =
+document.getElementById(
+'foodLog'
+);
+
+
+if (!foodLog) {
+return;
+}
+
+
+foodLog.innerHTML =
+todayLog()
+.map(
+(food, index) => `
+<div class="food-row">
+
+<div>
+
 <strong>
-${escapeHTML(exercise.name)}
+${esc(food.name)}
 </strong>
 
-<div style="margin-top:6px">
-<span class="tag">
-${escapeHTML(exercise.muscle)}
-</span>
+<small>
+${
+food.brand
+? esc(food.brand) + ' · '
+: ''
+}
 
-<span class="tag green">
-${exercise.type === "unilateral"
-? "Unilateral"
-: "Bilateral"}
-</span>
+${fmt(food.grams, 1)} g
+</small>
+
 </div>
+
+
+<div class="food-kcal">
+
+<b>
+${fmt(food.calories)}
+</b>
+
+<small>
+kcal
+</small>
+
 </div>
+
+
+<div class="food-macros">
+
+<small>
+${fmt(food.protein, 1)}P
+·
+${fmt(food.carbs, 1)}C
+·
+${fmt(food.fat, 1)}G
+</small>
+
+</div>
+
 
 <button
-class="btn danger small remove-current-exercise"
-data-id="${exercise.id}">
-Eliminar
+class="remove-btn"
+data-remove-food="${index}"
+>
+×
 </button>
 
 </div>
+`
+)
+.join('')
+||
+`
+<div class="empty-state">
+
+<span>⌁</span>
+
+<h3>
+Diario vacío
+</h3>
+
+<p>
+Añade un alimento para empezar.
+</p>
+
+</div>
+`;
+}
+
+
+document.addEventListener(
+'click',
+event => {
+
+const button =
+event.target.closest(
+'[data-remove-food]'
+);
+
+if (!button) {
+return;
+}
+
+
+if (
+!state.nutrition[
+currentNutritionDate
+]
+) {
+return;
+}
+
+
+state.nutrition[
+currentNutritionDate
+].splice(
+Number(button.dataset.removeFood),
+1
+);
+
+
+save();
+
+renderNutrition();
+}
+);
+
+
+/* =========================================================
+BUSCADOR DE ALIMENTOS
+========================================================= */
+
+function openFoodModal() {
+
+const modal =
+document.getElementById(
+'foodModal'
+);
+
+
+selectedFood = null;
+
+
+document
+.getElementById(
+'foodAmount'
+)
+.classList.add('hidden');
+
+
+document
+.getElementById(
+'foodSearch'
+)
+.value = '';
+
+
+renderFoodResults('');
+
+
+modal.showModal();
+
+
+setTimeout(
+() =>
+document
+.getElementById(
+'foodSearch'
+)
+.focus(),
+50
+);
+}
+
+
+document.getElementById(
+'openFoodModal'
+).onclick = openFoodModal;
+
+
+document.getElementById(
+'foodSearch'
+).addEventListener(
+'input',
+event =>
+renderFoodResults(
+event.target.value
+)
+);
+
+
+function renderFoodResults(query) {
+
+const term =
+query
+.trim()
+.toLowerCase();
+
+
+const results =
+FOOD_DATABASE
+.filter(food => {
+
+if (!term) {
+return true;
+}
+
+return `${food.name} ${
+food.brand || ''
+} ${
+food.category || ''
+}`
+.toLowerCase()
+.includes(term);
+
+})
+.slice(0, 80);
+
+
+document.getElementById(
+'foodResults'
+).innerHTML =
+
+results
+.map(
+food => `
+<button
+type="button"
+class="food-result"
+data-food-id="${food.id}"
+>
+
+<span>
+
+<b>
+${esc(food.name)}
+</b>
+
+<small>
+${esc(food.category || '')}
+
+${
+food.brand
+? ' · ' +
+esc(food.brand)
+: ''
+}
+</small>
+
+</span>
+
+<strong>
+${fmt(food.calories)}
+kcal
+</strong>
+
+</button>
+`
+)
+.join('')
+
+||
+
+`
+<div class="empty-state">
+
+<p>
+No se encontraron alimentos.
+</p>
+
+</div>
+`;
+}
+
+
+document.addEventListener(
+'click',
+event => {
+
+const button =
+event.target.closest(
+'[data-food-id]'
+);
+
+
+if (!button) {
+return;
+}
+
+
+selectedFood =
+FOOD_DATABASE.find(
+food =>
+String(food.id) ===
+String(button.dataset.foodId)
+);
+
+
+if (!selectedFood) {
+return;
+}
+
+
+document.getElementById(
+'selectedFoodName'
+).textContent =
+selectedFood.name;
+
+
+document.getElementById(
+'selectedFoodMacros'
+).textContent =
+`${fmt(selectedFood.calories)} kcal · ` +
+`${fmt(selectedFood.protein, 1)}P · ` +
+`${fmt(selectedFood.carbs, 1)}C · ` +
+`${fmt(selectedFood.fat, 1)}G / 100 g`;
+
+
+document
+.getElementById(
+'foodAmount'
+)
+.classList.remove('hidden');
+
+
+document
+.getElementById(
+'foodGrams'
+)
+.focus();
+}
+);
+
+
+document.getElementById(
+'confirmFood'
+).onclick = () => {
+
+if (!selectedFood) {
+return;
+}
+
+
+const grams =
+Number(
+document.getElementById(
+'foodGrams'
+).value
+) || 0;
+
+
+if (grams <= 0) {
+return;
+}
+
+
+const multiplier =
+grams / 100;
+
+
+const item = {
+
+id: uid('food'),
+
+foodId:
+selectedFood.id,
+
+name:
+selectedFood.name,
+
+brand:
+selectedFood.brand || '',
+
+grams,
+
+calories:
+selectedFood.calories *
+multiplier,
+
+protein:
+selectedFood.protein *
+multiplier,
+
+carbs:
+selectedFood.carbs *
+multiplier,
+
+fat:
+selectedFood.fat *
+multiplier
+
+};
+
+
+state.nutrition[
+currentNutritionDate
+] ??= [];
+
+
+state.nutrition[
+currentNutritionDate
+].push(item);
+
+
+save();
+
+renderNutrition();
+
+
+document
+.getElementById(
+'foodModal'
+)
+.close();
+
+
+selectedFood = null;
+};
+
+
+document.getElementById(
+'prevDay'
+).onclick = () => {
+
+const date =
+new Date(
+currentNutritionDate +
+'T12:00:00'
+);
+
+
+date.setDate(
+date.getDate() - 1
+);
+
+
+currentNutritionDate =
+dateKey(date);
+
+
+renderNutrition();
+};
+
+
+document.getElementById(
+'nextDay'
+).onclick = () => {
+
+const date =
+new Date(
+currentNutritionDate +
+'T12:00:00'
+);
+
+
+date.setDate(
+date.getDate() + 1
+);
+
+
+currentNutritionDate =
+dateKey(date);
+
+
+renderNutrition();
+};
+
+
+document.getElementById(
+'todayDay'
+).onclick = () => {
+
+currentNutritionDate =
+dateKey(new Date());
+
+renderNutrition();
+};
+
+
+/* =========================================================
+ENTRENAMIENTO
+========================================================= */
+
+function blankSet() {
+
+return {
+
+id: uid('set'),
+
+weight: '',
+reps: '',
+rir: '',
+
+done: false,
+
+leftWeight: '',
+leftReps: '',
+
+rightWeight: '',
+rightReps: ''
+
+};
+}
+
+
+function exerciseForSession(exercise) {
+
+return {
+
+exerciseId:
+exercise.id,
+
+name:
+exercise.name,
+
+muscle:
+exercise.muscle,
+
+type:
+exercise.type,
+
+unilateralMode:
+exercise.unilateralMode ||
+'same',
+
+sets: [
+blankSet()
+]
+
+};
+}
+
+
+function startWorkout(
+name = 'Entrenamiento libre',
+routine = null
+) {
+
+if (state.activeWorkout) {
+
+if (
+!confirm(
+'Ya tienes una sesión en curso. ¿Reemplazarla?'
+)
+) {
+return;
+}
+
+}
+
+
+const exercises =
+(routine?.exercises || [])
+.map(id => {
+
+const exercise =
+getExercise(id);
+
+return exercise
+? exerciseForSession(
+exercise
+)
+: null;
+
+})
+.filter(Boolean);
+
+
+state.activeWorkout = {
+
+id:
+uid('session'),
+
+name,
+
+routineId:
+routine?.id || null,
+
+startedAt:
+new Date().toISOString(),
+
+notes: '',
+
+exercises
+
+};
+
+
+save();
+
+renderTraining();
+}
+
+
+function workoutVolume(workout) {
+
+return (
+workout.exercises || []
+).reduce(
+(total, exercise) => {
+
+return (
+total +
+(
+exercise.sets || []
+).reduce(
+(subtotal, set) => {
+
+if (!set.done) {
+return subtotal;
+}
+
+
+if (
+exercise.type ===
+'unilateral' &&
+exercise.unilateralMode ===
+'separate'
+) {
+
+return (
+subtotal +
+
+(
+(Number(set.leftWeight) || 0) *
+(Number(set.leftReps) || 0)
+) +
+
+(
+(Number(set.rightWeight) || 0) *
+(Number(set.rightReps) || 0)
+)
+);
+
+}
+
+
+const multiplier =
+exercise.type ===
+'unilateral'
+? 2
+: 1;
+
+
+return (
+subtotal +
+(
+(Number(set.weight) || 0) *
+(Number(set.reps) || 0) *
+multiplier
+)
+);
+
+},
+0
+)
+);
+
+},
+0
+);
+}
+
+
+function sessionVolume() {
+
+return state.activeWorkout
+? workoutVolume(
+state.activeWorkout
+)
+: 0;
+}
+
+
+function formatDuration(seconds) {
+
+return (
+
+String(
+Math.floor(
+seconds / 3600
+)
+).padStart(2, '0')
+
++
+
+':'
+
++
+
+String(
+Math.floor(
+seconds % 3600 / 60
+)
+).padStart(2, '0')
+
++
+
+':'
+
++
+
+String(
+seconds % 60
+).padStart(2, '0')
+
+);
+}
+
+
+function renderTraining() {
+
+renderSession();
+
+renderRoutines();
+
+renderExercises();
+
+renderHistory();
+
+renderProgression();
+}
+
+
+function renderSession() {
+
+const session =
+state.activeWorkout;
+
+
+const noSession =
+document.getElementById(
+'noSession'
+);
+
+const activeSession =
+document.getElementById(
+'activeSession'
+);
+
+
+if (!noSession || !activeSession) {
+return;
+}
+
+
+noSession.classList.toggle(
+'hidden',
+Boolean(session)
+);
+
+
+activeSession.classList.toggle(
+'hidden',
+!session
+);
+
+
+if (!session) {
+return;
+}
+
+
+setText(
+'sessionName',
+session.name
+);
+
+
+const completedSets =
+session.exercises.reduce(
+(total, exercise) =>
+total +
+exercise.sets.filter(
+set => set.done
+).length,
+0
+);
+
+
+setText(
+'sessionSets',
+completedSets
+);
+
+
+setText(
+'sessionVolume',
+fmt(sessionVolume()) +
+' kg'
+);
+
+
+setText(
+'sessionExercises',
+session.exercises.length
+);
+
+
+const rirs =
+session.exercises
+.flatMap(
+exercise =>
+exercise.sets
+.map(set =>
+Number(set.rir)
+)
+.filter(
+value =>
+Number.isFinite(value)
+)
+);
+
+
+setText(
+'sessionRir',
+rirs.length
+? fmt(
+rirs.reduce(
+(a, b) => a + b,
+0
+) / rirs.length,
+1
+)
+: '—'
+);
+
+
+document.getElementById(
+'sessionExercisesList'
+).innerHTML =
+session.exercises
+.map(
+(exercise, exerciseIndex) =>
+renderSessionExercise(
+exercise,
+exerciseIndex
+)
+)
+.join('');
+
+
+clearInterval(
+workoutTimer
+);
+
+
+workoutTimer =
+setInterval(
+() => {
+
+const seconds =
+Math.max(
+0,
+Math.floor(
+(
+Date.now() -
+new Date(
+session.startedAt
+).getTime()
+) / 1000
+)
+);
+
+
+setText(
+'sessionTimer',
+formatDuration(
+seconds
+)
+);
+
+},
+1000
+);
+}
+
+
+function renderSessionExercise(
+exercise,
+exerciseIndex
+) {
+
+const separateSides =
+exercise.type ===
+'unilateral' &&
+exercise.unilateralMode ===
+'separate';
+
+
+const rows =
+exercise.sets
+.map(
+(set, setIndex) => {
+
+if (separateSides) {
+
+return `
+<tr>
+
+<td class="set-number">
+${setIndex + 1}
+</td>
+
+<td>
+<input
+class="set-input"
+data-set-field="leftWeight"
+data-ei="${exerciseIndex}"
+data-si="${setIndex}"
+value="${esc(set.leftWeight)}"
+placeholder="kg L"
+>
+</td>
+
+<td>
+<input
+class="set-input"
+data-set-field="leftReps"
+data-ei="${exerciseIndex}"
+data-si="${setIndex}"
+value="${esc(set.leftReps)}"
+placeholder="reps L"
+>
+</td>
+
+<td>
+<input
+class="set-input"
+data-set-field="rightWeight"
+data-ei="${exerciseIndex}"
+data-si="${setIndex}"
+value="${esc(set.rightWeight)}"
+placeholder="kg R"
+>
+</td>
+
+<td>
+<input
+class="set-input"
+data-set-field="rightReps"
+data-ei="${exerciseIndex}"
+data-si="${setIndex}"
+value="${esc(set.rightReps)}"
+placeholder="reps R"
+>
+</td>
+
+<td>
+<input
+class="set-input"
+data-set-field="rir"
+data-ei="${exerciseIndex}"
+data-si="${setIndex}"
+value="${esc(set.rir)}"
+placeholder="RIR"
+>
+</td>
+
+<td>
+<input
+type="checkbox"
+class="set-check"
+data-done
+data-ei="${exerciseIndex}"
+data-si="${setIndex}"
+${set.done ? 'checked' : ''}
+>
+</td>
+
+</tr>
+`;
+}
+
+
+return `
+<tr>
+
+<td class="set-number">
+${setIndex + 1}
+</td>
+
+<td colspan="2">
+
+<input
+class="set-input"
+data-set-field="weight"
+data-ei="${exerciseIndex}"
+data-si="${setIndex}"
+value="${esc(set.weight)}"
+placeholder="kg"
+>
+
+</td>
+
+<td>
+
+<input
+class="set-input"
+data-set-field="reps"
+data-ei="${exerciseIndex}"
+data-si="${setIndex}"
+value="${esc(set.reps)}"
+placeholder="reps"
+>
+
+</td>
+
+<td>
+
+<input
+class="set-input"
+data-set-field="rir"
+data-ei="${exerciseIndex}"
+data-si="${setIndex}"
+value="${esc(set.rir)}"
+placeholder="RIR"
+>
+
+</td>
+
+<td></td>
+
+<td>
+
+<input
+type="checkbox"
+class="set-check"
+data-done
+data-ei="${exerciseIndex}"
+data-si="${setIndex}"
+${set.done ? 'checked' : ''}
+>
+
+</td>
+
+</tr>
+`;
+}
+)
+.join('');
+
+
+const header =
+separateSides
+
+? `
+<th>L kg</th>
+<th>L reps</th>
+<th>R kg</th>
+<th>R reps</th>
+<th>RIR</th>
+`
+
+: `
+<th colspan="2">
+Carga
+</th>
+
+<th>
+Reps
+</th>
+
+<th>
+RIR
+</th>
+
+<th></th>
+`;
+
+
+return `
+<article class="session-exercise">
+
+<div class="session-exercise-head">
 
 <div>
-<div class="set-row">
-<div>#</div>
-<div>Peso</div>
-<div>Reps</div>
-<div>RIR</div>
-<div class="rir-field"></div>
-<div></div>
+
+<h3>
+${esc(exercise.name)}
+</h3>
+
+<small>
+
+${esc(exercise.muscle)}
+
+·
+
+${
+exercise.type ===
+'unilateral'
+? 'Unilateral'
+: 'Bilateral'
+}
+
+${
+separateSides
+? ' · lados separados'
+: ''
+}
+
+</small>
+
 </div>
 
-${exercise.sets.map((set, index) => `
-
-<div class="set-row">
-
-<div class="set-number">
-${index + 1}
-</div>
-
-<input
-type="number"
-step="0.1"
-class="set-weight"
-data-exercise="${exercise.id}"
-data-set="${set.id}"
-value="${set.weight || ""}"
-placeholder="kg">
-
-<input
-type="number"
-class="set-reps"
-data-exercise="${exercise.id}"
-data-set="${set.id}"
-value="${set.reps || ""}"
-placeholder="reps">
-
-<input
-type="number"
-min="0"
-step="1"
-class="set-rir"
-data-exercise="${exercise.id}"
-data-set="${set.id}"
-value="${set.rir ?? ""}"
-placeholder="RIR">
-
-<div class="rir-field"></div>
 
 <button
-class="btn danger small delete-set"
-data-exercise="${exercise.id}"
-data-set="${set.id}">
+class="remove-btn"
+data-remove-session-exercise="${exerciseIndex}"
+>
 ×
 </button>
 
 </div>
 
-`).join("")}
 
-</div>
+<table class="set-table">
+
+<thead>
+
+<tr>
+
+<th>#</th>
+
+${header}
+
+<th>
+Hecha
+</th>
+
+</tr>
+
+</thead>
+
+
+<tbody>
+
+${rows}
+
+</tbody>
+
+</table>
+
 
 <button
-class="btn secondary small add-set"
-data-id="${exercise.id}"
-style="margin-top:10px">
-+ Serie
+class="add-set"
+data-add-set="${exerciseIndex}"
+>
++ Añadir serie
+</button>
+
+</article>
+`;
+}
+
+
+/* =========================================================
+ACTUALIZACIÓN DE SERIES
+========================================================= */
+
+document.addEventListener(
+'input',
+event => {
+
+const field =
+event.target.closest(
+'[data-set-field]'
+);
+
+
+if (
+!field ||
+!state.activeWorkout
+) {
+return;
+}
+
+
+const exercise =
+state.activeWorkout.exercises[
+Number(field.dataset.ei)
+];
+
+
+const set =
+exercise.sets[
+Number(field.dataset.si)
+];
+
+
+set[
+field.dataset.setField
+] = field.value;
+
+
+localStorage.setItem(
+STORAGE_KEY,
+JSON.stringify(state)
+);
+
+
+updateSessionStatsOnly();
+}
+);
+
+
+document.addEventListener(
+'change',
+event => {
+
+const checkbox =
+event.target.closest(
+'[data-done]'
+);
+
+
+if (
+!checkbox ||
+!state.activeWorkout
+) {
+return;
+}
+
+
+state.activeWorkout
+.exercises[
+Number(checkbox.dataset.ei)
+]
+.sets[
+Number(checkbox.dataset.si)
+]
+.done =
+checkbox.checked;
+
+
+save();
+
+renderSession();
+}
+);
+
+
+document.addEventListener(
+'click',
+event => {
+
+const addSet =
+event.target.closest(
+'[data-add-set]'
+);
+
+
+if (addSet) {
+
+const exercise =
+state.activeWorkout.exercises[
+Number(addSet.dataset.addSet)
+];
+
+
+exercise.sets.push(
+blankSet()
+);
+
+
+save();
+
+renderSession();
+
+return;
+}
+
+
+const removeExercise =
+event.target.closest(
+'[data-remove-session-exercise]'
+);
+
+
+if (removeExercise) {
+
+state.activeWorkout
+.exercises
+.splice(
+Number(
+removeExercise.dataset
+.removeSessionExercise
+),
+1
+);
+
+
+save();
+
+renderSession();
+}
+}
+);
+
+
+function updateSessionStatsOnly() {
+
+if (!state.activeWorkout) {
+return;
+}
+
+
+setText(
+'sessionSets',
+state.activeWorkout.exercises.reduce(
+(total, exercise) =>
+total +
+exercise.sets.filter(
+set => set.done
+).length,
+0
+)
+);
+
+
+setText(
+'sessionVolume',
+fmt(sessionVolume()) +
+' kg'
+);
+}
+
+
+/* =========================================================
+TERMINAR ENTRENAMIENTO
+========================================================= */
+
+function finishWorkout() {
+
+if (!state.activeWorkout) {
+return;
+}
+
+
+if (
+!confirm(
+'¿Terminar y guardar esta sesión?'
+)
+) {
+return;
+}
+
+
+const session =
+clone(
+state.activeWorkout
+);
+
+
+session.date =
+dateKey(new Date());
+
+
+session.finishedAt =
+new Date().toISOString();
+
+
+state.workouts.unshift(
+session
+);
+
+
+state.activeWorkout = null;
+
+
+clearInterval(
+workoutTimer
+);
+
+
+save();
+
+renderTraining();
+
+navigate('training');
+}
+
+
+document.getElementById(
+'quickWorkout'
+).onclick = () =>
+startWorkout();
+
+
+document.getElementById(
+'startFreeBtn'
+).onclick = () =>
+startWorkout();
+
+
+document.getElementById(
+'emptyStartBtn'
+).onclick = () =>
+startWorkout();
+
+
+document.getElementById(
+'finishWorkoutBtn'
+).onclick =
+finishWorkout;
+
+
+document.getElementById(
+'addExerciseToSession'
+).onclick =
+openExerciseChooserForSession;
+
+
+document.getElementById(
+'sessionNoteBtn'
+).onclick = () =>
+document
+.getElementById(
+'noteModal'
+)
+.showModal();
+
+
+document.getElementById(
+'saveSessionNote'
+).onclick = () => {
+
+if (!state.activeWorkout) {
+return;
+}
+
+
+state.activeWorkout.notes =
+document.getElementById(
+'sessionNote'
+).value;
+
+
+save();
+
+
+document
+.getElementById(
+'noteModal'
+)
+.close();
+};
+
+
+/* =========================================================
+AÑADIR EJERCICIO A SESIÓN
+========================================================= */
+
+function openExerciseChooserForSession() {
+
+const exercises =
+allExercises();
+
+
+const modal =
+document.createElement(
+'dialog'
+);
+
+
+modal.className =
+'modal';
+
+
+modal.innerHTML = `
+<form
+method="dialog"
+class="modal-box"
+>
+
+<div class="modal-head">
+
+<h2>
+Añadir ejercicio
+</h2>
+
+<button class="close-btn">
+×
 </button>
 
 </div>
-`;
 
-}).join("");
 
-/* ELIMINAR EJERCICIO */
+<input
+class="search-input big"
+id="tempExSearch"
+placeholder="Buscar ejercicio..."
+>
 
-container
-.querySelectorAll(".remove-current-exercise")
-.forEach(button => {
 
-button.addEventListener("click", () => {
+<div
+class="routine-picker"
+id="tempExList"
+>
 
-state.currentWorkout =
-state.currentWorkout.filter(
-exercise =>
-exercise.id !== button.dataset.id
-);
+${exercises.map(
+exercise => `
+<label
+class="routine-pick"
+>
 
-saveState();
+<input
+type="checkbox"
+value="${exercise.id}"
+>
 
-renderCurrentWorkout();
-});
+<span>
 
-});
+<b>
+${esc(exercise.name)}
+</b>
 
-/* AÑADIR SERIE */
+<br>
 
-container
-.querySelectorAll(".add-set")
-.forEach(button => {
+<small>
 
-button.addEventListener("click", () => {
+${esc(exercise.muscle)}
 
-const exercise =
-state.currentWorkout.find(
-item => item.id === button.dataset.id
-);
+·
 
-if (!exercise) return;
-
-exercise.sets.push({
-id: uid("set"),
-weight: 0,
-reps: 0,
-rir: 0
-});
-
-saveState();
-
-renderCurrentWorkout();
-});
-
-});
-
-/* BORRAR SERIE */
-
-container
-.querySelectorAll(".delete-set")
-.forEach(button => {
-
-button.addEventListener("click", () => {
-
-const exercise =
-state.currentWorkout.find(
-item => item.id === button.dataset.exercise
-);
-
-if (!exercise) return;
-
-exercise.sets =
-exercise.sets.filter(
-set => set.id !== button.dataset.set
-);
-
-if (!exercise.sets.length) {
-exercise.sets.push({
-id: uid("set"),
-weight: 0,
-reps: 0,
-rir: 0
-});
+${
+exercise.type ===
+'unilateral'
+? 'Unilateral'
+: 'Bilateral'
 }
 
-saveState();
+</small>
 
-renderCurrentWorkout();
-});
-
-});
-
-/* ACTUALIZAR PESOS */
-
-container
-.querySelectorAll(".set-weight")
-.forEach(input => {
-
-input.addEventListener("input", () => {
-
-const exercise =
-state.currentWorkout.find(
-item => item.id === input.dataset.exercise
-);
-
-const set =
-exercise?.sets.find(
-item => item.id === input.dataset.set
-);
-
-if (!set) return;
-
-set.weight = number(input.value);
-
-saveState();
-});
-
-});
-
-/* ACTUALIZAR REPS */
-
-container
-.querySelectorAll(".set-reps")
-.forEach(input => {
-
-input.addEventListener("input", () => {
-
-const exercise =
-state.currentWorkout.find(
-item => item.id === input.dataset.exercise
-);
-
-const set =
-exercise?.sets.find(
-item => item.id === input.dataset.set
-);
-
-if (!set) return;
-
-set.reps = number(input.value);
-
-saveState();
-});
-
-});
-
-/* ACTUALIZAR RIR */
-
-container
-.querySelectorAll(".set-rir")
-.forEach(input => {
-
-input.addEventListener("input", () => {
-
-const exercise =
-state.currentWorkout.find(
-item => item.id === input.dataset.exercise
-);
-
-const set =
-exercise?.sets.find(
-item => item.id === input.dataset.set
-);
-
-if (!set) return;
-
-set.rir = number(input.value);
-
-saveState();
-});
-
-});
-}
-
-$("addExerciseToWorkout")?.addEventListener(
-"click",
-addExerciseToCurrentWorkout
-);
-
-/* =====================================================
-GUARDAR ENTRENAMIENTO
-===================================================== */
-
-$("saveWorkoutBtn")?.addEventListener(
-"click",
-() => {
-
-if (!state.currentWorkout.length) {
-alert("Añade al menos un ejercicio.");
-return;
-}
-
-const name =
-$("workoutName").value.trim() ||
-"Entrenamiento";
-
-const workout = {
-
-id: uid("workout"),
-
-date: today(),
-
-timestamp: Date.now(),
-
-name,
-
-exercises:
-structuredClone(state.currentWorkout)
-};
-
-state.workouts.unshift(workout);
-
-state.currentWorkout = [];
-
-$("workoutName").value = "";
-
-saveState();
-
-renderCurrentWorkout();
-renderWorkoutHistory();
-renderExerciseProgress();
-updateTrainingStats();
-updateDashboard();
-
-alert("Entrenamiento guardado.");
-}
-);
-
-/* =====================================================
-RUTINAS
-===================================================== */
-
-function renderRoutineSelect() {
-
-const select =
-$("routineSelect");
-
-if (!state.routines.length) {
-
-select.innerHTML =
-`<option value="">No hay rutinas creadas</option>`;
-
-return;
-}
-
-select.innerHTML =
-`<option value="">Selecciona rutina...</option>` +
-state.routines.map(routine => `
-<option value="${routine.id}">
-${escapeHTML(routine.name)}
-</option>
-`).join("");
-}
-
-function renderRoutineList() {
-
-const container =
-$("routineList");
-
-if (!state.routines.length) {
-
-container.innerHTML =
-`<div class="empty">Todavía no tienes rutinas.</div>`;
-
-return;
-}
-
-container.innerHTML =
-state.routines.map(routine => `
-
-<div class="routine-item">
-
-<div class="routine-item-header">
-
-<strong>
-${escapeHTML(routine.name)}
-</strong>
-
-<span class="tag">
-${routine.exercises.length} ejercicios
 </span>
 
-</div>
-
-<div style="margin-top:9px;color:#8f9ab5;font-size:13px">
-${routine.exercises.length
-? routine.exercises.map(exercise =>
-escapeHTML(exercise.name)
-).join(" · ")
-: "Sin ejercicios"}
-</div>
+</label>
+`
+).join('')}
 
 </div>
 
-`).join("");
+
+<button
+type="button"
+class="primary-btn wide"
+id="tempExAdd"
+>
+Añadir seleccionados
+</button>
+
+</form>
+`;
+
+
+document.body.appendChild(
+modal
+);
+
+
+modal.showModal();
+
+
+const search =
+modal.querySelector(
+'#tempExSearch'
+);
+
+
+search.oninput = () => {
+
+const query =
+search.value.toLowerCase();
+
+
+modal
+.querySelectorAll(
+'.routine-pick'
+)
+.forEach(item => {
+
+item.style.display =
+item.textContent
+.toLowerCase()
+.includes(query)
+? 'flex'
+: 'none';
+
+});
+};
+
+
+modal
+.querySelector(
+'#tempExAdd'
+)
+.onclick = () => {
+
+modal
+.querySelectorAll(
+'input:checked'
+)
+.forEach(input => {
+
+const exercise =
+getExercise(
+input.value
+);
+
+
+if (exercise) {
+
+state.activeWorkout
+.exercises
+.push(
+exerciseForSession(
+exercise
+)
+);
+
 }
 
-$("createRoutineBtn")?.addEventListener(
-"click",
-() => {
+});
 
-const name =
-$("routineName").value.trim();
 
-if (!name) {
-alert("Pon un nombre a la rutina.");
+save();
+
+modal.close();
+
+modal.remove();
+
+renderSession();
+};
+
+
+modal.addEventListener(
+'close',
+() => modal.remove()
+);
+}
+
+
+/* =========================================================
+RUTINAS
+========================================================= */
+
+function renderRoutines() {
+
+const query =
+(
+document.getElementById(
+'routineSearch'
+)?.value || ''
+).toLowerCase();
+
+
+const routines =
+state.routines.filter(
+routine =>
+routine.name
+.toLowerCase()
+.includes(query)
+);
+
+
+const grid =
+document.getElementById(
+'routineGrid'
+);
+
+
+if (!grid) {
 return;
 }
 
-const routine = {
-id: uid("routine"),
-name,
-exercises: []
-};
 
-state.routines.push(routine);
+grid.innerHTML =
+routines
+.map(
+routine => `
+<article
+class="routine-card"
+>
 
-$("routineName").value = "";
+<span class="tag">
+${routine.exercises.length}
+ejercicios
+</span>
 
-saveState();
 
-renderRoutineSelect();
-renderRoutineList();
+<h3>
+${esc(routine.name)}
+</h3>
+
+
+<p>
+${esc(
+routine.description ||
+'Sin descripción'
+)}
+</p>
+
+
+<div>
+
+${routine.exercises
+.slice(0, 5)
+.map(id => {
+
+const exercise =
+getExercise(id);
+
+return exercise
+? `
+<span class="tag">
+${esc(
+exercise.name
+)}
+</span>
+`
+: '';
+
+})
+.join('')}
+
+
+${
+routine.exercises.length > 5
+? `
+<span class="tag">
++
+${
+routine.exercises.length -
+5
 }
+</span>
+`
+: ''
+}
+
+</div>
+
+
+<div class="card-actions">
+
+<button
+class="primary-btn"
+data-start-routine="${routine.id}"
+>
+Entrenar
+</button>
+
+
+<button
+class="secondary-btn"
+data-edit-routine="${routine.id}"
+>
+Editar
+</button>
+
+
+<button
+class="danger-btn"
+data-delete-routine="${routine.id}"
+>
+×
+</button>
+
+</div>
+
+</article>
+`
+)
+.join('')
+
+||
+
+`
+<div class="empty-state">
+
+<h3>
+No hay rutinas
+</h3>
+
+<p>
+Crea tu primera rutina y añade
+los ejercicios que quieras.
+</p>
+
+</div>
+`;
+}
+
+
+function openRoutineModal(
+id = null
+) {
+
+editingRoutineId = id;
+
+
+const routine =
+id
+? state.routines.find(
+item => item.id === id
+)
+: null;
+
+
+document.getElementById(
+'routineModalTitle'
+).textContent =
+routine
+? 'Editar rutina'
+: 'Crear rutina';
+
+
+document.getElementById(
+'rName'
+).value =
+routine?.name || '';
+
+
+document.getElementById(
+'rDescription'
+).value =
+routine?.description || '';
+
+
+renderRoutinePicker(
+routine?.exercises || []
 );
 
-$("loadRoutineBtn")?.addEventListener(
-"click",
+
+document
+.getElementById(
+'routineModal'
+)
+.showModal();
+}
+
+
+function renderRoutinePicker(
+selected = []
+) {
+
+document.getElementById(
+'routineExercisePicker'
+).innerHTML =
+
+allExercises()
+.map(
+exercise => `
+<label
+class="routine-pick"
+>
+
+<input
+type="checkbox"
+value="${exercise.id}"
+${
+selected.includes(
+exercise.id
+)
+? 'checked'
+: ''
+}
+>
+
+
+<span>
+
+<b>
+${esc(exercise.name)}
+</b>
+
+<br>
+
+<small>
+
+${esc(
+exercise.muscle
+)}
+
+·
+
+${
+exercise.type ===
+'unilateral'
+? 'Unilateral'
+: 'Bilateral'
+}
+
+</small>
+
+</span>
+
+</label>
+`
+)
+.join('');
+}
+
+
+document.getElementById(
+'newRoutineBtn'
+).onclick =
+() => openRoutineModal();
+
+
+document.getElementById(
+'newRoutineBtn2'
+).onclick =
+() => openRoutineModal();
+
+
+document.getElementById(
+'emptyRoutineBtn'
+).onclick =
 () => {
 
-const routineId =
-$("routineSelect").value;
+document
+.querySelector(
+'[data-training-tab="routines"]'
+)
+.click();
+
+};
+
+
+document.getElementById(
+'routineSearch'
+).oninput =
+renderRoutines;
+
+
+document.getElementById(
+'saveRoutineBtn'
+).onclick = () => {
+
+const name =
+document.getElementById(
+'rName'
+).value.trim();
+
+
+if (!name) {
+return;
+}
+
+
+const exercises =
+[
+...document.querySelectorAll(
+'#routineExercisePicker input:checked'
+)
+]
+.map(
+input => input.value
+);
+
+
+const description =
+document.getElementById(
+'rDescription'
+).value.trim();
+
+
+if (editingRoutineId) {
 
 const routine =
 state.routines.find(
-item => item.id === routineId
+item =>
+item.id ===
+editingRoutineId
 );
 
-if (!routine) {
-alert("Selecciona una rutina.");
-return;
+
+if (routine) {
+
+routine.name =
+name;
+
+routine.description =
+description;
+
+routine.exercises =
+exercises;
+
 }
-
-state.currentWorkout =
-structuredClone(routine.exercises);
-
-$("workoutName").value =
-routine.name;
-
-saveState();
-
-renderCurrentWorkout();
-}
-);
-
-$("deleteRoutineBtn")?.addEventListener(
-"click",
-() => {
-
-const routineId =
-$("routineSelect").value;
-
-if (!routineId) return;
-
-if (!confirm("¿Eliminar esta rutina?")) {
-return;
-}
-
-state.routines =
-state.routines.filter(
-routine => routine.id !== routineId
-);
-
-saveState();
-
-renderRoutineSelect();
-renderRoutineList();
-}
-);
-
-/* =====================================================
-HISTORIAL DE ENTRENAMIENTO
-===================================================== */
-
-function getWeekStart() {
-
-const date = new Date();
-
-const day = date.getDay();
-
-const difference =
-day === 0 ? -6 : 1 - day;
-
-date.setDate(
-date.getDate() + difference
-);
-
-date.setHours(0,0,0,0);
-
-return date;
-}
-
-function getWorkoutsThisWeek() {
-
-const start = getWeekStart();
-
-return state.workouts.filter(workout => {
-
-const date =
-new Date(workout.date + "T12:00:00");
-
-return date >= start;
-});
-}
-
-function calculateWorkoutStats(workouts) {
-
-let sets = 0;
-let volume = 0;
-
-workouts.forEach(workout => {
-
-workout.exercises.forEach(exercise => {
-
-exercise.sets.forEach(set => {
-
-const weight = number(set.weight);
-const reps = number(set.reps);
-
-if (reps > 0) {
-sets++;
-}
-
-volume += weight * reps;
-});
-
-});
-
-});
-
-return {
-sets,
-volume
-};
-}
-
-function updateTrainingStats() {
-
-const week =
-getWorkoutsThisWeek();
-
-const stats =
-calculateWorkoutStats(week);
-
-$("trainingWeekCount").textContent =
-week.length;
-
-$("trainingWeekSets").textContent =
-stats.sets;
-
-$("trainingWeekVolume").textContent =
-`${round(stats.volume)} kg`;
-
-$("exerciseCount").textContent =
-getAllExercises().length;
-}
-
-function renderWorkoutHistory() {
-
-const container =
-$("workoutHistory");
-
-if (!state.workouts.length) {
-
-container.innerHTML =
-`<div class="empty">No hay entrenamientos guardados.</div>`;
-
-return;
-}
-
-container.innerHTML =
-state.workouts.slice(0, 30).map(workout => {
-
-const stats =
-calculateWorkoutStats([workout]);
-
-return `
-<div class="history-item">
-
-<div class="history-header">
-
-<div>
-<strong>
-${escapeHTML(workout.name)}
-</strong>
-
-<div style="color:#8f9ab5;font-size:12px;margin-top:4px">
-${formatDate(workout.date)}
-</div>
-</div>
-
-<div style="text-align:right">
-<strong>${stats.sets}</strong> series
-<br>
-<span style="color:#8f9ab5;font-size:12px">
-${round(stats.volume)} kg
-</span>
-</div>
-
-</div>
-
-<div style="margin-top:12px">
-
-${workout.exercises.map(exercise => `
-
-<div style="margin-bottom:9px">
-
-<strong style="font-size:13px">
-${escapeHTML(exercise.name)}
-</strong>
-
-<div style="color:#8f9ab5;font-size:12px">
-${exercise.type === "unilateral"
-? "Unilateral"
-: "Bilateral"}
-·
-${exercise.sets.length} series
-</div>
-
-</div>
-
-`).join("")}
-
-</div>
-
-</div>
-`;
-
-}).join("");
-}
-
-/* =====================================================
-PROGRESIÓN POR EJERCICIO
-===================================================== */
-
-function renderExerciseProgress() {
-
-const selected =
-$("progressExerciseSelect").value;
-
-const container =
-$("exerciseProgress");
-
-if (!selected) {
-
-container.innerHTML =
-`<div class="empty">
-Selecciona un ejercicio para ver su progresión.
-</div>`;
-
-return;
-}
-
-const records = [];
-
-state.workouts.forEach(workout => {
-
-workout.exercises.forEach(exercise => {
-
-if (exercise.exerciseId !== selected) {
-return;
-}
-
-exercise.sets.forEach(set => {
-
-if (number(set.reps) <= 0) return;
-
-records.push({
-date: workout.date,
-weight: number(set.weight),
-reps: number(set.reps),
-rir: number(set.rir)
-});
-
-});
-
-});
-
-});
-
-if (!records.length) {
-
-container.innerHTML =
-`<div class="empty">
-Todavía no hay registros para este ejercicio.
-</div>`;
-
-return;
-}
-
-records.sort(
-(a,b) =>
-new Date(a.date) - new Date(b.date)
-);
-
-const last =
-records[records.length - 1];
-
-const heaviest =
-Math.max(
-...records.map(record => record.weight)
-);
-
-const bestReps =
-Math.max(
-...records.map(record => record.reps)
-);
-
-container.innerHTML = `
-
-<div class="grid grid-3">
-
-<div class="stat">
-<div class="label">Último peso</div>
-<div class="value">
-${round(last.weight)} kg
-</div>
-</div>
-
-<div class="stat">
-<div class="label">Mayor peso registrado</div>
-<div class="value">
-${round(heaviest)} kg
-</div>
-</div>
-
-<div class="stat">
-<div class="label">Máximas reps registradas</div>
-<div class="value">
-${bestReps}
-</div>
-</div>
-
-</div>
-
-<div style="margin-top:18px">
-
-${records.slice(-15).reverse().map(record => `
-
-<div style="
-display:flex;
-justify-content:space-between;
-padding:10px 0;
-border-bottom:1px solid var(--border);
-">
-
-<span>${formatDate(record.date)}</span>
-
-<span>
-${record.weight} kg ×
-${record.reps} reps
-· RIR ${record.rir}
-</span>
-
-</div>
-
-`).join("")}
-
-</div>
-`;
-}
-
-$("progressExerciseSelect")?.addEventListener(
-"change",
-renderExerciseProgress
-);
-
-/* =====================================================
-MANTENIMIENTO
-===================================================== */
-
-$("calculateMaintenance")?.addEventListener(
-"click",
-() => {
-
-const sex =
-$("sex").value;
-
-const age =
-number($("age").value);
-
-const weight =
-number($("maintenanceWeight").value);
-
-const height =
-number($("height").value);
-
-const activity =
-number($("activity").value);
-
-if (
-age <= 0 ||
-weight <= 0 ||
-height <= 0
-) {
-alert("Completa todos los datos.");
-return;
-}
-
-let bmr;
-
-if (sex === "male") {
-
-bmr =
-10 * weight +
-6.25 * height -
-5 * age +
-5;
 
 } else {
 
-bmr =
-10 * weight +
-6.25 * height -
-5 * age -
-161;
+state.routines.push({
+
+id:
+uid('routine'),
+
+name,
+
+description,
+
+exercises
+
+});
+
 }
 
-const maintenance =
-bmr * activity;
 
-state.maintenance = {
-calories: round(maintenance),
-bmr: round(bmr),
-data: {
-sex,
-age,
-weight,
-height,
-activity
-}
+save();
+
+
+document
+.getElementById(
+'routineModal'
+)
+.close();
+
+
+renderRoutines();
 };
 
-saveState();
 
-renderMaintenance();
+document.addEventListener(
+'click',
+event => {
 
-updateDashboard();
-}
+const start =
+event.target.closest(
+'[data-start-routine]'
 );
 
-function renderMaintenance() {
 
-const data =
-state.maintenance;
+if (start) {
 
-if (!data.calories) {
-$("maintenanceResult").innerHTML =
-`<div class="empty">Todavía no hay cálculo.</div>`;
+const routine =
+state.routines.find(
+item =>
+item.id ===
+start.dataset.startRoutine
+);
+
+
+if (routine) {
+
+startWorkout(
+routine.name,
+routine
+);
+
+}
+
 return;
 }
 
-$("maintenanceResult").innerHTML = `
 
-<div class="grid grid-3">
+const edit =
+event.target.closest(
+'[data-edit-routine]'
+);
 
-<div class="stat">
-<div class="label">Metabolismo basal estimado</div>
-<div class="value">
-${round(data.bmr)}
+
+if (edit) {
+
+openRoutineModal(
+edit.dataset.editRoutine
+);
+
+return;
+}
+
+
+const remove =
+event.target.closest(
+'[data-delete-routine]'
+);
+
+
+if (
+remove &&
+confirm(
+'¿Borrar esta rutina?'
+)
+) {
+
+state.routines =
+state.routines.filter(
+routine =>
+routine.id !==
+remove.dataset.deleteRoutine
+);
+
+
+save();
+
+renderRoutines();
+}
+
+}
+);
+
+
+/* =========================================================
+EJERCICIOS
+========================================================= */
+
+function renderExercises() {
+
+const query =
+(
+document.getElementById(
+'exerciseSearch'
+)?.value || ''
+).toLowerCase();
+
+
+const muscle =
+document.getElementById(
+'exerciseMuscle'
+)?.value || '';
+
+
+const exercises =
+allExercises().filter(
+exercise => {
+
+const matchesSearch =
+!query ||
+exercise.name
+.toLowerCase()
+.includes(query);
+
+
+const matchesMuscle =
+!muscle ||
+exercise.muscle ===
+muscle;
+
+
+return (
+matchesSearch &&
+matchesMuscle
+);
+}
+);
+
+
+const grid =
+document.getElementById(
+'exerciseGrid'
+);
+
+
+if (!grid) {
+return;
+}
+
+
+grid.innerHTML =
+exercises
+.map(
+exercise => `
+<article
+class="exercise-card"
+>
+
+<span class="tag">
+${esc(
+exercise.muscle
+)}
+</span>
+
+
+<span class="tag">
+
+${
+exercise.type ===
+'unilateral'
+? 'Unilateral'
+: 'Bilateral'
+}
+
+</span>
+
+
+<h3>
+${esc(
+exercise.name
+)}
+</h3>
+
+
+<p>
+${esc(
+exercise.equipment ||
+''
+)}
+
+${
+exercise.custom
+? ' · Creado por ti'
+: ''
+}
+</p>
+
+
+${
+exercise.type ===
+'unilateral'
+? `
+<small class="muted">
+
+${
+exercise.unilateralMode ===
+'separate'
+
+? 'Registro de lados separado'
+
+: 'Mismo peso/reps en ambos lados'
+
+}
+
+</small>
+`
+: ''
+}
+
+</article>
+`
+)
+.join('')
+
+||
+
+`
+<div class="empty-state">
+
+<p>
+No se encontraron ejercicios.
+</p>
+
 </div>
-<div class="sub">kcal/día</div>
+`;
+
+
+const select =
+document.getElementById(
+'progressExerciseSelect'
+);
+
+
+if (select) {
+
+const previous =
+select.value;
+
+
+select.innerHTML =
+allExercises()
+.map(
+exercise => `
+<option
+value="${exercise.id}"
+>
+${esc(
+exercise.name
+)}
+</option>
+`
+)
+.join('');
+
+
+if (previous) {
+select.value =
+previous;
+}
+
+}
+}
+
+
+document.getElementById(
+'exerciseSearch'
+).oninput =
+renderExercises;
+
+
+document.getElementById(
+'exerciseMuscle'
+).onchange =
+renderExercises;
+
+
+document.getElementById(
+'newExerciseBtn'
+).onclick = () => {
+
+document.getElementById(
+'exerciseModalTitle'
+).textContent =
+'Crear ejercicio';
+
+
+document
+.getElementById(
+'exerciseForm'
+)
+.reset();
+
+
+toggleUnilateral();
+
+
+document
+.getElementById(
+'exerciseModal'
+)
+.showModal();
+};
+
+
+document.getElementById(
+'eType'
+).onchange =
+toggleUnilateral;
+
+
+function toggleUnilateral() {
+
+const label =
+document.getElementById(
+'unilateralModeLabel'
+);
+
+
+label.style.display =
+document.getElementById(
+'eType'
+).value ===
+'unilateral'
+? 'grid'
+: 'none';
+}
+
+
+document.getElementById(
+'exerciseForm'
+).onsubmit = event => {
+
+event.preventDefault();
+
+
+const exercise = {
+
+id:
+uid('custom'),
+
+name:
+document.getElementById(
+'eName'
+).value.trim(),
+
+muscle:
+document.getElementById(
+'eMuscle'
+).value,
+
+equipment:
+document.getElementById(
+'eEquipment'
+).value.trim(),
+
+type:
+document.getElementById(
+'eType'
+).value,
+
+unilateralMode:
+document.getElementById(
+'eUnilateralMode'
+).value,
+
+custom:
+true
+
+};
+
+
+if (!exercise.name) {
+return;
+}
+
+
+state.customExercises.push(
+exercise
+);
+
+
+save();
+
+
+document
+.getElementById(
+'exerciseModal'
+)
+.close();
+
+
+renderExercises();
+};
+
+
+/* =========================================================
+HISTORIAL
+========================================================= */
+
+function renderHistory() {
+
+const history =
+document.getElementById(
+'workoutHistory'
+);
+
+
+if (!history) {
+return;
+}
+
+
+const workouts =
+state.workouts;
+
+
+history.innerHTML =
+workouts
+.map(
+workout => `
+<article
+class="history-item"
+data-history-item
+>
+
+<div class="history-main">
+
+<div>
+
+<h3>
+${esc(
+workout.name
+)}
+</h3>
+
+<p>
+
+${fmtDate(
+workout.date,
+{
+weekday: 'long',
+day: 'numeric',
+month: 'long',
+year: 'numeric'
+}
+)}
+
+·
+
+${workout.exercises.length}
+ejercicios
+
+</p>
+
 </div>
 
-<div class="stat">
-<div class="label">Mantenimiento estimado</div>
-<div class="value">
-${round(data.calories)}
-</div>
-<div class="sub">kcal/día</div>
+
+<div>
+
+<b>
+${fmt(
+workoutVolume(
+workout
+)
+)}
+kg
+</b>
+
+<p>
+
+${
+workout.exercises
+.reduce(
+(total, exercise) =>
+total +
+exercise.sets.filter(
+set => set.done
+).length,
+0
+)
+}
+
+series
+
+</p>
+
 </div>
 
-<div class="stat">
-<div class="label">Objetivo actual</div>
-<div class="value">
-${state.goals.calories}
 </div>
-<div class="sub">kcal/día</div>
-</div>
+
+
+<div class="history-details">
+
+${
+workout.exercises
+.map(
+exercise => `
+<div class="list-row">
+
+<div>
+
+<b>
+${esc(
+exercise.name
+)}
+</b>
+
+<small>
+
+${
+exercise.type ===
+'unilateral'
+? 'Unilateral'
+: 'Bilateral'
+}
+
+</small>
 
 </div>
 
+
+<span>
+
+${
+exercise.sets
+.filter(
+set =>
+set.done
+)
+.map(
+set => {
+
+if (
+exercise.type ===
+'unilateral' &&
+exercise.unilateralMode ===
+'separate'
+) {
+
+return `
+${
+set.leftWeight ||
+0
+}
+×
+${
+set.leftReps ||
+0
+}
+
+/
+
+${
+set.rightWeight ||
+0
+}
+×
+${
+set.rightReps ||
+0
+}
 `;
 }
 
-$("saveGoalsBtn")?.addEventListener(
-"click",
-() => {
 
-state.goals = {
-calories: number($("goalCalories").value),
-protein: number($("goalProtein").value),
-carbs: number($("goalCarbs").value),
-fat: number($("goalFat").value)
-};
+return `
+${
+set.weight ||
+0
+}
 
-saveState();
+×
 
-updateDashboard();
-updateFoodTotals();
+${
+set.reps ||
+0
+}
+
+· RIR
+
+${
+set.rir ||
+'—'
+}
+`;
+}
+)
+.join(' · ')
+
+||
+
+'Sin series completadas'
+
+}
+
+</span>
+
+</div>
+`
+)
+.join('')
+}
+
+
+${
+workout.notes
+? `
+<p class="muted">
+Nota:
+${esc(
+workout.notes
+)}
+</p>
+`
+: ''
+}
+
+</div>
+
+</article>
+`
+)
+.join('')
+
+||
+
+`
+<div class="empty-state">
+
+<h3>
+Sin historial
+</h3>
+
+<p>
+Cuando termines una sesión
+aparecerá aquí.
+</p>
+
+</div>
+`;
+}
+
+
+document.addEventListener(
+'click',
+event => {
+
+const item =
+event.target.closest(
+'[data-history-item]'
+);
+
+
+if (
+item &&
+!event.target.closest('button')
+) {
+
+item.classList.toggle(
+'open'
+);
+
+}
+
 }
 );
 
-function renderGoals() {
 
-$("goalCalories").value =
-state.goals.calories;
+/* =========================================================
+PROGRESIÓN DE EJERCICIOS
+========================================================= */
 
-$("goalProtein").value =
-state.goals.protein;
+function renderProgression() {
 
-$("goalCarbs").value =
-state.goals.carbs;
+const select =
+document.getElementById(
+'progressExerciseSelect'
+);
 
-$("goalFat").value =
-state.goals.fat;
-}
 
-/* =====================================================
-PROGRESO
-===================================================== */
+const content =
+document.getElementById(
+'progressionContent'
+);
 
-$("addWeightBtn")?.addEventListener(
-"click",
-() => {
 
-const weight =
-number($("weightInput").value);
-
-if (weight <= 0) {
-alert("Introduce un peso válido.");
+if (!select || !content) {
 return;
 }
 
-state.progress.push({
-id: uid("weight"),
-date: today(),
-weight,
-note:
-$("weightNote").value.trim()
+
+const id =
+select.value ||
+allExercises()[0]?.id;
+
+
+const exercise =
+getExercise(id);
+
+
+if (!exercise) {
+
+content.innerHTML = '';
+
+return;
+}
+
+
+const rows = [];
+
+
+state.workouts.forEach(
+workout => {
+
+const exerciseData =
+workout.exercises.find(
+item =>
+item.exerciseId ===
+id
+);
+
+
+if (
+!exerciseData
+) {
+return;
+}
+
+
+const completed =
+exerciseData.sets.filter(
+set => set.done
+);
+
+
+if (!completed.length) {
+return;
+}
+
+
+let volume = 0;
+
+
+completed.forEach(
+set => {
+
+if (
+exerciseData.type ===
+'unilateral' &&
+exerciseData.unilateralMode ===
+'separate'
+) {
+
+volume +=
+(
+Number(
+set.leftWeight
+) || 0
+) *
+(
+Number(
+set.leftReps
+) || 0
+);
+
+
+volume +=
+(
+Number(
+set.rightWeight
+) || 0
+) *
+(
+Number(
+set.rightReps
+) || 0
+);
+
+} else {
+
+const multiplier =
+exerciseData.type ===
+'unilateral'
+? 2
+: 1;
+
+
+volume +=
+(
+Number(
+set.weight
+) || 0
+) *
+(
+Number(
+set.reps
+) || 0
+) *
+multiplier;
+}
+
+}
+);
+
+
+const weights =
+completed
+.map(
+set =>
+Number(
+set.weight
+) || 0
+)
+.filter(
+weight =>
+weight > 0
+);
+
+
+rows.push({
+
+date:
+workout.date,
+
+volume,
+
+top:
+weights.length
+? Math.max(
+...weights
+)
+: 0,
+
+reps:
+completed.reduce(
+(max, set) =>
+Math.max(
+max,
+Number(
+set.reps
+) || 0
+),
+0
+)
+
 });
 
-state.progress.sort(
-(a,b) =>
-new Date(a.date) -
-new Date(b.date)
-);
-
-$("weightInput").value = "";
-$("weightNote").value = "";
-
-saveState();
-
-renderProgress();
-updateDashboard();
 }
 );
 
-$("saveTargetBtn")?.addEventListener(
-"click",
-() => {
 
-const target =
-number($("targetWeight").value);
+const best =
+rows.length
+? Math.max(
+...rows.map(
+row => row.top
+)
+)
+: 0;
 
-if (target <= 0) {
-alert("Introduce un objetivo válido.");
-return;
+
+const maxVolume =
+rows.length
+? Math.max(
+...rows.map(
+row => row.volume
+)
+)
+: 0;
+
+
+content.innerHTML = `
+
+<div class="progression-summary">
+
+<div class="prog-stat">
+
+<span>
+Mejor carga registrada
+</span>
+
+<b>
+${fmt(best)} kg
+</b>
+
+</div>
+
+
+<div class="prog-stat">
+
+<span>
+Mayor volumen
+</span>
+
+<b>
+${fmt(maxVolume)} kg
+</b>
+
+</div>
+
+
+<div class="prog-stat">
+
+<span>
+Sesiones
+</span>
+
+<b>
+${rows.length}
+</b>
+
+</div>
+
+
+<div class="prog-stat">
+
+<span>
+Última carga
+</span>
+
+<b>
+${
+rows.length
+? fmt(
+rows[
+rows.length - 1
+].top
+)
+: '—'
+}
+kg
+</b>
+
+</div>
+
+</div>
+
+
+<div class="panel">
+
+<div class="panel-head">
+
+<div>
+
+<p class="eyebrow">
+${esc(
+exercise.muscle
+)}
+</p>
+
+<h3>
+${esc(
+exercise.name
+)}
+</h3>
+
+</div>
+
+</div>
+
+
+<div class="mini-chart">
+
+${
+progressSvg(rows)
 }
 
-state.targetWeight = target;
+</div>
 
-saveState();
+</div>
 
-renderProgress();
+
+<div class="list">
+
+${
+rows
+.slice()
+.reverse()
+.slice(0, 10)
+.map(
+row => `
+<div class="list-row">
+
+<span>
+${fmtDate(
+row.date
+)}
+</span>
+
+<b>
+
+${fmt(
+row.top
+)}
+kg
+
+·
+
+${fmt(
+row.reps
+)}
+reps
+
+·
+
+${fmt(
+row.volume
+)}
+kg vol.
+
+</b>
+
+</div>
+`
+)
+.join('')
+
+||
+
+emptyList(
+'Todavía no hay datos de este ejercicio.'
+)
 }
+
+</div>
+`;
+}
+
+
+function progressSvg(rows) {
+
+if (!rows.length) {
+
+return `
+<div class="empty-state">
+
+<p>
+Completa algunas sesiones
+para ver la progresión.
+</p>
+
+</div>
+`;
+}
+
+
+const values =
+rows.map(
+row => row.top
 );
+
+
+const max =
+Math.max(...values);
+
+
+const min =
+Math.min(...values);
+
+
+const range =
+max - min || 1;
+
+
+const points =
+values
+.map(
+(value, index) => {
+
+const x =
+(
+index /
+(
+values.length - 1 ||
+1
+)
+) * 100;
+
+
+const y =
+90 -
+(
+(
+value - min
+) /
+range
+) * 70;
+
+
+return `${x},${y}`;
+}
+)
+.join(' ');
+
+
+return `
+<svg
+viewBox="0 0 100 100"
+preserveAspectRatio="none"
+style="
+width:100%;
+height:100%;
+"
+>
+
+<line
+x1="0"
+y1="90"
+x2="100"
+y2="90"
+stroke="#2a323d"
+/>
+
+
+<polyline
+points="${points}"
+fill="none"
+stroke="var(--accent)"
+stroke-width="2"
+vector-effect="non-scaling-stroke"
+/>
+
+
+${
+values
+.map(
+(value, index) => {
+
+const x =
+(
+index /
+(
+values.length -
+1 ||
+1
+)
+) * 100;
+
+
+const y =
+90 -
+(
+(
+value -
+min
+) /
+range
+) * 70;
+
+
+return `
+<circle
+cx="${x}"
+cy="${y}"
+r="2"
+fill="var(--accent)"
+/>
+`;
+}
+)
+.join('')
+}
+
+</svg>
+`;
+}
+
+
+document.getElementById(
+'progressExerciseSelect'
+).onchange =
+renderProgression;
+
+
+/* =========================================================
+PROGRESO DE PESO
+========================================================= */
 
 function renderProgress() {
 
-const history =
-$("weightHistory");
+const progress =
+state.progress
+.slice()
+.sort(
+(a, b) =>
+a.date.localeCompare(
+b.date
+)
+);
 
-if (!state.progress.length) {
+
+const current =
+progress[
+progress.length - 1
+]?.weight;
+
+
+setText(
+'currentWeight',
+current != null
+? fmt(current, 1)
+: '—'
+);
+
+
+setText(
+'startWeight',
+progress[0]?.weight != null
+? fmt(
+progress[0].weight,
+1
+)
+: '—'
+);
+
+
+setText(
+'targetWeightDisplay',
+state.targetWeight != null
+? fmt(
+state.targetWeight,
+1
+)
+: '—'
+);
+
+
+setText(
+'weightEntries',
+progress.length
+);
+
+
+const range =
+Number(
+document.getElementById(
+'progressRange'
+)?.value || 30
+);
+
+
+const filtered =
+progress.filter(
+entry =>
+(
+Date.now() -
+new Date(
+entry.date +
+'T12:00:00'
+).getTime()
+) <=
+range *
+86400000
+);
+
+
+drawWeightChart(
+filtered
+);
+
+
+const history =
+document.getElementById(
+'weightHistory'
+);
+
+
+if (!history) {
+return;
+}
+
 
 history.innerHTML =
-`<div class="empty">
-Todavía no has registrado ningún peso.
-</div>`;
+progress
+.slice()
+.reverse()
+.slice(0, 10)
+.map(
+(entry, index) => `
+<div class="list-row">
 
-$("progressSummary").innerHTML = "";
+<div>
+
+<b>
+${fmt(
+entry.weight,
+1
+)}
+kg
+</b>
+
+<small>
+${fmtDate(
+entry.date
+)}
+</small>
+
+</div>
+
+
+<button
+class="remove-btn"
+data-remove-progress="${index}"
+>
+×
+</button>
+
+</div>
+`
+)
+.join('')
+
+||
+
+emptyList(
+'No hay registros todavía.'
+);
+}
+
+
+function drawWeightChart(
+entries
+) {
+
+const svg =
+document.getElementById(
+'weightChart'
+);
+
+
+if (!svg) {
+return;
+}
+
+
+if (!entries.length) {
+
+svg.innerHTML = `
+<text
+x="50%"
+y="50%"
+text-anchor="middle"
+fill="#8e99a8"
+>
+Registra tu primer peso
+para ver la gráfica
+</text>
+`;
 
 return;
 }
 
-const first =
-state.progress[0];
 
-const latest =
-state.progress[state.progress.length - 1];
-
-$("targetWeight").value =
-state.targetWeight || "";
-
-let summaryHTML = `
-<div>
-<strong>Último peso:</strong>
-${round(latest.weight)} kg
-</div>
-`;
-
-if (state.targetWeight) {
-
-const start =
-first.weight;
-
-const target =
-state.targetWeight;
-
-const totalDistance =
-Math.abs(start - target);
-
-const currentDistance =
-Math.abs(latest.weight - target);
-
-let percentage = 0;
-
-if (totalDistance > 0) {
-
-percentage =
-((totalDistance - currentDistance) /
-totalDistance) * 100;
-}
-
-percentage =
-Math.max(
-0,
-Math.min(100, percentage)
+const values =
+entries.map(
+entry => entry.weight
 );
 
-summaryHTML += `
 
-<div style="margin-top:15px">
+const min =
+Math.min(
+...values
+) - 1;
 
-<div style="
-display:flex;
-justify-content:space-between;
-font-size:13px;
-margin-bottom:7px;
-">
-<span>Progreso</span>
-<strong>${round(percentage)}%</strong>
-</div>
 
-<div class="progress-track">
-<span style="width:${percentage}%"></span>
-</div>
+const max =
+Math.max(
+...values
+) + 1;
 
-<div style="
-color:#8f9ab5;
-font-size:12px;
-margin-top:7px;
-">
-Objetivo: ${target} kg
-</div>
 
-</div>
+let path = '';
+
+
+values.forEach(
+(value, index) => {
+
+const x =
+30 +
+index *
+(
+740 /
+Math.max(
+1,
+values.length - 1
+)
+);
+
+
+const y =
+270 -
+(
+(
+value - min
+) /
+(
+max - min
+)
+) *
+230;
+
+
+path +=
+(
+index
+? 'L'
+: 'M'
+) +
+x +
+' ' +
+y +
+' ';
+}
+);
+
+
+svg.innerHTML = `
+
+<line
+class="chart-grid"
+x1="30"
+y1="270"
+x2="770"
+y2="270"
+/>
+
+
+<line
+class="chart-grid"
+x1="30"
+y1="40"
+x2="30"
+y2="270"
+/>
+
+
+<path
+class="chart-line"
+d="${path}"
+/>
+
+
+${
+values
+.map(
+(value, index) => {
+
+const x =
+30 +
+index *
+(
+740 /
+Math.max(
+1,
+values.length - 1
+)
+);
+
+
+const y =
+270 -
+(
+(
+value - min
+) /
+(
+max - min
+)
+) *
+230;
+
+
+return `
+<circle
+class="chart-dot"
+cx="${x}"
+cy="${y}"
+r="5"
+/>
+`;
+}
+)
+.join('')
+}
+
 `;
 }
 
-$("progressSummary").innerHTML =
-summaryHTML;
 
-history.innerHTML =
-[...state.progress]
-.reverse()
-.map(record => `
+document.getElementById(
+'progressRange'
+).onchange =
+renderProgress;
 
-<div class="history-item">
 
-<div class="history-header">
+document.getElementById(
+'addProgressBtn'
+).onclick = () => {
 
-<div>
-<strong>
-${round(record.weight)} kg
-</strong>
+const weight =
+prompt(
+'Peso actual (kg):'
+);
 
-<div style="
-color:#8f9ab5;
-font-size:12px;
-margin-top:4px;
-">
-${formatDate(record.date)}
-</div>
-</div>
 
-<button
-class="btn danger small delete-weight"
-data-id="${record.id}">
-Eliminar
-</button>
-
-</div>
-
-${
-record.note
-? `
-<div style="
-color:#8f9ab5;
-margin-top:8px;
-font-size:13px;
-">
-${escapeHTML(record.note)}
-</div>
-`
-: ""
+if (weight === null) {
+return;
 }
 
-</div>
 
-`)
-.join("");
+const number =
+Number(weight);
 
-history
-.querySelectorAll(".delete-weight")
-.forEach(button => {
 
-button.addEventListener(
-"click",
-() => {
+if (
+!Number.isFinite(number) ||
+number <= 0
+) {
+
+alert(
+'Introduce un peso válido.'
+);
+
+return;
+}
+
+
+const note =
+prompt(
+'Nota opcional:'
+) || '';
+
+
+state.progress.push({
+
+id:
+uid('weight'),
+
+date:
+dateKey(new Date()),
+
+weight:
+number,
+
+note
+
+});
+
+
+save();
+
+renderProgress();
+};
+
+
+document.addEventListener(
+'click',
+event => {
+
+const button =
+event.target.closest(
+'[data-remove-progress]'
+);
+
+
+if (
+!button ||
+!confirm(
+'¿Eliminar este registro?'
+)
+) {
+return;
+}
+
+
+const sorted =
+state.progress
+.slice()
+.sort(
+(a, b) =>
+a.date.localeCompare(
+b.date
+)
+);
+
+
+const entry =
+sorted[
+Number(
+button.dataset
+.removeProgress
+)
+];
+
+
+if (!entry) {
+return;
+}
+
 
 state.progress =
 state.progress.filter(
 item =>
-item.id !== button.dataset.id
+item.id !==
+entry.id
 );
 
-saveState();
+
+save();
 
 renderProgress();
-updateDashboard();
 }
 );
 
-});
-}
 
-/* =====================================================
-DASHBOARD
-===================================================== */
+/* =========================================================
+MANTENIMIENTO Y OBJETIVOS
+========================================================= */
 
-function updateDashboard() {
+function calculateMaintenance() {
 
-const totals =
-getFoodTotals();
+const sex =
+document.getElementById(
+'mSex'
+).value;
 
-$("dashCalories").textContent =
-round(totals.calories);
 
-$("dashProtein").textContent =
-`${round(totals.protein)} g`;
-
-$("dashWeight").textContent =
-state.progress.length
-? `${round(
-state.progress[state.progress.length - 1].weight
-)} kg`
-: "—";
-
-const workouts =
-getWorkoutsThisWeek();
-
-$("dashWorkouts").textContent =
-workouts.length;
-
-$("dashboardDate").textContent =
-new Date().toLocaleDateString(
-"es-ES",
-{
-weekday: "long",
-day: "numeric",
-month: "long"
-}
+const age =
+Number(
+document.getElementById(
+'mAge'
+).value
 );
 
-$("dashProteinMacro").textContent =
-`${round(totals.protein)} / ${state.goals.protein} g`;
 
-$("dashCarbsMacro").textContent =
-`${round(totals.carbs)} / ${state.goals.carbs} g`;
+const weight =
+Number(
+document.getElementById(
+'mWeight'
+).value
+);
 
-$("dashFatMacro").textContent =
-`${round(totals.fat)} / ${state.goals.fat} g`;
 
-function percentage(current, goal) {
+const height =
+Number(
+document.getElementById(
+'mHeight'
+).value
+);
 
-if (!goal || goal <= 0) return 0;
 
-return Math.min(
-100,
+const activity =
+Number(
+document.getElementById(
+'mActivity'
+).value
+);
+
+
+const adjustment =
+Number(
+document.getElementById(
+'mAdjustment'
+).value
+) || 0;
+
+
+let bmr =
+10 * weight +
+6.25 * height -
+5 * age +
+(
+sex === 'male'
+? 5
+: -161
+);
+
+
+let maintenance =
+Math.round(
+bmr * activity
+);
+
+
+const goal =
+document.getElementById(
+'mGoal'
+).value;
+
+
+if (
+goal === 'cut' &&
+adjustment === 0
+) {
+
+maintenance -= 300;
+
+}
+
+
+if (
+goal === 'gain' &&
+adjustment === 0
+) {
+
+maintenance += 200;
+
+}
+
+
+maintenance +=
+adjustment;
+
+
+const protein =
+Math.round(
+weight * 1.8
+);
+
+
+const fat =
+Math.round(
+weight * 0.8
+);
+
+
+const carbs =
 Math.max(
 0,
-(current / goal) * 100
+Math.round(
+(
+maintenance -
+protein * 4 -
+fat * 9
+) / 4
 )
 );
+
+
+state.maintenance = {
+
+sex,
+
+age,
+
+weight,
+
+height,
+
+activity,
+
+goal,
+
+adjustment,
+
+bmr,
+
+maintenance
+
+};
+
+
+state.goals = {
+
+calories:
+maintenance,
+
+protein,
+
+carbs,
+
+fat
+
+};
+
+
+save();
+
+renderMaintenance();
 }
 
-$("proteinBar").style.width =
-`${percentage(
-totals.protein,
-state.goals.protein
-)}%`;
 
-$("carbsBar").style.width =
-`${percentage(
-totals.carbs,
-state.goals.carbs
-)}%`;
+function renderMaintenance() {
 
-$("fatBar").style.width =
-`${percentage(
-totals.fat,
-state.goals.fat
-)}%`;
+const maintenance =
+state.maintenance;
 
-const last =
-state.workouts[0];
 
-if (!last) {
+const goals =
+state.goals;
 
-$("lastWorkoutDashboard").innerHTML =
-`<div class="empty">
-Todavía no hay entrenamientos.
-</div>`;
 
+document.getElementById(
+'mSex'
+).value =
+maintenance.sex ||
+'male';
+
+
+document.getElementById(
+'mAge'
+).value =
+maintenance.age ||
+18;
+
+
+document.getElementById(
+'mWeight'
+).value =
+maintenance.weight ||
+71;
+
+
+document.getElementById(
+'mHeight'
+).value =
+maintenance.height ||
+176;
+
+
+document.getElementById(
+'mActivity'
+).value =
+maintenance.activity ||
+1.55;
+
+
+document.getElementById(
+'mGoal'
+).value =
+maintenance.goal ||
+'cut';
+
+
+document.getElementById(
+'mAdjustment'
+).value =
+maintenance.adjustment ??
+0;
+
+
+setText(
+'maintenanceResult',
+fmt(
+maintenance.maintenance ||
+goals.calories
+)
+);
+
+
+setText(
+'goalProteinResult',
+fmt(
+goals.protein
+) +
+' g'
+);
+
+
+setText(
+'goalCarbsResult',
+fmt(
+goals.carbs
+) +
+' g'
+);
+
+
+setText(
+'goalFatResult',
+fmt(
+goals.fat
+) +
+' g'
+);
+
+
+document.getElementById(
+'goalCalInput'
+).value =
+goals.calories;
+
+
+document.getElementById(
+'goalProteinInput'
+).value =
+goals.protein;
+
+
+document.getElementById(
+'goalCarbsInput'
+).value =
+goals.carbs;
+
+
+document.getElementById(
+'goalFatInput'
+).value =
+goals.fat;
+}
+
+
+document.getElementById(
+'maintenanceForm'
+).onsubmit =
+event => {
+
+event.preventDefault();
+
+calculateMaintenance();
+
+};
+
+
+document.getElementById(
+'saveManualGoals'
+).onclick = () => {
+
+state.goals = {
+
+calories:
+Number(
+document.getElementById(
+'goalCalInput'
+).value
+) || 2300,
+
+protein:
+Number(
+document.getElementById(
+'goalProteinInput'
+).value
+) || 130,
+
+carbs:
+Number(
+document.getElementById(
+'goalCarbsInput'
+).value
+) || 260,
+
+fat:
+Number(
+document.getElementById(
+'goalFatInput'
+).value
+) || 70
+
+};
+
+
+save();
+
+renderMaintenance();
+};
+
+
+/* =========================================================
+ASISTENTE LOCAL
+========================================================= */
+
+function assistantAnswer(
+question
+) {
+
+const query =
+question.toLowerCase();
+
+
+const totals =
+totalsForDate(
+dateKey(new Date())
+);
+
+
+if (
+query.includes('calor') ||
+query.includes('kcal')
+) {
+
+return `
+Hoy llevas
+${fmt(totals.calories)}
+kcal de un objetivo de
+${fmt(state.goals.calories)}
+kcal.
+`;
+}
+
+
+if (
+query.includes('prote')
+) {
+
+return `
+Hoy llevas
+${fmt(totals.protein, 1)}
+g de proteína.
+Tu objetivo guardado es
+${fmt(state.goals.protein)}
+g.
+`;
+}
+
+
+if (
+query.includes('sesion') ||
+query.includes('sesión') ||
+query.includes('entren')
+) {
+
+return `
+Has registrado
+${
+state.workouts.filter(
+workout =>
+withinDays(
+workout.date,
+7
+)
+).length
+}
+sesiones en los últimos
+7 días.
+`;
+}
+
+
+if (
+query.includes('volumen')
+) {
+
+const volumes =
+state.workouts
+.flatMap(
+workout =>
+workout.exercises.map(
+exercise => ({
+
+name:
+exercise.name,
+
+volume:
+(
+exercise.sets ||
+[]
+).reduce(
+(
+total,
+set
+) =>
+total +
+(
+Number(
+set.weight
+) || 0
+) *
+(
+Number(
+set.reps
+) || 0
+),
+0
+)
+
+})
+)
+)
+.sort(
+(a, b) =>
+b.volume -
+a.volume
+);
+
+
+if (!volumes.length) {
+
+return `
+Todavía no hay suficiente
+historial.
+`;
+}
+
+
+return `
+El mayor volumen registrado
+recientemente es de
+${fmt(volumes[0].volume)}
+kg en
+${volumes[0].name}.
+`;
+}
+
+
+return `
+Puedo consultar tus calorías,
+macros de hoy, sesiones recientes
+y progresión guardada.
+
+Prueba con:
+“¿cuánta proteína llevo hoy?”
+`;
+}
+
+
+function sendAssistant(
+question
+) {
+
+if (!question.trim()) {
 return;
 }
 
-const stats =
-calculateWorkoutStats([last]);
-
-$("lastWorkoutDashboard").innerHTML = `
-
-<strong>
-${escapeHTML(last.name)}
-</strong>
-
-<div style="
-color:#8f9ab5;
-margin-top:7px;
-font-size:13px;
-">
-${formatDate(last.date)}
-</div>
-
-<div style="
-margin-top:15px;
-display:flex;
-gap:10px;
-">
-
-<span class="tag">
-${stats.sets} series
-</span>
-
-<span class="tag green">
-${round(stats.volume)} kg
-</span>
-
-</div>
-`;
-}
-
-/* =====================================================
-ASISTENTE
-===================================================== */
-
-function assistantAnswer(question) {
-
-const q =
-normalize(question);
-
-const totals =
-getFoodTotals();
-
-const week =
-getWorkoutsThisWeek();
-
-if (
-q.includes("caloria") ||
-q.includes("kcal")
-) {
-
-return `
-Hoy llevas
-<strong>${round(totals.calories)} kcal</strong>
-de un objetivo de
-<strong>${state.goals.calories} kcal</strong>.
-`;
-}
-
-if (
-q.includes("proteina")
-) {
-
-return `
-Hoy llevas
-<strong>${round(totals.protein)} g</strong>
-de proteína.
-Tu objetivo guardado es
-<strong>${state.goals.protein} g</strong>.
-`;
-}
-
-if (
-q.includes("entrenamiento") ||
-q.includes("entrenamientos")
-) {
-
-return `
-Esta semana tienes
-<strong>${week.length}</strong>
-entrenamiento(s) registrado(s).
-`;
-}
-
-if (
-q.includes("ultimo entrenamiento") ||
-q.includes("último entrenamiento")
-) {
-
-if (!state.workouts.length) {
-return "Todavía no tienes entrenamientos guardados.";
-}
-
-const workout =
-state.workouts[0];
-
-return `
-Tu último entrenamiento fue
-<strong>${escapeHTML(workout.name)}</strong>
-el ${formatDate(workout.date)}.
-`;
-}
-
-if (
-q.includes("peso")
-) {
-
-if (!state.progress.length) {
-return "Todavía no tienes registros de peso.";
-}
-
-const last =
-state.progress[state.progress.length - 1];
-
-return `
-Tu último registro es de
-<strong>${round(last.weight)} kg</strong>
-(${formatDate(last.date)}).
-`;
-}
-
-if (
-q.includes("mantenimiento")
-) {
-
-if (!state.maintenance.calories) {
-return "Todavía no has calculado el mantenimiento.";
-}
-
-return `
-Tu estimación guardada de mantenimiento es
-<strong>${round(state.maintenance.calories)} kcal/día</strong>.
-`;
-}
-
-return `
-Puedo consultar tus calorías, proteína,
-peso, mantenimiento y entrenamientos guardados.
-`;
-}
-
-function sendAssistant(question) {
-
-if (!question.trim()) return;
 
 const messages =
-$("assistantMessages");
+document.getElementById(
+'assistantMessages'
+);
 
-messages.innerHTML += `
 
-<div style="
-margin:12px 0;
-text-align:right;
-">
-<span style="
-display:inline-block;
-background:#202a44;
-padding:10px 13px;
-border-radius:13px;
-max-width:85%;
-">
-${escapeHTML(question)}
-</span>
+messages.insertAdjacentHTML(
+'beforeend',
+`
+<div class="msg user">
+
+<small>
+Tú
+</small>
+
+${esc(question)}
+
 </div>
+`
+);
 
-<div style="
-margin:12px 0;
-">
-<span style="
-display:inline-block;
-background:rgba(124,92,255,.12);
-border:1px solid rgba(124,92,255,.25);
-padding:10px 13px;
-border-radius:13px;
-max-width:85%;
-">
-${assistantAnswer(question)}
-</span>
+
+messages.insertAdjacentHTML(
+'beforeend',
+`
+<div class="msg">
+
+<small>
+Nutri
+</small>
+
+${esc(
+assistantAnswer(
+question
+)
+)}
+
 </div>
-`;
+`
+);
+
 
 messages.scrollTop =
 messages.scrollHeight;
 }
 
-$("assistantSend")?.addEventListener(
-"click",
-() => {
+
+document.getElementById(
+'assistantSend'
+).onclick = () => {
 
 const input =
-$("assistantInput");
-
-sendAssistant(input.value);
-
-input.value = "";
-}
+document.getElementById(
+'assistantInput'
 );
 
-$("assistantInput")?.addEventListener(
-"keydown",
+
+sendAssistant(
+input.value
+);
+
+
+input.value = '';
+};
+
+
+document.getElementById(
+'assistantInput'
+).onkeydown =
 event => {
 
-if (event.key === "Enter") {
-
-$("assistantSend").click();
-}
-}
-);
+if (
+event.key ===
+'Enter'
+) {
 
 document
-.querySelectorAll(".assistant-question")
-.forEach(button => {
+.getElementById(
+'assistantSend'
+)
+.click();
 
-button.addEventListener(
-"click",
-() => {
+}
+};
+
+
+document
+.querySelectorAll(
+'.suggestions button'
+)
+.forEach(
+button => {
+
+button.onclick =
+() =>
 sendAssistant(
-button.dataset.question
+button.dataset
+.question
 );
+
 }
 );
 
-});
 
-/* =====================================================
-IMPORTAR / EXPORTAR
-===================================================== */
+/* =========================================================
+PESTAÑAS DE ENTRENAMIENTO
+========================================================= */
 
-$("exportDataBtn")?.addEventListener(
-"click",
-() => {
+function switchTrainingTab(
+tab
+) {
 
-const data =
+document
+.querySelectorAll(
+'.training-tab'
+)
+.forEach(
+button => {
+
+button.classList.toggle(
+'active',
+button.dataset
+.trainingTab ===
+tab
+);
+
+}
+);
+
+
+document
+.querySelectorAll(
+'.training-pane'
+)
+.forEach(
+pane => {
+
+pane.classList.toggle(
+'active',
+pane.id ===
+'training-' +
+tab
+);
+
+}
+);
+
+
+if (
+tab ===
+'progression'
+) {
+
+renderProgression();
+
+}
+}
+
+
+document
+.querySelectorAll(
+'.training-tab'
+)
+.forEach(
+button => {
+
+button.onclick =
+() =>
+switchTrainingTab(
+button.dataset
+.trainingTab
+);
+
+}
+);
+
+
+/* =========================================================
+EXPORTAR DATOS
+========================================================= */
+
+document.getElementById(
+'exportData'
+).onclick = () => {
+
+const blob =
+new Blob(
+[
 JSON.stringify(
 state,
 null,
 2
-);
-
-const blob =
-new Blob(
-[data],
+)
+],
 {
-type: "application/json"
+type:
+'application/json'
 }
 );
 
+
 const url =
-URL.createObjectURL(blob);
+URL.createObjectURL(
+blob
+);
+
 
 const link =
-document.createElement("a");
+document.createElement(
+'a'
+);
 
-link.href = url;
+
+link.href =
+url;
+
 
 link.download =
-`nutri-backup-${today()}.json`;
+`nutri-backup-${
+dateKey(new Date())
+}.json`;
+
 
 link.click();
 
-URL.revokeObjectURL(url);
-}
-);
 
-$("importDataInput")?.addEventListener(
-"change",
+URL.revokeObjectURL(
+url
+);
+};
+
+
+/* =========================================================
+IMPORTAR DATOS
+========================================================= */
+
+document.getElementById(
+'importData'
+).onchange =
 event => {
 
 const file =
 event.target.files[0];
 
-if (!file) return;
+
+if (!file) {
+return;
+}
+
 
 const reader =
 new FileReader();
+
 
 reader.onload = () => {
 
 try {
 
-const imported =
-JSON.parse(reader.result);
-
-state = {
-...structuredClone(defaultState),
-...imported
-};
-
-saveState();
-
-location.reload();
-
-} catch {
-
-alert("El archivo no es válido.");
-}
-};
-
-reader.readAsText(file);
-}
+state =
+merge(
+initialState,
+JSON.parse(
+reader.result
+)
 );
 
-$("resetDataBtn")?.addEventListener(
-"click",
-() => {
+
+save();
+
+
+alert(
+'Datos importados correctamente.'
+);
+
+
+} catch (error) {
+
+console.error(
+error
+);
+
+
+alert(
+'El archivo no es un backup válido de Nutri.'
+);
+
+}
+
+};
+
+
+reader.readAsText(
+file
+);
+};
+
+
+/* =========================================================
+RESTABLECER DATOS
+========================================================= */
+
+document.getElementById(
+'resetData'
+).onclick = () => {
 
 if (
 !confirm(
-"Esto eliminará todos tus datos de Nutri. ¿Continuar?"
+'Esto borrará todos los datos guardados en este dispositivo. ¿Continuar?'
 )
 ) {
+
 return;
 }
 
-localStorage.removeItem(STORAGE_KEY);
 
-location.reload();
-}
+state =
+clone(
+initialState
 );
 
-/* =====================================================
-INICIALIZACIÓN
-===================================================== */
 
-renderSelectedFood();
+localStorage.removeItem(
+STORAGE_KEY
+);
 
-renderFoodTable();
 
-updateFoodTotals();
+renderAll();
 
-renderExerciseSelects();
+navigate(
+'dashboard'
+);
+};
 
-renderCurrentWorkout();
 
-renderRoutineSelect();
+/* =========================================================
+RENDER GENERAL
+========================================================= */
 
-renderRoutineList();
+function renderAll() {
 
-renderWorkoutHistory();
+renderDashboard();
 
-renderExerciseProgress();
+renderNutrition();
+
+renderTraining();
 
 renderProgress();
 
 renderMaintenance();
 
-renderGoals();
+renderRoutines();
 
-updateTrainingStats();
+renderExercises();
 
-updateDashboard();
+renderHistory();
 
-});
+renderProgression();
+}
+
+
+/* =========================================================
+INICIAR APP
+========================================================= */
+
+renderAll();
