@@ -1,793 +1,211 @@
 /* Nutri — aplicación local. foods.js se mantiene separado e intacto. */
-
-const FOOD_DATABASE =
-typeof foods !== 'undefined'
-? foods
-: (window.foods || []);
-
+const FOOD_DATABASE = typeof foods !== 'undefined' ? foods : (window.foods || []);
 const STORAGE_KEY = 'nutri_app_v4';
 
-
-/* =========================================================
-EJERCICIOS PREDETERMINADOS
-========================================================= */
-
 const defaultExercises = [
-['Press banca máquina','Pecho','Máquina','bilateral','same'],
-['Press inclinado con mancuernas','Pecho','Mancuernas','bilateral','same'],
-['Aperturas en polea','Pecho','Polea','bilateral','same'],
-['Pec deck','Pecho','Máquina','bilateral','same'],
+['Press banca máquina','Pecho','Máquina','bilateral','same'],['Press inclinado con mancuernas','Pecho','Mancuernas','bilateral','same'],['Aperturas en polea','Pecho','Polea','bilateral','same'],['Pec deck','Pecho','Máquina','bilateral','same'],
+['Jalón al pecho agarre ancho','Espalda','Polea','bilateral','same'],['Remo T-bar','Espalda','Máquina','bilateral','same'],['Remo unilateral en polea','Espalda','Polea','unilateral','same'],['Pullover en polea','Espalda','Polea','bilateral','same'],
+['Press hombros máquina','Hombros','Máquina','bilateral','same'],['Elevación lateral','Hombros','Mancuernas','bilateral','same'],['Elevación lateral unilateral en polea','Hombros','Polea','unilateral','same'],['Pájaros en máquina','Hombros','Máquina','bilateral','same'],
+['Curl bíceps detrás del torso','Bíceps','Polea','unilateral','same'],['Curl predicador','Bíceps','Máquina','bilateral','same'],['Curl martillo','Bíceps','Mancuernas','unilateral','same'],
+['Extensión de tríceps en polea','Tríceps','Polea','bilateral','same'],['Extensión de tríceps unilateral','Tríceps','Polea','unilateral','same'],['Press cerrado','Tríceps','Máquina','bilateral','same'],
+['Extensión de cuádriceps','Pierna','Máquina','bilateral','same'],['Curl femoral','Pierna','Máquina','bilateral','same'],['Prensa','Pierna','Máquina','bilateral','same'],['Elevación de gemelo de pie','Pierna','Máquina','bilateral','same'],
+['Hip thrust','Glúteos','Máquina','bilateral','same'],['Abducción de cadera','Glúteos','Máquina','bilateral','same'],['Crunch en polea','Abdomen','Polea','bilateral','same'],['Elevación de piernas','Abdomen','Peso corporal','bilateral','same'],['Curl de muñeca','Antebrazo','Mancuernas','bilateral','same']
+].map((x,i)=>({id:'def-'+(i+1),name:x[0],muscle:x[1],equipment:x[2],type:x[3],unilateralMode:x[4],custom:false}));
 
-['Jalón al pecho agarre ancho','Espalda','Polea','bilateral','same'],
-['Remo T-bar','Espalda','Máquina','bilateral','same'],
-['Remo unilateral en polea','Espalda','Polea','unilateral','same'],
-['Pullover en polea','Espalda','Polea','bilateral','same'],
-
-['Press hombros máquina','Hombros','Máquina','bilateral','same'],
-['Elevación lateral','Hombros','Mancuernas','bilateral','same'],
-['Elevación lateral unilateral en polea','Hombros','Polea','unilateral','same'],
-['Pájaros en máquina','Hombros','Máquina','bilateral','same'],
-
-['Curl bíceps detrás del torso','Bíceps','Polea','unilateral','same'],
-['Curl predicador','Bíceps','Máquina','bilateral','same'],
-['Curl martillo','Bíceps','Mancuernas','unilateral','same'],
-
-['Extensión de tríceps en polea','Tríceps','Polea','bilateral','same'],
-['Extensión de tríceps unilateral','Tríceps','Polea','unilateral','same'],
-['Press cerrado','Tríceps','Máquina','bilateral','same'],
-
-['Extensión de cuádriceps','Pierna','Máquina','bilateral','same'],
-['Curl femoral','Pierna','Máquina','bilateral','same'],
-['Prensa','Pierna','Máquina','bilateral','same'],
-['Elevación de gemelo de pie','Pierna','Máquina','bilateral','same'],
-
-['Hip thrust','Glúteos','Máquina','bilateral','same'],
-['Abducción de cadera','Glúteos','Máquina','bilateral','same'],
-
-['Crunch en polea','Abdomen','Polea','bilateral','same'],
-['Elevación de piernas','Abdomen','Peso corporal','bilateral','same'],
-
-['Curl de muñeca','Antebrazo','Mancuernas','bilateral','same']
-].map((x, i) => ({
-id: 'def-' + (i + 1),
-name: x[0],
-muscle: x[1],
-equipment: x[2],
-type: x[3],
-unilateralMode: x[4],
-custom: false
-}));
-
-
-/* =========================================================
-ESTADO INICIAL
-========================================================= */
-
-const initialState = {
-
-goals: {
-calories: 2300,
-protein: 130,
-carbs: 260,
-fat: 70
-},
-
-maintenance: {
-sex: 'male',
-age: 18,
-weight: 71,
-height: 176,
-activity: 1.55,
-goal: 'cut',
-adjustment: -400
-},
-
-nutrition: {},
-
-progress: [],
-
-targetWeight: null,
-
-/* NUEVO: alimentos personalizados */
-customFoods: [],
-
-customExercises: [],
-
-routines: [],
-
-workouts: [],
-
-activeWorkout: null,
-
-settings: {}
-};
-
+const initialState = {goals:{calories:2300,protein:130,carbs:260,fat:70},maintenance:{sex:'male',age:18,weight:71,height:176,activity:1.55,goal:'cut',adjustment:-400},nutrition:{},progress:[],targetWeight:null,customFoods:[],customExercises:[],routines:[],workouts:[],activeWorkout:null,settings:{}};
 
 let state = loadState();
-
 let selectedFood = null;
-
 let selectedRoutineId = null;
-
 let editingRoutineId = null;
-
-let currentNutritionDate =
-dateKey(new Date());
-
+let currentNutritionDate = dateKey(new Date());
 let workoutTimer = null;
 
+function clone(v){return JSON.parse(JSON.stringify(v));}
 
-/* =========================================================
-UTILIDADES
-========================================================= */
-
-function clone(value) {
-
-return JSON.parse(
-JSON.stringify(value)
-);
-
+function loadState(){
+try{
+const raw=localStorage.getItem(STORAGE_KEY);
+return raw?merge(initialState,JSON.parse(raw)):clone(initialState)
+}catch(e){
+return clone(initialState)
+}
 }
 
-
-function loadState() {
-
-try {
-
-const raw =
-localStorage.getItem(
-STORAGE_KEY
-);
-
-return raw
-? merge(
-initialState,
-JSON.parse(raw)
-)
-: clone(initialState);
-
-} catch (error) {
-
-return clone(initialState);
-
+function merge(a,b){
+const out=clone(a);
+for(const k in b){
+if(b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k])&&typeof out[k]==='object')
+out[k]=merge(out[k],b[k]);
+else
+out[k]=b[k]
+}
+return out
 }
 
+function save(){
+localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+renderAll()
 }
 
-
-function merge(a, b) {
-
-const out = clone(a);
-
-for (const key in b) {
-
-if (
-b[key] &&
-typeof b[key] === 'object' &&
-!Array.isArray(b[key]) &&
-typeof out[key] === 'object'
-) {
-
-out[key] =
-merge(
-out[key],
-b[key]
-);
-
-} else {
-
-out[key] =
-b[key];
-
+function uid(prefix='id'){
+return prefix+'_'+Math.random().toString(36).slice(2,9)+'_'+Date.now().toString(36)
 }
 
+function dateKey(d){
+return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)
 }
 
-return out;
-
+function fmtDate(key,opts={day:'numeric',month:'short',year:'numeric'}){
+return new Date(key+'T12:00:00').toLocaleDateString('es-ES',opts)
 }
 
-
-function save() {
-
-localStorage.setItem(
-STORAGE_KEY,
-JSON.stringify(state)
-);
-
-renderAll();
-
+function esc(s){
+return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))
 }
 
-
-function uid(prefix = 'id') {
-
-return (
-prefix +
-'_' +
-Math.random()
-.toString(36)
-.slice(2, 9) +
-'_' +
-Date.now()
-.toString(36)
-);
-
+function allExercises(){
+return [...defaultExercises,...state.customExercises]
 }
 
-
-function dateKey(d) {
-
-return new Date(
-d.getTime() -
-d.getTimezoneOffset() * 60000
-)
-.toISOString()
-.slice(0, 10);
-
+/* NUEVO: alimentos originales + alimentos creados por el usuario */
+function allFoods(){
+return [...FOOD_DATABASE,...(state.customFoods||[])]
 }
 
-
-function fmtDate(
-key,
-opts = {
-day: 'numeric',
-month: 'short',
-year: 'numeric'
-}
-) {
-
-return new Date(
-key + 'T12:00:00'
-).toLocaleDateString(
-'es-ES',
-opts
-);
-
+function getFood(id){
+return allFoods().find(f=>String(f.id)===String(id))
 }
 
-
-function esc(s) {
-
-return String(
-s ?? ''
-).replace(
-/[&<>'"]/g,
-c => ({
-'&': '&amp;',
-'<': '&lt;',
-'>': '&gt;',
-"'": '&#39;',
-'"': '&quot;'
-}[c])
-);
-
+function getExercise(id){
+return allExercises().find(e=>e.id===id)
 }
 
-
-/* =========================================================
-BASES DE DATOS
-========================================================= */
-
-function allExercises() {
-
-return [
-...defaultExercises,
-...state.customExercises
-];
-
+function pct(v,g){
+return g?Math.min(100,Math.max(0,v/g*100)):0
 }
 
-
-/*
-IMPORTANTE:
-Aquí se combinan los 358 alimentos originales
-de foods.js con los alimentos creados por el usuario.
-*/
-
-function allFoods() {
-
-return [
-...FOOD_DATABASE,
-...(state.customFoods || [])
-];
-
+function kcalFromMacros(p,c,f){
+return p*4+c*4+f*9
 }
 
-
-function getFood(id) {
-
-return allFoods().find(
-food =>
-String(food.id) ===
-String(id)
-);
-
+function todayLog(){
+return state.nutrition[currentNutritionDate]||[]
 }
 
-
-function getExercise(id) {
-
-return allExercises().find(
-exercise =>
-exercise.id === id
-);
-
+function totalsForDate(key){
+return (state.nutrition[key]||[]).reduce((a,x)=>{
+a.calories+=x.calories;
+a.protein+=x.protein;
+a.carbs+=x.carbs;
+a.fat+=x.fat;
+return a
+},{calories:0,protein:0,carbs:0,fat:0})
 }
 
-
-function pct(value, goal) {
-
-return goal
-? Math.min(
-100,
-Math.max(
-0,
-value / goal * 100
-)
-)
-: 0;
-
+function fmt(n,d=0){
+return Number(n||0).toLocaleString('es-ES',{maximumFractionDigits:d})
 }
 
-
-function kcalFromMacros(
-protein,
-carbs,
-fat
-) {
-
-return (
-protein * 4 +
-carbs * 4 +
-fat * 9
-);
-
+function navigate(view){
+document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+view));
+document.querySelectorAll('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+window.scrollTo({top:0,behavior:'smooth'});
+if(view==='nutrition')renderNutrition();
+if(view==='training')renderTraining();
+if(view==='progress')renderProgress();
+if(view==='maintenance')renderMaintenance()
 }
 
-
-function todayLog() {
-
-return (
-state.nutrition[
-currentNutritionDate
-] || []
-);
-
+document.addEventListener('click',e=>{
+const v=e.target.closest('[data-view]');
+if(v){
+navigate(v.dataset.view);
+return
 }
 
-
-function totalsForDate(key) {
-
-return (
-state.nutrition[key] || []
-).reduce(
-(total, item) => {
-
-total.calories +=
-item.calories;
-
-total.protein +=
-item.protein;
-
-total.carbs +=
-item.carbs;
-
-total.fat +=
-item.fat;
-
-return total;
-
-},
-{
-calories: 0,
-protein: 0,
-carbs: 0,
-fat: 0
-}
-);
-
-}
-
-
-function fmt(
-number,
-decimals = 0
-) {
-
-return Number(
-number || 0
-).toLocaleString(
-'es-ES',
-{
-maximumFractionDigits:
-decimals
-}
-);
-
-}
-
-
-/* =========================================================
-NAVEGACIÓN
-========================================================= */
-
-function navigate(view) {
-
-document
-.querySelectorAll('.view')
-.forEach(section => {
-
-section.classList.toggle(
-'active',
-section.id ===
-'view-' + view
-);
-
-});
-
-document
-.querySelectorAll('.nav-link')
-.forEach(button => {
-
-button.classList.toggle(
-'active',
-button.dataset.view ===
-view
-);
-
-});
-
-window.scrollTo({
-top: 0,
-behavior: 'smooth'
-});
-
-if (view === 'nutrition') {
-renderNutrition();
-}
-
-if (view === 'training') {
-renderTraining();
-}
-
-if (view === 'progress') {
-renderProgress();
-}
-
-if (view === 'maintenance') {
-renderMaintenance();
-}
-
-}
-
-
-document.addEventListener(
-'click',
-event => {
-
-const viewButton =
-event.target.closest(
-'[data-view]'
-);
-
-if (viewButton) {
-
-navigate(
-viewButton.dataset.view
-);
-
-return;
-
-}
-
-if (
-event.target.id ===
-'settingsBtn'
-) {
-
+if(e.target.id==='settingsBtn')
 navigate('settings');
-
-}
-
-}
-);
+});
 
 
-/* =========================================================
-DASHBOARD
-========================================================= */
+function renderDashboard(){
+const t=totalsForDate(dateKey(new Date())),g=state.goals;
 
-function renderDashboard() {
+document.getElementById('todayLabel').textContent=
+fmtDate(dateKey(new Date()),{weekday:'long',day:'numeric',month:'long'});
 
-const totals =
-totalsForDate(
-dateKey(new Date())
-);
+setText('dashCalories',fmt(t.calories));
+setText('dashCalGoal',fmt(g.calories));
+setText('dashProtein',fmt(t.protein));
+setText('dashCarbs',fmt(t.carbs));
+setText('dashFat',fmt(t.fat));
 
-const goals =
-state.goals;
+setBar('dashProteinBar',t.protein,g.protein);
+setBar('dashCarbsBar',t.carbs,g.carbs);
+setBar('dashFatBar',t.fat,g.fat);
 
-document.getElementById(
-'todayLabel'
-).textContent =
-fmtDate(
-dateKey(new Date()),
-{
-weekday: 'long',
-day: 'numeric',
-month: 'long'
-}
-);
+document.getElementById('calorieDonut').style.background=
+`conic-gradient(var(--accent) ${Math.min(360,t.calories/Math.max(1,g.calories)*360)}deg,#2b323d 0deg)`;
 
-setText(
-'dashCalories',
-fmt(totals.calories)
-);
+const sessions=state.workouts.filter(w=>withinDays(w.date,7));
+const sets=sessions.reduce((a,w)=>a+w.exercises.reduce((b,x)=>b+x.sets.filter(s=>s.done).length,0),0);
+const vol=sessions.reduce((a,w)=>a+workoutVolume(w),0);
 
-setText(
-'dashCalGoal',
-fmt(goals.calories)
-);
+setText('dashSessions',sessions.length);
+setText('dashSets',sets);
+setText('dashVolume',fmt(vol));
 
-setText(
-'dashProtein',
-fmt(totals.protein)
-);
+const last=state.workouts[0];
 
-setText(
-'dashCarbs',
-fmt(totals.carbs)
-);
+setText('dashWorkoutTitle',last?last.name:'Ningún entrenamiento hoy');
+setText('dashWorkoutText',last?`${fmtDate(last.date)} · ${last.exercises.length} ejercicios`:'Crea una rutina o empieza un entrenamiento libre.');
 
-setText(
-'dashFat',
-fmt(totals.fat)
-);
+const rw=document.getElementById('dashRecentWorkouts');
 
-setBar(
-'dashProteinBar',
-totals.protein,
-goals.protein
-);
-
-setBar(
-'dashCarbsBar',
-totals.carbs,
-goals.carbs
-);
-
-setBar(
-'dashFatBar',
-totals.fat,
-goals.fat
-);
-
-const donut =
-document.getElementById(
-'calorieDonut'
-);
-
-if (donut) {
-
-donut.style.background =
-`conic-gradient(
-var(--accent)
-${
-Math.min(
-360,
-totals.calories /
-Math.max(
-1,
-goals.calories
-) *
-360
-)
-}deg,
-#2b323d 0deg
-)`;
-
-}
-
-const sessions =
-state.workouts.filter(
-workout =>
-withinDays(
-workout.date,
-7
-)
-);
-
-const sets =
-sessions.reduce(
-(total, workout) =>
-total +
-workout.exercises.reduce(
-(inner, exercise) =>
-inner +
-exercise.sets.filter(
-set => set.done
-).length,
-0
-),
-0
-);
-
-const volume =
-sessions.reduce(
-(total, workout) =>
-total +
-workoutVolume(workout),
-0
-);
-
-setText(
-'dashSessions',
-sessions.length
-);
-
-setText(
-'dashSets',
-sets
-);
-
-setText(
-'dashVolume',
-fmt(volume)
-);
-
-const last =
-state.workouts[0];
-
-setText(
-'dashWorkoutTitle',
-last
-? last.name
-: 'Ningún entrenamiento hoy'
-);
-
-setText(
-'dashWorkoutText',
-last
-? `${fmtDate(last.date)} · ${last.exercises.length} ejercicios`
-: 'Crea una rutina o empieza un entrenamiento libre.'
-);
-
-const recent =
-document.getElementById(
-'dashRecentWorkouts'
-);
-
-if (recent) {
-
-recent.innerHTML =
-sessions
-.slice(0, 4)
-.map(
-workout => `
+rw.innerHTML=
+sessions.slice(0,4).map(w=>`
 <div class="list-row">
 <div>
-<b>${esc(workout.name)}</b>
-<small>
-${fmtDate(workout.date)}
-·
-${workout.exercises.length}
-ejercicios
-</small>
+<b>${esc(w.name)}</b>
+<small>${fmtDate(w.date)} · ${w.exercises.length} ejercicios</small>
 </div>
-
-<b>
-${fmt(workoutVolume(workout))}
-kg
-</b>
+<b>${fmt(workoutVolume(w))} kg</b>
 </div>
-`
-)
-.join('') ||
-emptyList(
-'Todavía no hay sesiones.'
-);
+`).join('')||
+emptyList('Todavía no hay sesiones.');
 
-}
+const ml=document.getElementById('dashMeals');
 
-const meals =
-document.getElementById(
-'dashMeals'
-);
-
-if (meals) {
-
-meals.innerHTML =
-todayLog()
-.slice(-4)
-.reverse()
-.map(
-item => `
+ml.innerHTML=
+todayLog().slice(-4).reverse().map(x=>`
 <div class="list-row">
 <div>
-<b>${esc(item.name)}</b>
-<small>
-${fmt(item.grams, 1)} g
-</small>
+<b>${esc(x.name)}</b>
+<small>${fmt(x.grams,1)} g</small>
 </div>
-
-<b>
-${fmt(item.calories)}
-kcal
-</b>
+<b>${fmt(x.calories)} kcal</b>
 </div>
-`
-)
-.join('') ||
-emptyList(
-'No hay alimentos registrados hoy.'
-);
-
+`).join('')||
+emptyList('No hay alimentos registrados hoy.');
 }
 
+function emptyList(t){
+return `<div class="list-row"><span>${t}</span></div>`
 }
 
-
-function emptyList(text) {
-
-return `
-<div class="list-row">
-<span>${text}</span>
-</div>
-`;
-
+function setText(id,v){
+const e=document.getElementById(id);
+if(e)e.textContent=v
 }
 
-
-function setText(id, value) {
-
-const element =
-document.getElementById(id);
-
-if (element) {
-
-element.textContent =
-value;
-
+function setBar(id,v,g){
+const e=document.getElementById(id);
+if(e)e.style.width=pct(v,g)+'%'
 }
 
-}
-
-
-function setBar(
-id,
-value,
-goal
-) {
-
-const element =
-document.getElementById(id);
-
-if (element) {
-
-element.style.width =
-pct(value, goal) +
-'%';
-
-}
-
-}
-
-
-function withinDays(
-date,
-days
-) {
-
-return (
-Date.now() -
-new Date(
-date + 'T23:59:59'
-).getTime()
-) <=
-days *
-86400000;
-
+function withinDays(date,n){
+return (Date.now()-new Date(date+'T23:59:59').getTime())<=n*86400000
 }
 
 
@@ -795,294 +213,130 @@ days *
 NUTRICIÓN
 ========================================================= */
 
-function renderNutrition() {
+function renderNutrition(){
 
 renderCustomFoods();
 
-const totals =
-totalsForDate(
-currentNutritionDate
-);
-
-const goals =
-state.goals;
+const t=totalsForDate(currentNutritionDate),g=state.goals;
 
 setText(
 'nutritionDate',
 fmtDate(
 currentNutritionDate,
 {
-weekday: 'long',
-day: 'numeric',
-month: 'long',
-year: 'numeric'
+weekday:'long',
+day:'numeric',
+month:'long',
+year:'numeric'
 }
 )
 );
 
-setText(
-'nutCalories',
-fmt(totals.calories)
-);
+setText('nutCalories',fmt(t.calories));
+setText('nutCalGoal',fmt(g.calories)+' kcal');
+setText('nutCalRemaining',`${fmt(Math.max(0,g.calories-t.calories))} kcal restantes`);
 
-setText(
-'nutCalGoal',
-fmt(goals.calories) +
-' kcal'
-);
+setBar('nutCalBar',t.calories,g.calories);
 
-setText(
-'nutCalRemaining',
-`${fmt(
-Math.max(
-0,
-goals.calories -
-totals.calories
-)
-)} kcal restantes`
-);
+setText('nutProtein',fmt(t.protein)+' g');
+setText('nutCarbs',fmt(t.carbs)+' g');
+setText('nutFat',fmt(t.fat)+' g');
 
-setBar(
-'nutCalBar',
-totals.calories,
-goals.calories
-);
+setText('foodCount',todayLog().length);
+setText('customFoodCount',(state.customFoods||[]).length);
 
-setText(
-'nutProtein',
-fmt(totals.protein) +
-' g'
-);
+setText('sideProtein',`${fmt(t.protein)} / ${fmt(g.protein)} g`);
+setText('sideCarbs',`${fmt(t.carbs)} / ${fmt(g.carbs)} g`);
+setText('sideFat',`${fmt(t.fat)} / ${fmt(g.fat)} g`);
 
-setText(
-'nutCarbs',
-fmt(totals.carbs) +
-' g'
-);
+setBar('sideProteinBar',t.protein,g.protein);
+setBar('sideCarbsBar',t.carbs,g.carbs);
+setBar('sideFatBar',t.fat,g.fat);
 
-setText(
-'nutFat',
-fmt(totals.fat) +
-' g'
-);
-
-setText(
-'foodCount',
-todayLog().length
-);
-
-setText(
-'customFoodCount',
-(
-state.customFoods || []
-).length
-);
-
-setText(
-'sideProtein',
-`${fmt(totals.protein)} / ${fmt(goals.protein)} g`
-);
-
-setText(
-'sideCarbs',
-`${fmt(totals.carbs)} / ${fmt(goals.carbs)} g`
-);
-
-setText(
-'sideFat',
-`${fmt(totals.fat)} / ${fmt(goals.fat)} g`
-);
-
-setBar(
-'sideProteinBar',
-totals.protein,
-goals.protein
-);
-
-setBar(
-'sideCarbsBar',
-totals.carbs,
-goals.carbs
-);
-
-setBar(
-'sideFatBar',
-totals.fat,
-goals.fat
-);
-
-const foodLog =
-document.getElementById(
-'foodLog'
-);
-
-if (!foodLog) {
-return;
-}
-
-foodLog.innerHTML =
-todayLog()
-.map(
-(item, index) => `
+document.getElementById('foodLog').innerHTML=
+todayLog().map((x,i)=>`
 <div class="food-row">
 
 <div>
-<strong>
-${esc(item.name)}
-</strong>
-
-<small>
-${
-item.brand
-? esc(item.brand) + ' · '
-: ''
-}
-
-${fmt(item.grams, 1)} g
-</small>
+<strong>${esc(x.name)}</strong>
+<small>${x.brand?esc(x.brand)+' · ':''}${fmt(x.grams,1)} g</small>
 </div>
 
 <div class="food-kcal">
-<b>
-${fmt(item.calories)}
-</b>
-
-<small>
-kcal
-</small>
+<b>${fmt(x.calories)}</b>
+<small>kcal</small>
 </div>
 
 <div class="food-macros">
 <small>
-${fmt(item.protein, 1)}P ·
-${fmt(item.carbs, 1)}C ·
-${fmt(item.fat, 1)}G
+${fmt(x.protein,1)}P ·
+${fmt(x.carbs,1)}C ·
+${fmt(x.fat,1)}G
 </small>
 </div>
 
 <button
 class="remove-btn"
-data-remove-food="${index}"
+data-remove-food="${i}"
 >
 ×
 </button>
 
 </div>
-`
-)
-.join('') ||
+`).join('')||
 `
 <div class="empty-state">
 <span>⌁</span>
-
-<h3>
-Diario vacío
-</h3>
-
-<p>
-Añade un alimento para empezar.
-</p>
+<h3>Diario vacío</h3>
+<p>Añade un alimento para empezar.</p>
 </div>
 `;
-
 }
 
 
-document.addEventListener(
-'click',
-event => {
+document.addEventListener('click',e=>{
+const r=e.target.closest('[data-remove-food]');
 
-const remove =
-event.target.closest(
-'[data-remove-food]'
-);
-
-if (!remove) {
-return;
-}
-
-state
-.nutrition[
-currentNutritionDate
-]
-.splice(
-Number(
-remove.dataset.removeFood
-),
+if(r){
+state.nutrition[currentNutritionDate].splice(
++r.dataset.removeFood,
 1
 );
 
 save();
-
-renderNutrition();
-
+renderNutrition()
 }
-);
+});
 
 
 /* =========================================================
 MIS ALIMENTOS
 ========================================================= */
 
-function renderCustomFoods() {
+function renderCustomFoods(){
 
-const box =
-document.getElementById(
-'customFoodList'
-);
+const box=document.getElementById('customFoodList');
 
-if (!box) {
-return;
-}
+if(!box)return;
 
-const foods =
-state.customFoods || [];
+const foods=state.customFoods||[];
 
-if (!foods.length) {
-
-box.innerHTML = `
-<div class="empty-state">
-
-<h3>
-Aún no tienes alimentos propios
-</h3>
-
-<p>
-Guarda un alimento de tu casa
-y aparecerá siempre en el buscador.
-</p>
-
-</div>
-`;
-
-return;
-
-}
-
-box.innerHTML =
-foods
-.map(
-food => `
+box.innerHTML=
+foods.map(f=>`
 <div class="food-row custom-food-row">
 
 <div>
 
 <strong>
-${esc(food.name)}
+${esc(f.name)}
 </strong>
 
 <small>
-${
-food.brand
-? esc(food.brand) + ' · '
-: ''
-}
-
-${fmt(food.calories)} kcal ·
-${fmt(food.protein, 1)}P ·
-${fmt(food.carbs, 1)}C ·
-${fmt(food.fat, 1)}G
-/ 100 g
+${f.brand?esc(f.brand)+' · ':''}
+${fmt(f.calories)} kcal ·
+${fmt(f.protein,1)}P ·
+${fmt(f.carbs,1)}C ·
+${fmt(f.fat,1)}G / 100 g
 </small>
 
 </div>
@@ -1091,14 +345,14 @@ ${fmt(food.fat, 1)}G
 
 <button
 class="secondary-btn"
-data-edit-custom-food="${esc(food.id)}"
+data-edit-custom-food="${esc(f.id)}"
 >
 Editar
 </button>
 
 <button
 class="remove-btn"
-data-delete-custom-food="${esc(food.id)}"
+data-delete-custom-food="${esc(f.id)}"
 >
 ×
 </button>
@@ -1106,173 +360,167 @@ data-delete-custom-food="${esc(food.id)}"
 </div>
 
 </div>
+`).join('')||
 `
-)
-.join('');
-
+<div class="empty-state">
+<h3>Aún no tienes alimentos propios</h3>
+<p>
+Guarda un alimento de tu casa y aparecerá siempre en el buscador.
+</p>
+</div>
+`;
 }
 
 
-function openCustomFoodModal(
-id = null
-) {
+function openCustomFoodModal(id=null){
 
-const food =
+const f=
 id
-? getFood(id)
+? state.customFoods.find(
+x=>String(x.id)===String(id)
+)
 : null;
 
 document.getElementById(
 'customFoodModalTitle'
-).textContent =
-food
+).textContent=
+f
 ? 'Editar alimento'
 : 'Añadir alimento propio';
 
 document.getElementById(
 'customFoodId'
-).value =
-food?.id || '';
+).value=
+f?.id||'';
 
 document.getElementById(
 'customFoodName'
-).value =
-food?.name || '';
+).value=
+f?.name||'';
 
 document.getElementById(
 'customFoodBrand'
-).value =
-food?.brand || '';
+).value=
+f?.brand||'';
 
 document.getElementById(
 'customFoodCalories'
-).value =
-food?.calories ?? '';
+).value=
+f?.calories??'';
 
 document.getElementById(
 'customFoodProtein'
-).value =
-food?.protein ?? '';
+).value=
+f?.protein??'';
 
 document.getElementById(
 'customFoodCarbs'
-).value =
-food?.carbs ?? '';
+).value=
+f?.carbs??'';
 
 document.getElementById(
 'customFoodFat'
-).value =
-food?.fat ?? '';
+).value=
+f?.fat??'';
 
 document.getElementById(
 'customFoodModal'
 ).showModal();
-
 }
 
 
-function saveCustomFood() {
+function saveCustomFood(){
 
-const name =
-document
-.getElementById(
+const name=
+document.getElementById(
 'customFoodName'
-)
-.value
-.trim();
+).value.trim();
 
-const brand =
-document
-.getElementById(
+const brand=
+document.getElementById(
 'customFoodBrand'
-)
-.value
-.trim();
+).value.trim();
 
-const calories =
+const calories=
 Number(
 document.getElementById(
 'customFoodCalories'
 ).value
 );
 
-const protein =
+const protein=
 Number(
 document.getElementById(
 'customFoodProtein'
 ).value
 );
 
-const carbs =
+const carbs=
 Number(
 document.getElementById(
 'customFoodCarbs'
 ).value
 );
 
-const fat =
+const fat=
 Number(
 document.getElementById(
 'customFoodFat'
 ).value
 );
 
-if (
-!name ||
+if(
+!name||
 ![
 calories,
 protein,
 carbs,
 fat
-].every(Number.isFinite) ||
-calories < 0 ||
-protein < 0 ||
-carbs < 0 ||
-fat < 0
-) {
+].every(Number.isFinite)||
+calories<0||
+protein<0||
+carbs<0||
+fat<0
+){
 
 alert(
 'Completa correctamente los datos del alimento por 100 g.'
 );
 
 return;
-
 }
 
-const id =
+const id=
 document.getElementById(
 'customFoodId'
 ).value;
 
-if (id) {
+if(id){
 
-const food =
+const f=
 state.customFoods.find(
-item =>
-String(item.id) ===
-String(id)
+x=>String(x.id)===String(id)
 );
 
-if (food) {
+if(f){
 
 Object.assign(
-food,
+f,
 {
 name,
 brand,
-category:
-'Mis alimentos',
+category:'Mis alimentos',
 calories,
 protein,
 carbs,
 fat,
-custom: true
+custom:true
 }
 );
 
 }
 
-} else {
+}else{
 
 state.customFoods.push({
 
@@ -1294,8 +542,7 @@ carbs,
 
 fat,
 
-custom:
-true,
+custom:true,
 
 createdAt:
 new Date().toISOString()
@@ -1306,47 +553,39 @@ new Date().toISOString()
 
 save();
 
-renderCustomFoods();
-
-renderFoodResults('');
-
-document
-.getElementById(
+document.getElementById(
 'customFoodModal'
-)
-.close();
+).close();
 
+renderCustomFoods();
 }
 
 
+/* IMPORTANTE:
+Solo existe openCustomFood en tu HTML.
+NO se referencia ningún openCustomFood2.
+*/
+
 document.getElementById(
 'openCustomFood'
-).onclick = () =>
-openCustomFoodModal();
-
-
-document.getElementById(
-'openCustomFood2'
-).onclick = () =>
-openCustomFoodModal();
+).onclick=
+()=>openCustomFoodModal();
 
 
 document.getElementById(
 'saveCustomFood'
-).onclick =
+).onclick=
 saveCustomFood;
 
 
-document.addEventListener(
-'click',
-event => {
+document.addEventListener('click',e=>{
 
-const edit =
-event.target.closest(
+const edit=
+e.target.closest(
 '[data-edit-custom-food]'
 );
 
-if (edit) {
+if(edit){
 
 openCustomFoodModal(
 edit.dataset
@@ -1354,32 +593,26 @@ edit.dataset
 );
 
 return;
-
 }
 
-const remove =
-event.target.closest(
+const del=
+e.target.closest(
 '[data-delete-custom-food]'
 );
 
-if (!remove) {
-return;
-}
-
-if (
-!confirm(
+if(
+del&&
+confirm(
 '¿Eliminar este alimento de Mis alimentos?'
 )
-) {
-return;
-}
+){
 
-state.customFoods =
+state.customFoods=
 state.customFoods.filter(
-food =>
-String(food.id) !==
+f=>
+String(f.id)!==
 String(
-remove.dataset
+del.dataset
 .deleteCustomFood
 )
 );
@@ -1391,56 +624,54 @@ renderCustomFoods();
 renderFoodResults(
 document.getElementById(
 'foodSearch'
-)?.value || ''
+)?.value||''
 );
 
 }
-);
+
+});
 
 
 /* =========================================================
 BUSCADOR DE ALIMENTOS
 ========================================================= */
 
-function openFoodModal() {
+function openFoodModal(){
 
-const modal =
+const m=
 document.getElementById(
 'foodModal'
 );
 
-selectedFood = null;
+selectedFood=null;
 
-document
-.getElementById(
+document.getElementById(
 'foodAmount'
-)
-.classList.add('hidden');
+).classList.add(
+'hidden'
+);
 
 document.getElementById(
 'foodSearch'
-).value = '';
+).value='';
 
 renderFoodResults('');
 
-modal.showModal();
+m.showModal();
 
 setTimeout(
-() =>
-document
-.getElementById(
+()=>
+document.getElementById(
 'foodSearch'
-)
-.focus(),
+).focus(),
 50
 );
-
 }
 
 
 document.getElementById(
 'openFoodModal'
-).onclick =
+).onclick=
 openFoodModal;
 
 
@@ -1448,127 +679,95 @@ document.getElementById(
 'foodSearch'
 ).addEventListener(
 'input',
-event =>
+e=>
 renderFoodResults(
-event.target.value
+e.target.value
 )
 );
 
 
-function renderFoodResults(
-query
-) {
+function renderFoodResults(q){
 
-const term =
-query
-.trim()
-.toLowerCase();
+const term=
+q.trim().toLowerCase();
 
-const results =
+const arr=
 allFoods()
 .filter(
-food =>
-!term ||
-`
-${food.name}
-${food.brand || ''}
-${food.category || ''}
-`
+f=>
+!term||
+`${f.name} ${f.brand||''} ${f.category||''}`
 .toLowerCase()
 .includes(term)
 )
-.slice(0, 80);
+.slice(0,80);
 
 document.getElementById(
 'foodResults'
-).innerHTML =
-results
-.map(
-food => `
+).innerHTML=
+arr.map(f=>`
 <button
 type="button"
 class="food-result"
-data-food-id="${esc(food.id)}"
+data-food-id="${esc(f.id)}"
 >
 
 <span>
 
 <b>
-${esc(food.name)}
+${esc(f.name)}
 </b>
 
 <small>
-${esc(food.category || '')}
-
-${
-food.brand
-? ' · ' + esc(food.brand)
-: ''
-}
+${esc(f.category||'')}
+${f.brand?'· '+esc(f.brand):''}
 </small>
 
 </span>
 
 <strong>
-${fmt(food.calories)}
-kcal
+${fmt(f.calories)} kcal
 </strong>
 
 </button>
-`
-)
-.join('') ||
+`).join('')||
 `
 <div class="empty-state">
-<p>
-No se encontraron alimentos.
-</p>
+<p>No se encontraron alimentos.</p>
 </div>
 `;
-
 }
 
 
-document.addEventListener(
-'click',
-event => {
+document.addEventListener('click',e=>{
 
-const button =
-event.target.closest(
+const b=
+e.target.closest(
 '[data-food-id]'
 );
 
-if (!button) {
-return;
-}
+if(!b)return;
 
-selectedFood =
+selectedFood=
 getFood(
-button.dataset.foodId
+b.dataset.foodId
 );
 
-if (!selectedFood) {
-return;
-}
+if(!selectedFood)return;
 
 document.getElementById(
 'selectedFoodName'
-).textContent =
+).textContent=
 selectedFood.name;
 
 document.getElementById(
 'selectedFoodMacros'
-).textContent =
-`${fmt(selectedFood.calories)} kcal · ` +
-`${fmt(selectedFood.protein, 1)}P · ` +
-`${fmt(selectedFood.carbs, 1)}C · ` +
-`${fmt(selectedFood.fat, 1)}G / 100 g`;
+).textContent=
+`${fmt(selectedFood.calories)} kcal · ${fmt(selectedFood.protein,1)}P · ${fmt(selectedFood.carbs,1)}C · ${fmt(selectedFood.fat,1)}G / 100 g`;
 
-document
-.getElementById(
+document.getElementById(
 'foodAmount'
-)
-.classList.remove(
+).classList.remove(
 'hidden'
 );
 
@@ -1576,33 +775,28 @@ document.getElementById(
 'foodGrams'
 ).focus();
 
-}
-);
+});
 
 
 document.getElementById(
 'confirmFood'
-).onclick = () => {
+).onclick=()=>{
 
-if (!selectedFood) {
-return;
-}
+if(!selectedFood)return;
 
-const grams =
+const grams=
 Number(
 document.getElementById(
 'foodGrams'
 ).value
-) || 0;
+)||0;
 
-if (grams <= 0) {
-return;
-}
+if(grams<=0)return;
 
-const multiplier =
-grams / 100;
+const k=
+grams/100;
 
-const item = {
+const item={
 
 id:
 uid('food'),
@@ -1614,31 +808,27 @@ name:
 selectedFood.name,
 
 brand:
-selectedFood.brand || '',
+selectedFood.brand||'',
 
 grams,
 
 calories:
-selectedFood.calories *
-multiplier,
+selectedFood.calories*k,
 
 protein:
-selectedFood.protein *
-multiplier,
+selectedFood.protein*k,
 
 carbs:
-selectedFood.carbs *
-multiplier,
+selectedFood.carbs*k,
 
 fat:
-selectedFood.fat *
-multiplier
+selectedFood.fat*k
 
 };
 
 state.nutrition[
 currentNutritionDate
-] ??= [];
+]??=[];
 
 state.nutrition[
 currentNutritionDate
@@ -1648,70 +838,64 @@ save();
 
 renderNutrition();
 
-document
-.getElementById(
+document.getElementById(
 'foodModal'
-)
-.close();
+).close();
 
-selectedFood = null;
-
+selectedFood=null;
 };
 
 
 document.getElementById(
 'prevDay'
-).onclick = () => {
+).onclick=()=>{
 
-const date =
+const d=
 new Date(
-currentNutritionDate +
+currentNutritionDate+
 'T12:00:00'
 );
 
-date.setDate(
-date.getDate() - 1
+d.setDate(
+d.getDate()-1
 );
 
-currentNutritionDate =
-dateKey(date);
+currentNutritionDate=
+dateKey(d);
 
 renderNutrition();
-
 };
 
 
 document.getElementById(
 'nextDay'
-).onclick = () => {
+).onclick=()=>{
 
-const date =
+const d=
 new Date(
-currentNutritionDate +
+currentNutritionDate+
 'T12:00:00'
 );
 
-date.setDate(
-date.getDate() + 1
+d.setDate(
+d.getDate()+1
 );
 
-currentNutritionDate =
-dateKey(date);
+currentNutritionDate=
+dateKey(d);
 
 renderNutrition();
-
 };
 
 
 document.getElementById(
 'todayDay'
-).onclick = () => {
+).onclick=()=>{
 
-currentNutritionDate =
+currentNutritionDate=
 dateKey(new Date());
 
 renderNutrition();
-
 };
 
 
@@ -1720,30 +904,28 @@ ENTRENAMIENTO
 ========================================================= */
 
 function startWorkout(
-name = 'Entrenamiento libre',
-routine = null
-) {
+name='Entrenamiento libre',
+routine=null
+){
 
-if (state.activeWorkout) {
+if(state.activeWorkout){
 
-if (
+if(
 !confirm(
 'Ya tienes una sesión en curso. ¿Reemplazarla?'
 )
-) {
+)
 return;
 }
 
-}
-
-const exercises =
+const exercises=
 (
-routine?.exercises ||
+routine?.exercises||
 []
 )
-.map(id => {
+.map(id=>{
 
-const exercise =
+const exercise=
 getExercise(id);
 
 return exercise
@@ -1755,7 +937,7 @@ exercise
 })
 .filter(Boolean);
 
-state.activeWorkout = {
+state.activeWorkout={
 
 id:
 uid('session'),
@@ -1763,12 +945,12 @@ uid('session'),
 name,
 
 routineId:
-routine?.id || null,
+routine?.id||null,
 
 startedAt:
 new Date().toISOString(),
 
-notes: '',
+notes:'',
 
 exercises
 
@@ -1777,13 +959,10 @@ exercises
 save();
 
 renderTraining();
-
 }
 
 
-function exerciseForSession(
-exercise
-) {
+function exerciseForSession(exercise){
 
 return {
 
@@ -1800,10 +979,10 @@ type:
 exercise.type,
 
 unilateralMode:
-exercise.unilateralMode ||
+exercise.unilateralMode||
 'same',
 
-sets: [
+sets:[
 blankSet(exercise)
 ]
 
@@ -1812,102 +991,75 @@ blankSet(exercise)
 }
 
 
-function blankSet() {
+function blankSet(){
 
 return {
 
 id:
 uid('set'),
 
-weight: '',
+weight:'',
 
-reps: '',
+reps:'',
 
-rir: '',
+rir:'',
 
-done: false,
+done:false,
 
-leftWeight: '',
+leftWeight:'',
 
-leftReps: '',
+leftReps:'',
 
-rightWeight: '',
+rightWeight:'',
 
-rightReps: ''
+rightReps:''
 
 };
 
 }
 
 
-function workoutVolume(
-workout
-) {
+function workoutVolume(workout){
 
-return (
-workout.exercises || []
+return(
+workout.exercises||[]
 ).reduce(
-(sum, exercise) =>
-sum +
+(sum,exercise)=>
+sum+
 (
-exercise.sets || []
+exercise.sets||[]
 ).reduce(
-(setsTotal, set) => {
+(setsTotal,set)=>{
 
-if (!set.done) {
+if(!set.done)
 return setsTotal;
-}
 
-if (
-exercise.type ===
-'unilateral' &&
-exercise.unilateralMode ===
+if(
+exercise.type===
+'unilateral'&&
+exercise.unilateralMode===
 'separate'
-) {
+){
 
-return (
-setsTotal +
-(
-Number(
-set.leftWeight
-) || 0
-) *
-(
-Number(
-set.leftReps
-) || 0
-) +
-(
-Number(
-set.rightWeight
-) || 0
-) *
-(
-Number(
-set.rightReps
-) || 0
-)
+return(
+setsTotal+
+(Number(set.leftWeight)||0)*
+(Number(set.leftReps)||0)+
+(Number(set.rightWeight)||0)*
+(Number(set.rightReps)||0)
 );
 
 }
 
-return (
-setsTotal +
+return(
+setsTotal+
+(Number(set.weight)||0)*
+(Number(set.reps)||0)*
 (
-Number(
-set.weight
-) || 0
-) *
-(
-Number(
-set.reps
-) || 0
-) *
-(
-exercise.type ===
+exercise.type===
 'unilateral'
-? 2
-: 1
+?2
+:1
 )
 );
 
@@ -1920,71 +1072,61 @@ exercise.type ===
 }
 
 
-function sessionVolume() {
+function sessionVolume(){
 
 return state.activeWorkout
 ? workoutVolume(
 state.activeWorkout
 )
-: 0;
+:0;
 
 }
 
 
-function renderTraining() {
+function renderTraining(){
 
 renderSession();
-
 renderRoutines();
-
 renderExercises();
-
 renderHistory();
-
 renderProgression();
 
 }
 
 
-function renderSession() {
+function renderSession(){
 
-const session =
+const s=
 state.activeWorkout;
 
-document
-.getElementById(
+document.getElementById(
 'noSession'
-)
-.classList.toggle(
+).classList.toggle(
 'hidden',
-!!session
+!!s
 );
 
-document
-.getElementById(
+document.getElementById(
 'activeSession'
-)
-.classList.toggle(
+).classList.toggle(
 'hidden',
-!session
+!s
 );
 
-if (!session) {
-return;
-}
+if(!s)return;
 
 setText(
 'sessionName',
-session.name
+s.name
 );
 
 setText(
 'sessionSets',
-session.exercises.reduce(
-(total, exercise) =>
-total +
-exercise.sets.filter(
-set => set.done
+s.exercises.reduce(
+(a,e)=>
+a+
+e.sets.filter(
+x=>x.done
 ).length,
 0
 )
@@ -1992,55 +1134,49 @@ set => set.done
 
 setText(
 'sessionVolume',
-fmt(sessionVolume()) +
+fmt(sessionVolume())+
 ' kg'
 );
 
 setText(
 'sessionExercises',
-session.exercises.length
+s.exercises.length
 );
 
-const rirValues =
-session.exercises.flatMap(
-exercise =>
-exercise.sets
+const rs=
+s.exercises.flatMap(
+e=>
+e.sets
 .map(
-set =>
-Number(set.rir)
+x=>Number(x.rir)
 )
 .filter(
-value =>
-Number.isFinite(
-value
-)
+x=>Number.isFinite(x)
 )
 );
 
 setText(
 'sessionRir',
-rirValues.length
-? fmt(
-rirValues.reduce(
-(a, b) =>
-a + b,
+rs.length
+?fmt(
+rs.reduce(
+(a,b)=>a+b,
 0
-) /
-rirValues.length,
+)/rs.length,
 1
 )
-: '—'
+:'—'
 );
 
 document.getElementById(
 'sessionExercisesList'
-).innerHTML =
-session.exercises
+).innerHTML=
+s.exercises
 .map(
-(exercise, index) =>
+(e,ei)=>
 renderSessionExercise(
-exercise,
-index
+e,
+ei
 )
 )
 .join('');
@@ -2049,93 +1185,82 @@ clearInterval(
 workoutTimer
 );
 
-workoutTimer =
+workoutTimer=
 setInterval(
-() => {
-
-const seconds =
+()=>{
+const sec=
 Math.max(
 0,
 Math.floor(
 (
-Date.now() -
+Date.now()-
 new Date(
-session.startedAt
+s.startedAt
 ).getTime()
-) / 1000
+)/1000
 )
 );
 
 setText(
 'sessionTimer',
-formatDuration(
-seconds
-)
+formatDuration(sec)
 );
 
 },
 1000
 );
-
 }
 
 
-function formatDuration(
-seconds
-) {
+function formatDuration(sec){
 
-return (
+return(
 String(
 Math.floor(
-seconds / 3600
+sec/3600
 )
-).padStart(2, '0') +
-':' +
+).padStart(2,'0')+
+':'+
 String(
 Math.floor(
-seconds % 3600 / 60
+sec%3600/60
 )
-).padStart(2, '0') +
-':' +
+).padStart(2,'0')+
+':'+
 String(
-seconds % 60
-).padStart(2, '0')
+sec%60
+).padStart(2,'0')
 );
 
 }
 
 
-function renderSessionExercise(
-exercise,
-exerciseIndex
-) {
+function renderSessionExercise(e,ei){
 
-const rows =
-exercise.sets
-.map(
-(set, setIndex) => {
+const rows=
+e.sets.map(
+(s,si)=>{
 
-if (
-exercise.type ===
-'unilateral' &&
-exercise.unilateralMode ===
+if(
+e.type===
+'unilateral'&&
+e.unilateralMode===
 'separate'
-) {
+){
 
 return `
 <tr>
-
 <td class="set-number">
-${setIndex + 1}
+${si+1}
 </td>
 
 <td>
 <input
 class="set-input"
 data-set-field="leftWeight"
-data-ei="${exerciseIndex}"
-data-si="${setIndex}"
-value="${esc(set.leftWeight)}"
+data-ei="${ei}"
+data-si="${si}"
+value="${esc(s.leftWeight)}"
 placeholder="kg L"
 >
 </td>
@@ -2144,9 +1269,9 @@ placeholder="kg L"
 <input
 class="set-input"
 data-set-field="leftReps"
-data-ei="${exerciseIndex}"
-data-si="${setIndex}"
-value="${esc(set.leftReps)}"
+data-ei="${ei}"
+data-si="${si}"
+value="${esc(s.leftReps)}"
 placeholder="reps L"
 >
 </td>
@@ -2155,9 +1280,9 @@ placeholder="reps L"
 <input
 class="set-input"
 data-set-field="rightWeight"
-data-ei="${exerciseIndex}"
-data-si="${setIndex}"
-value="${esc(set.rightWeight)}"
+data-ei="${ei}"
+data-si="${si}"
+value="${esc(s.rightWeight)}"
 placeholder="kg R"
 >
 </td>
@@ -2166,9 +1291,9 @@ placeholder="kg R"
 <input
 class="set-input"
 data-set-field="rightReps"
-data-ei="${exerciseIndex}"
-data-si="${setIndex}"
-value="${esc(set.rightReps)}"
+data-ei="${ei}"
+data-si="${si}"
+value="${esc(s.rightReps)}"
 placeholder="reps R"
 >
 </td>
@@ -2177,9 +1302,9 @@ placeholder="reps R"
 <input
 class="set-input"
 data-set-field="rir"
-data-ei="${exerciseIndex}"
-data-si="${setIndex}"
-value="${esc(set.rir)}"
+data-ei="${ei}"
+data-si="${si}"
+value="${esc(s.rir)}"
 placeholder="RIR"
 >
 </td>
@@ -2189,31 +1314,29 @@ placeholder="RIR"
 type="checkbox"
 class="set-check"
 data-done
-data-ei="${exerciseIndex}"
-data-si="${setIndex}"
-${set.done ? 'checked' : ''}
+data-ei="${ei}"
+data-si="${si}"
+${s.done?'checked':''}
 >
 </td>
-
 </tr>
 `;
-
 }
 
 return `
 <tr>
 
 <td class="set-number">
-${setIndex + 1}
+${si+1}
 </td>
 
 <td colspan="2">
 <input
 class="set-input"
 data-set-field="weight"
-data-ei="${exerciseIndex}"
-data-si="${setIndex}"
-value="${esc(set.weight)}"
+data-ei="${ei}"
+data-si="${si}"
+value="${esc(s.weight)}"
 placeholder="kg"
 >
 </td>
@@ -2222,9 +1345,9 @@ placeholder="kg"
 <input
 class="set-input"
 data-set-field="reps"
-data-ei="${exerciseIndex}"
-data-si="${setIndex}"
-value="${esc(set.reps)}"
+data-ei="${ei}"
+data-si="${si}"
+value="${esc(s.reps)}"
 placeholder="reps"
 >
 </td>
@@ -2233,9 +1356,9 @@ placeholder="reps"
 <input
 class="set-input"
 data-set-field="rir"
-data-ei="${exerciseIndex}"
-data-si="${setIndex}"
-value="${esc(set.rir)}"
+data-ei="${ei}"
+data-si="${si}"
+value="${esc(s.rir)}"
 placeholder="RIR"
 >
 </td>
@@ -2247,43 +1370,23 @@ placeholder="RIR"
 type="checkbox"
 class="set-check"
 data-done
-data-ei="${exerciseIndex}"
-data-si="${setIndex}"
-${set.done ? 'checked' : ''}
+data-ei="${ei}"
+data-si="${si}"
+${s.done?'checked':''}
 >
 </td>
 
 </tr>
 `;
-
 }
 )
 .join('');
 
-const head =
-exercise.type ===
-'unilateral' &&
-exercise.unilateralMode ===
-'separate'
-? `
-<th>L kg</th>
-<th>L reps</th>
-<th>R kg</th>
-<th>R reps</th>
-<th>RIR</th>
-`
-: `
-<th colspan="2">
-Carga
-</th>
-<th>
-Reps
-</th>
-<th>
-RIR
-</th>
-<th></th>
-`;
+const head=
+e.type==='unilateral'&&
+e.unilateralMode==='separate'
+?'<th>L kg</th><th>L reps</th><th>R kg</th><th>R reps</th><th>RIR</th>'
+:'<th colspan="2">Carga</th><th>Reps</th><th>RIR</th><th></th>';
 
 return `
 <article class="session-exercise">
@@ -2291,36 +1394,26 @@ return `
 <div class="session-exercise-head">
 
 <div>
-
 <h3>
-${esc(exercise.name)}
+${esc(e.name)}
 </h3>
 
 <small>
-${esc(exercise.muscle)}
+${esc(e.muscle)}
 ·
+${e.type==='unilateral'?'Unilateral':'Bilateral'}
 ${
-exercise.type ===
-'unilateral'
-? 'Unilateral'
-: 'Bilateral'
-}
-
-${
-exercise.type ===
-'unilateral' &&
-exercise.unilateralMode ===
-'separate'
-? ' · lados separados'
-: ''
+e.type==='unilateral'&&
+e.unilateralMode==='separate'
+?' · lados separados'
+:''
 }
 </small>
-
 </div>
 
 <button
 class="remove-btn"
-data-remove-session-exercise="${exerciseIndex}"
+data-remove-session-exercise="${ei}"
 >
 ×
 </button>
@@ -2331,15 +1424,9 @@ data-remove-session-exercise="${exerciseIndex}"
 
 <thead>
 <tr>
-
 <th>#</th>
-
 ${head}
-
-<th>
-Hecha
-</th>
-
+<th>Hecha</th>
 </tr>
 </thead>
 
@@ -2351,48 +1438,41 @@ ${rows}
 
 <button
 class="add-set"
-data-add-set="${exerciseIndex}"
+data-add-set="${ei}"
 >
 + Añadir serie
 </button>
 
 </article>
 `;
-
 }
 
 
-document.addEventListener(
-'input',
-event => {
+document.addEventListener('input',e=>{
 
-const field =
-event.target.closest(
+const field=
+e.target.closest(
 '[data-set-field]'
 );
 
-if (
-field &&
+if(
+field&&
 state.activeWorkout
-) {
+){
 
-const set =
+const set=
 state
 .activeWorkout
 .exercises[
-Number(
-field.dataset.ei
-)
+Number(field.dataset.ei)
 ]
 .sets[
-Number(
-field.dataset.si
-)
+Number(field.dataset.si)
 ];
 
 set[
 field.dataset.setField
-] =
+]=
 field.value;
 
 localStorage.setItem(
@@ -2401,93 +1481,74 @@ JSON.stringify(state)
 );
 
 updateSessionStatsOnly();
-
 }
-
-}
-);
+});
 
 
-document.addEventListener(
-'change',
-event => {
+document.addEventListener('change',e=>{
 
-const done =
-event.target.closest(
+const done=
+e.target.closest(
 '[data-done]'
 );
 
-if (
-done &&
+if(
+done&&
 state.activeWorkout
-) {
+){
 
 state
 .activeWorkout
 .exercises[
-Number(
-done.dataset.ei
-)
+Number(done.dataset.ei)
 ]
 .sets[
-Number(
-done.dataset.si
-)
+Number(done.dataset.si)
 ]
-.done =
+.done=
 done.checked;
 
 save();
-
 renderSession();
-
 }
-
-}
-);
+});
 
 
-document.addEventListener(
-'click',
-event => {
+document.addEventListener('click',e=>{
 
-const addSet =
-event.target.closest(
+const addSet=
+e.target.closest(
 '[data-add-set]'
 );
 
-if (addSet) {
+if(addSet){
 
-const exercise =
+const exercise=
 state
 .activeWorkout
 .exercises[
-Number(
-addSet.dataset.addSet
-)
+Number(addSet.dataset.addSet)
 ];
 
-const definition =
+const definition=
 getExercise(
 exercise.exerciseId
-) || exercise;
+)||exercise;
 
 exercise.sets.push(
 blankSet(definition)
 );
 
 save();
-
 renderSession();
-
 }
 
-const removeExercise =
-event.target.closest(
+const removeExercise=
+e.target.closest(
 '[data-remove-session-exercise]'
 );
 
-if (removeExercise) {
+if(removeExercise){
 
 state
 .activeWorkout
@@ -2501,29 +1562,23 @@ removeExercise.dataset
 );
 
 save();
-
 renderSession();
-
 }
 
-}
-);
+});
 
 
-function updateSessionStatsOnly() {
+function updateSessionStatsOnly(){
 
-if (!state.activeWorkout) {
-return;
-}
+if(!state.activeWorkout)return;
 
 setText(
 'sessionSets',
-state.activeWorkout.exercises
-.reduce(
-(total, exercise) =>
-total +
+state.activeWorkout.exercises.reduce(
+(total,exercise)=>
+total+
 exercise.sets.filter(
-set => set.done
+set=>set.done
 ).length,
 0
 )
@@ -2531,131 +1586,108 @@ set => set.done
 
 setText(
 'sessionVolume',
-fmt(sessionVolume()) +
+fmt(sessionVolume())+
 ' kg'
 );
-
 }
 
 
-function finishWorkout() {
+function finishWorkout(){
 
-if (!state.activeWorkout) {
-return;
-}
+if(!state.activeWorkout)return;
 
-if (
+if(
 !confirm(
 '¿Terminar y guardar esta sesión?'
 )
-) {
+)
 return;
-}
 
-const session =
+const s=
 clone(
 state.activeWorkout
 );
 
-session.date =
+s.date=
 dateKey(new Date());
 
-session.finishedAt =
+s.finishedAt=
 new Date().toISOString();
 
-state.workouts.unshift(
-session
-);
+state.workouts.unshift(s);
 
-state.activeWorkout =
-null;
+state.activeWorkout=null;
 
 save();
 
 renderTraining();
 
 navigate('training');
-
 }
 
 
 document.getElementById(
 'quickWorkout'
-).onclick =
-() => startWorkout();
-
+).onclick=
+()=>startWorkout();
 
 document.getElementById(
 'startFreeBtn'
-).onclick =
-() => startWorkout();
-
+).onclick=
+()=>startWorkout();
 
 document.getElementById(
 'emptyStartBtn'
-).onclick =
-() => startWorkout();
-
+).onclick=
+()=>startWorkout();
 
 document.getElementById(
 'finishWorkoutBtn'
-).onclick =
+).onclick=
 finishWorkout;
-
 
 document.getElementById(
 'addExerciseToSession'
-).onclick =
-() =>
-openExerciseChooserForSession();
-
+).onclick=
+()=>openExerciseChooserForSession();
 
 document.getElementById(
 'sessionNoteBtn'
-).onclick =
-() =>
-document
-.getElementById(
+).onclick=
+()=>document.getElementById(
 'noteModal'
-)
-.showModal();
-
+).showModal();
 
 document.getElementById(
 'saveSessionNote'
-).onclick =
-() => {
-
-state.activeWorkout.notes =
+).onclick=
+()=>{
+state.activeWorkout.notes=
 document.getElementById(
 'sessionNote'
 ).value;
 
 save();
 
-document
-.getElementById(
+document.getElementById(
 'noteModal'
-)
-.close();
-
+).close();
 };
 
 
-function openExerciseChooserForSession() {
+function openExerciseChooserForSession(){
 
-const exercises =
+const exercises=
 allExercises();
 
-const modal =
+const modal=
 document.createElement(
 'dialog'
 );
 
-modal.className =
-'modal';
+modal.className='modal';
 
-modal.innerHTML = `
+modal.innerHTML=`
 <form
 method="dialog"
 class="modal-box"
@@ -2687,10 +1719,8 @@ id="tempExList"
 ${
 exercises
 .map(
-exercise => `
-<label
-class="routine-pick"
->
+exercise=>`
+<label class="routine-pick">
 
 <input
 type="checkbox"
@@ -2715,10 +1745,10 @@ exercise.muscle
 )}
 ·
 ${
-exercise.type ===
+exercise.type===
 'unilateral'
-? 'Unilateral'
-: 'Bilateral'
+?'Unilateral'
+:'Bilateral'
 }
 </small>
 
@@ -2749,29 +1779,28 @@ modal
 
 modal.showModal();
 
-const search =
+const search=
 modal.querySelector(
 '#tempExSearch'
 );
 
-search.oninput = () => {
+search.oninput=()=>{
 
-const query =
-search.value
-.toLowerCase();
+const query=
+search.value.toLowerCase();
 
 modal
 .querySelectorAll(
 '.routine-pick'
 )
-.forEach(item => {
+.forEach(item=>{
 
-item.style.display =
+item.style.display=
 item.textContent
 .toLowerCase()
 .includes(query)
-? 'flex'
-: 'none';
+?'flex'
+:'none';
 
 });
 
@@ -2781,20 +1810,20 @@ modal
 .querySelector(
 '#tempExAdd'
 )
-.onclick = () => {
+.onclick=()=>{
 
 modal
 .querySelectorAll(
 'input:checked'
 )
-.forEach(input => {
+.forEach(input=>{
 
-const exercise =
+const exercise=
 getExercise(
 input.value
 );
 
-if (exercise) {
+if(exercise){
 
 state
 .activeWorkout
@@ -2804,7 +1833,6 @@ exerciseForSession(
 exercise
 )
 );
-
 }
 
 });
@@ -2816,14 +1844,12 @@ modal.close();
 modal.remove();
 
 renderSession();
-
 };
 
 modal.addEventListener(
 'close',
-() => modal.remove()
+()=>modal.remove()
 );
-
 }
 
 
@@ -2831,18 +1857,18 @@ modal.addEventListener(
 RUTINAS
 ========================================================= */
 
-function renderRoutines() {
+function renderRoutines(){
 
-const query =
+const query=
 (
 document.getElementById(
 'routineSearch'
-)?.value || ''
+)?.value||''
 ).toLowerCase();
 
-const routines =
+const routines=
 state.routines.filter(
-routine =>
+routine=>
 routine.name
 .toLowerCase()
 .includes(query)
@@ -2850,13 +1876,11 @@ routine.name
 
 document.getElementById(
 'routineGrid'
-).innerHTML =
+).innerHTML=
 routines
 .map(
-routine => `
-<article
-class="routine-card"
->
+routine=>`
+<article class="routine-card">
 
 <span class="tag">
 ${routine.exercises.length}
@@ -2869,7 +1893,7 @@ ${esc(routine.name)}
 
 <p>
 ${esc(
-routine.description ||
+routine.description||
 'Sin descripción'
 )}
 </p>
@@ -2878,45 +1902,41 @@ routine.description ||
 
 ${
 routine.exercises
-.slice(0, 5)
-.map(id => {
+.slice(0,5)
+.map(id=>{
 
-const exercise =
+const exercise=
 getExercise(id);
 
 return exercise
-? `
+?`
 <span class="tag">
 ${esc(
 exercise.name
 )}
 </span>
 `
-: '';
+:'';
 
 })
 .join('')
 }
 
 ${
-routine.exercises.length >
-5
-? `
+routine.exercises.length>5
+?`
 <span class="tag">
 +${
-routine.exercises.length -
-5
+routine.exercises.length-5
 }
 </span>
 `
-: ''
+:''
 }
 
 </div>
 
-<div
-class="card-actions"
->
+<div class="card-actions">
 
 <button
 class="primary-btn"
@@ -2950,7 +1970,7 @@ routine.id
 </article>
 `
 )
-.join('') ||
+.join('')||
 `
 <div class="empty-state">
 
@@ -2965,67 +1985,58 @@ añade los ejercicios que quieras.
 
 </div>
 `;
-
 }
 
 
-function openRoutineModal(
-id = null
-) {
+function openRoutineModal(id=null){
 
-editingRoutineId = id;
+editingRoutineId=id;
 
-const routine =
+const routine=
 id
-? state.routines.find(
-item =>
-item.id === id
+?state.routines.find(
+item=>item.id===id
 )
-: null;
+:null;
 
 document.getElementById(
 'routineModalTitle'
-).textContent =
+).textContent=
 routine
-? 'Editar rutina'
-: 'Crear rutina';
+?'Editar rutina'
+:'Crear rutina';
 
 document.getElementById(
 'rName'
-).value =
-routine?.name || '';
+).value=
+routine?.name||'';
 
 document.getElementById(
 'rDescription'
-).value =
-routine?.description || '';
+).value=
+routine?.description||'';
 
 renderRoutinePicker(
-routine?.exercises || []
+routine?.exercises||[]
 );
 
-document
-.getElementById(
+document.getElementById(
 'routineModal'
-)
-.showModal();
-
+).showModal();
 }
 
 
 function renderRoutinePicker(
-selected = []
-) {
+selected=[]
+){
 
 document.getElementById(
 'routineExercisePicker'
-).innerHTML =
+).innerHTML=
 allExercises()
 .map(
-exercise => `
-<label
-class="routine-pick"
->
+exercise=>`
+<label class="routine-pick">
 
 <input
 type="checkbox"
@@ -3036,8 +2047,8 @@ ${
 selected.includes(
 exercise.id
 )
-? 'checked'
-: ''
+?'checked'
+:''
 }
 >
 
@@ -3057,19 +2068,9 @@ exercise.muscle
 )}
 ·
 ${
-exercise.type ===
-'unilateral'
-? 'Unilateral'
-: 'Bilateral'
-}
-
-${
-exercise.type ===
-'unilateral' &&
-exercise.unilateralMode ===
-'separate'
-? ' · lados separados'
-: ''
+exercise.type==='unilateral'
+?'Unilateral'
+:'Bilateral'
 }
 </small>
 
@@ -3079,96 +2080,79 @@ exercise.unilateralMode ===
 `
 )
 .join('');
-
 }
 
 
 document.getElementById(
 'newRoutineBtn'
-).onclick =
-() =>
-openRoutineModal();
-
+).onclick=
+()=>openRoutineModal();
 
 document.getElementById(
 'newRoutineBtn2'
-).onclick =
-() =>
-openRoutineModal();
-
+).onclick=
+()=>openRoutineModal();
 
 document.getElementById(
 'emptyRoutineBtn'
-).onclick =
-() => {
-
+).onclick=
+()=>{
 document
 .querySelector(
 '[data-training-tab="routines"]'
 )
 .click();
-
 };
-
 
 document.getElementById(
 'routineSearch'
-).oninput =
+).oninput=
 renderRoutines;
-
 
 document.getElementById(
 'saveRoutineBtn'
-).onclick =
-() => {
+).onclick=
+()=>{
 
-const name =
+const name=
 document.getElementById(
 'rName'
 ).value.trim();
 
-if (!name) {
-return;
-}
+if(!name)return;
 
-const exercises =
+const exercises=
 [
 ...document.querySelectorAll(
 '#routineExercisePicker input:checked'
 )
 ].map(
-input =>
-input.value
+input=>input.value
 );
 
-if (editingRoutineId) {
+if(editingRoutineId){
 
-const routine =
+const routine=
 state.routines.find(
-item =>
-item.id ===
+item=>
+item.id===
 editingRoutineId
 );
 
-if (routine) {
+if(routine){
 
-routine.name =
-name;
+routine.name=name;
 
-routine.description =
-document
-.getElementById(
+routine.description=
+document.getElementById(
 'rDescription'
-)
-.value
-.trim();
+).value.trim();
 
-routine.exercises =
+routine.exercises=
 exercises;
-
 }
 
-} else {
+}else{
 
 state.routines.push({
 
@@ -3178,12 +2162,9 @@ uid('routine'),
 name,
 
 description:
-document
-.getElementById(
+document.getElementById(
 'rDescription'
-)
-.value
-.trim(),
+).value.trim(),
 
 exercises
 
@@ -3193,133 +2174,114 @@ exercises
 
 save();
 
-document
-.getElementById(
+document.getElementById(
 'routineModal'
-)
-.close();
+).close();
 
 renderRoutines();
 
 };
 
 
-document.addEventListener(
-'click',
-event => {
+document.addEventListener('click',event=>{
 
-const start =
+const start=
 event.target.closest(
 '[data-start-routine]'
 );
 
-if (start) {
+if(start){
 
-const routine =
+const routine=
 state.routines.find(
-item =>
-item.id ===
-start.dataset
-.startRoutine
+item=>
+item.id===
+start.dataset.startRoutine
 );
 
-if (routine) {
-
+if(routine)
 startWorkout(
 routine.name,
 routine
 );
-
 }
 
-}
-
-const edit =
+const edit=
 event.target.closest(
 '[data-edit-routine]'
 );
 
-if (edit) {
-
+if(edit)
 openRoutineModal(
-edit.dataset
-.editRoutine
+edit.dataset.editRoutine
 );
 
-}
-
-const remove =
+const remove=
 event.target.closest(
 '[data-delete-routine]'
 );
 
-if (
-remove &&
+if(
+remove&&
 confirm(
 '¿Borrar esta rutina?'
 )
-) {
+){
 
-state.routines =
+state.routines=
 state.routines.filter(
-routine =>
-routine.id !==
-remove.dataset
-.deleteRoutine
+routine=>
+routine.id!==
+remove.dataset.deleteRoutine
 );
 
 save();
-
 renderRoutines();
-
 }
 
-}
-);
+});
 
 
 /* =========================================================
 EJERCICIOS
 ========================================================= */
 
-function renderExercises() {
+function renderExercises(){
 
-const query =
+const query=
 (
 document.getElementById(
 'exerciseSearch'
-)?.value || ''
+)?.value||''
 ).toLowerCase();
 
-const muscle =
+const muscle=
 document.getElementById(
 'exerciseMuscle'
-)?.value || '';
+)?.value||'';
 
-const exercises =
+const exercises=
 allExercises().filter(
-exercise =>
+exercise=>
 (
-!query ||
+!query||
 exercise.name
 .toLowerCase()
 .includes(query)
-) &&
+)&&
 (
-!muscle ||
-exercise.muscle === muscle
+!muscle||
+exercise.muscle===muscle
 )
 );
 
 document.getElementById(
 'exerciseGrid'
-).innerHTML =
+).innerHTML=
 exercises
 .map(
-exercise => `
-<article
-class="exercise-card"
->
+exercise=>`
+<article class="exercise-card">
 
 <span class="tag">
 ${esc(
@@ -3329,10 +2291,9 @@ exercise.muscle
 
 <span class="tag">
 ${
-exercise.type ===
-'unilateral'
-? 'Unilateral'
-: 'Bilateral'
+exercise.type==='unilateral'
+?'Unilateral'
+:'Bilateral'
 }
 </span>
 
@@ -3344,59 +2305,39 @@ exercise.name
 
 <p>
 ${esc(
-exercise.equipment ||
-''
+exercise.equipment||''
 )}
-
 ${
 exercise.custom
-? ' · Creado por ti'
-: ''
+?' · Creado por ti'
+:''
 }
 </p>
-
-${
-exercise.type ===
-'unilateral'
-? `
-<small class="muted">
-${
-exercise.unilateralMode ===
-'separate'
-? 'Registro de lados separado'
-: 'Mismo peso/reps en ambos lados'
-}
-</small>
-`
-: ''
-}
 
 </article>
 `
 )
-.join('') ||
+.join('')||
 `
 <div class="empty-state">
-<p>
-No se encontraron ejercicios.
-</p>
+<p>No se encontraron ejercicios.</p>
 </div>
 `;
 
-const select =
+const select=
 document.getElementById(
 'progressExerciseSelect'
 );
 
-if (select) {
+if(select){
 
-const oldValue =
+const oldValue=
 select.value;
 
-select.innerHTML =
+select.innerHTML=
 allExercises()
 .map(
-exercise => `
+exercise=>`
 <option
 value="${esc(
 exercise.id
@@ -3410,95 +2351,80 @@ exercise.name
 )
 .join('');
 
-if (oldValue) {
-select.value =
-oldValue;
+if(oldValue)
+select.value=oldValue;
 }
-
-}
-
 }
 
 
 document.getElementById(
 'exerciseSearch'
-).oninput =
+).oninput=
 renderExercises;
-
 
 document.getElementById(
 'exerciseMuscle'
-).onchange =
+).onchange=
 renderExercises;
-
 
 document.getElementById(
 'newExerciseBtn'
-).onclick =
-() => {
+).onclick=
+()=>{
 
 document.getElementById(
 'exerciseModalTitle'
-).textContent =
+).textContent=
 'Crear ejercicio';
 
-document
-.getElementById(
+document.getElementById(
 'exerciseForm'
-)
-.reset();
+).reset();
 
 toggleUnilateral();
 
-document
-.getElementById(
+document.getElementById(
 'exerciseModal'
-)
-.showModal();
-
+).showModal();
 };
 
 
 document.getElementById(
 'eType'
-).onchange =
+).onchange=
 toggleUnilateral;
 
 
-function toggleUnilateral() {
+function toggleUnilateral(){
 
 document.getElementById(
 'unilateralModeLabel'
-).style.display =
+).style.display=
 document.getElementById(
 'eType'
-).value ===
+).value===
 'unilateral'
-? 'grid'
-: 'none';
-
+?'grid'
+:'none';
 }
 
 
 document.getElementById(
 'exerciseForm'
-).onsubmit =
-event => {
+).onsubmit=
+event=>{
 
 event.preventDefault();
 
-const exercise = {
+const exercise={
 
 id:
 uid('custom'),
 
 name:
-document
-.getElementById(
+document.getElementById(
 'eName'
-)
-.value
-.trim(),
+).value.trim(),
 
 muscle:
 document.getElementById(
@@ -3506,12 +2432,9 @@ document.getElementById(
 ).value,
 
 equipment:
-document
-.getElementById(
+document.getElementById(
 'eEquipment'
-)
-.value
-.trim(),
+).value.trim(),
 
 type:
 document.getElementById(
@@ -3523,14 +2446,11 @@ document.getElementById(
 'eUnilateralMode'
 ).value,
 
-custom:
-true
+custom:true
 
 };
 
-if (!exercise.name) {
-return;
-}
+if(!exercise.name)return;
 
 state.customExercises.push(
 exercise
@@ -3538,14 +2458,11 @@ exercise
 
 save();
 
-document
-.getElementById(
+document.getElementById(
 'exerciseModal'
-)
-.close();
+).close();
 
 renderExercises();
-
 };
 
 
@@ -3553,18 +2470,18 @@ renderExercises();
 HISTORIAL
 ========================================================= */
 
-function renderHistory() {
+function renderHistory(){
 
-const query =
+const query=
 (
 document.getElementById(
 'historySearch'
-)?.value || ''
+)?.value||''
 ).toLowerCase();
 
-const workouts =
+const workouts=
 state.workouts.filter(
-workout =>
+workout=>
 workout.name
 .toLowerCase()
 .includes(query)
@@ -3577,10 +2494,10 @@ setText(
 
 document.getElementById(
 'workoutHistory'
-).innerHTML =
+).innerHTML=
 workouts
 .map(
-workout => `
+workout=>`
 <article
 class="history-item"
 data-history-item
@@ -3600,10 +2517,10 @@ workout.name
 ${fmtDate(
 workout.date,
 {
-weekday: 'long',
-day: 'numeric',
-month: 'long',
-year: 'numeric'
+weekday:'long',
+day:'numeric',
+month:'long',
+year:'numeric'
 }
 )}
 ·
@@ -3626,16 +2543,12 @@ kg
 
 <p>
 ${
-workout.exercises
-.reduce(
-(total, exercise) =>
-total +
-exercise.sets
-.filter(
-set =>
-set.done
-)
-.length,
+workout.exercises.reduce(
+(total,exercise)=>
+total+
+exercise.sets.filter(
+set=>set.done
+).length,
 0
 )
 }
@@ -3651,7 +2564,7 @@ series
 ${
 workout.exercises
 .map(
-exercise => `
+exercise=>`
 <div class="list-row">
 
 <div>
@@ -3664,65 +2577,55 @@ exercise.name
 
 <small>
 ${
-exercise.type ===
+exercise.type===
 'unilateral'
-? 'Unilateral'
-: 'Bilateral'
+?'Unilateral'
+:'Bilateral'
 }
 </small>
 
 </div>
 
 <span>
-
 ${
 exercise.sets
 .filter(
-set =>
-set.done
+set=>set.done
 )
 .map(
-set =>
-exercise.type ===
-'unilateral' &&
-exercise.unilateralMode ===
+set=>
+exercise.type===
+'unilateral'&&
+exercise.unilateralMode===
 'separate'
-? `
+?`
 ${
-set.leftWeight ||
-0
+set.leftWeight||0
 }×${
-set.leftReps ||
-0
+set.leftReps||0
 }
 /
 ${
-set.rightWeight ||
-0
+set.rightWeight||0
 }×${
-set.rightReps ||
-0
+set.rightReps||0
 }
 `
-: `
+:`
 ${
-set.weight ||
-0
+set.weight||0
 }×${
-set.reps ||
-0
+set.reps||0
 }
 · RIR
 ${
-set.rir ||
-'—'
+set.rir||'—'
 }
 `
 )
-.join(' · ') ||
+.join(' · ')||
 'Sin series completadas'
 }
-
 </span>
 
 </div>
@@ -3733,7 +2636,7 @@ set.rir ||
 
 ${
 workout.notes
-? `
+?`
 <p class="muted">
 Nota:
 ${esc(
@@ -3741,7 +2644,7 @@ workout.notes
 )}
 </p>
 `
-: ''
+:''
 }
 
 </div>
@@ -3749,7 +2652,7 @@ workout.notes
 </article>
 `
 )
-.join('') ||
+.join('')||
 `
 <div class="empty-state">
 
@@ -3764,163 +2667,127 @@ aparecerá aquí.
 
 </div>
 `;
-
 }
 
 
 document.getElementById(
 'historySearch'
-).oninput =
+).oninput=
 renderHistory;
 
 
-document.addEventListener(
-'click',
-event => {
+document.addEventListener('click',event=>{
 
-const item =
+const item=
 event.target.closest(
 '[data-history-item]'
 );
 
-if (
-item &&
-!event.target.closest(
-'button'
+if(
+item&&
+!event.target.closest('button')
 )
-) {
-
 item.classList.toggle(
 'open'
 );
 
-}
-
-}
-);
+});
 
 
 /* =========================================================
 PROGRESIÓN
 ========================================================= */
 
-function renderProgression() {
+function renderProgression(){
 
-const id =
+const id=
 document.getElementById(
 'progressExerciseSelect'
-).value ||
+).value||
 allExercises()[0]?.id;
 
-const exercise =
+const ex=
 getExercise(id);
 
-if (!exercise) {
+if(!ex){
 
 document.getElementById(
 'progressionContent'
-).innerHTML =
-'';
+).innerHTML='';
 
 return;
-
 }
 
-const rows = [];
+const rows=[];
 
-state.workouts.forEach(
-workout => {
+state.workouts.forEach(w=>{
 
-const exerciseData =
-workout.exercises.find(
-item =>
-item.exerciseId ===
-id
+const x=
+w.exercises.find(
+a=>a.exerciseId===id
 );
 
-if (!exerciseData) {
-return;
-}
+if(x){
 
-const completed =
-exerciseData.sets.filter(
-set => set.done
+const done=
+x.sets.filter(
+s=>s.done
 );
 
-if (!completed.length) {
-return;
-}
-
+if(done.length)
 rows.push({
 
 date:
-workout.date,
+w.date,
 
 volume:
-completed.reduce(
-(total, set) =>
-total +
-(
-Number(
-set.weight
-) || 0
-) *
-(
-Number(
-set.reps
-) || 0
-),
+done.reduce(
+(a,s)=>
+a+
+(Number(s.weight)||0)*
+(Number(s.reps)||0),
 0
 ),
 
 top:
 Math.max(
-...completed.map(
-set =>
-Number(
-set.weight
-) || 0
+...done.map(
+s=>Number(s.weight)||0
 )
 ),
 
 reps:
 Math.max(
-...completed.map(
-set =>
-Number(
-set.reps
-) || 0
+...done.map(
+s=>Number(s.reps)||0
 )
 )
 
 });
-
 }
-);
+});
 
-const best =
+const best=
 rows.length
-? Math.max(
+?Math.max(
 ...rows.map(
-row =>
-row.top
+x=>x.top
 )
 )
-: 0;
+:0;
 
-const maxVolume =
+const maxVol=
 rows.length
-? Math.max(
+?Math.max(
 ...rows.map(
-row =>
-row.volume
+x=>x.volume
 )
 )
-: 0;
+:0;
 
 document.getElementById(
 'progressionContent'
-).innerHTML = `
+).innerHTML=`
 
 <div class="progression-summary">
 
@@ -3928,7 +2795,6 @@ document.getElementById(
 <span>
 Mejor carga registrada
 </span>
-
 <b>
 ${fmt(best)} kg
 </b>
@@ -3938,9 +2804,8 @@ ${fmt(best)} kg
 <span>
 Mayor volumen
 </span>
-
 <b>
-${fmt(maxVolume)} kg
+${fmt(maxVol)} kg
 </b>
 </div>
 
@@ -3948,7 +2813,6 @@ ${fmt(maxVolume)} kg
 <span>
 Sesiones
 </span>
-
 <b>
 ${rows.length}
 </b>
@@ -3958,16 +2822,15 @@ ${rows.length}
 <span>
 Última carga
 </span>
-
 <b>
 ${
 rows.length
-? fmt(
+?fmt(
 rows[
-rows.length - 1
+rows.length-1
 ].top
 )
-: '—'
+:'—'
 }
 kg
 </b>
@@ -3982,15 +2845,11 @@ kg
 <div>
 
 <p class="eyebrow">
-${esc(
-exercise.muscle
-)}
+${esc(ex.muscle)}
 </p>
 
 <h3>
-${esc(
-exercise.name
-)}
+${esc(ex.name)}
 </h3>
 
 </div>
@@ -4009,43 +2868,38 @@ ${
 rows
 .slice()
 .reverse()
-.slice(0, 10)
+.slice(0,10)
 .map(
-row => `
+r=>`
 <div class="list-row">
 
 <span>
-${fmtDate(
-row.date
-)}
+${fmtDate(r.date)}
 </span>
 
 <b>
-${fmt(row.top)} kg ·
-${fmt(row.reps)} reps ·
-${fmt(row.volume)} kg vol.
+${fmt(r.top)} kg ·
+${fmt(r.reps)} reps ·
+${fmt(r.volume)} kg vol.
 </b>
 
 </div>
 `
 )
-.join('') ||
+.join('')||
 emptyList(
 'Todavía no hay datos de este ejercicio.'
 )
 }
 
 </div>
-
 `;
-
 }
 
 
-function progressSvg(rows) {
+function progressSvg(rows){
 
-if (!rows.length) {
-
+if(!rows.length)
 return `
 <div class="empty-state">
 <p>
@@ -4055,42 +2909,25 @@ para ver la progresión.
 </div>
 `;
 
-}
-
-const values =
+const vals=
 rows.map(
-row => row.top
+x=>x.top
 );
 
-const max =
-Math.max(...values);
+const max=
+Math.max(...vals);
 
-const min =
-Math.min(...values);
+const min=
+Math.min(...vals);
 
-const range =
-max - min || 1;
+const range=
+max-min||1;
 
-const points =
-values
-.map(
-(value, index) =>
-`${
-(
-index /
-(values.length - 1 || 1)
-) *
-100
-},${
-90 -
-(
-(value - min) /
-range
-) *
-70
-}`
-)
-.join(' ');
+const pts=
+vals.map(
+(v,i)=>
+`${(i/(vals.length-1||1))*100},${90-((v-min)/range)*70}`
+).join(' ');
 
 return `
 <svg
@@ -4108,7 +2945,7 @@ stroke="#2a323d"
 />
 
 <polyline
-points="${points}"
+points="${pts}"
 fill="none"
 stroke="var(--accent)"
 stroke-width="2"
@@ -4116,158 +2953,119 @@ vector-effect="non-scaling-stroke"
 />
 
 ${
-values
-.map(
-(value, index) => `
+vals.map(
+(v,i)=>`
 <circle
-cx="${
-(
-index /
-(values.length - 1 || 1)
-) *
-100
-}"
-cy="${
-90 -
-(
-(value - min) /
-range
-) *
-70
-}"
+cx="${(i/(vals.length-1||1))*100}"
+cy="${90-((v-min)/range)*70}"
 r="2"
 fill="var(--accent)"
 />
 `
-)
-.join('')
+).join('')
 }
 
 </svg>
 `;
-
 }
 
 
 document.getElementById(
 'progressExerciseSelect'
-).onchange =
+).onchange=
 renderProgression;
 
 
 /* =========================================================
-PROGRESO DE PESO
+PROGRESO
 ========================================================= */
 
-function renderProgress() {
+function renderProgress(){
 
-const progress =
+const p=
 state.progress
 .slice()
 .sort(
-(a, b) =>
+(a,b)=>
 a.date.localeCompare(
 b.date
 )
 );
 
-const current =
-progress[
-progress.length - 1
-]?.weight;
+const cur=
+p[p.length-1]?.weight;
 
 setText(
 'currentWeight',
-current != null
-? fmt(current, 1)
-: '—'
+cur!=null
+?fmt(cur,1)
+:'—'
 );
 
 setText(
 'startWeight',
-progress[0]?.weight != null
-? fmt(
-progress[0].weight,
-1
-)
-: '—'
+p[0]?.weight!=null
+?fmt(p[0].weight,1)
+:'—'
 );
 
 setText(
 'targetWeightDisplay',
-state.targetWeight != null
-? fmt(
-state.targetWeight,
-1
-)
-: '—'
+state.targetWeight!=null
+?fmt(state.targetWeight,1)
+:'—'
 );
 
 setText(
 'weightEntries',
-progress.length
+p.length
 );
 
-const range =
+const range=
 Number(
 document.getElementById(
 'progressRange'
-).value || 30
+).value||30
 );
 
-const filtered =
-progress.filter(
-item =>
+const arr=
+p.filter(
+x=>
 (
-Date.now() -
+Date.now()-
 new Date(
-item.date +
-'T12:00:00'
-).getTime()
-) <=
-range *
-86400000
+x.date+'T12:00:00'
+)
+)<=
+range*86400000
 );
 
-drawWeightChart(
-filtered
-);
+drawWeightChart(arr);
 
 document.getElementById(
 'weightHistory'
-).innerHTML =
-progress
+).innerHTML=
+p
 .slice()
 .reverse()
-.slice(0, 10)
+.slice(0,10)
 .map(
-(item, index) => `
+(x,i)=>`
 <div class="list-row">
 
 <div>
-
 <b>
-${fmt(
-item.weight,
-1
-)} kg
+${fmt(x.weight,1)} kg
 </b>
 
 <small>
-${fmtDate(
-item.date
-)}
+${fmtDate(x.date)}
 </small>
-
 </div>
 
 <button
 class="remove-btn"
-data-remove-progress="${
-progress.length -
-1 -
-index
-}"
+data-remove-progress="${p.length-1-i}"
 >
 ×
 </button>
@@ -4275,93 +3073,73 @@ index
 </div>
 `
 )
-.join('') ||
+.join('')||
 emptyList(
 'No hay registros todavía.'
 );
-
 }
 
 
-function drawWeightChart(
-values
-) {
+function drawWeightChart(arr){
 
-const svg =
+const svg=
 document.getElementById(
 'weightChart'
 );
 
-if (!values.length) {
+if(!arr.length){
 
-svg.innerHTML = `
-<text
-x="50%"
-y="50%"
-text-anchor="middle"
-fill="#8e99a8"
->
-Registra tu primer peso
-para ver la gráfica
-</text>
-`;
+svg.innerHTML=
+'<text x="50%" y="50%" text-anchor="middle" fill="#8e99a8">Registra tu primer peso para ver la gráfica</text>';
 
 return;
-
 }
 
-const weights =
-values.map(
-item =>
-item.weight
+const vals=
+arr.map(
+x=>x.weight
 );
 
-const min =
-Math.min(...weights) - 1;
+const min=
+Math.min(...vals)-1;
 
-const max =
-Math.max(...weights) + 1;
+const max=
+Math.max(...vals)+1;
 
-let path = '';
+let d='';
 
-weights.forEach(
-(weight, index) => {
+vals.forEach(
+(v,i)=>{
 
-const x =
-30 +
-index *
+const x=
+30+
+i*
 (
-740 /
+740/
 Math.max(
 1,
-weights.length - 1
+vals.length-1
 )
 );
 
-const y =
-270 -
+const y=
+270-
 (
-(weight - min) /
-(max - min)
-) *
+(v-min)/
+(max-min)
+)*
 230;
 
-path +=
-(
-index
-? 'L'
-: 'M'
-) +
-x +
-' ' +
-y +
+d+=
+(i?'L':'M')+
+x+
+' '+
+y+
 ' ';
-
 }
 );
 
-svg.innerHTML = `
-
+svg.innerHTML=`
 <line
 class="chart-grid"
 x1="30"
@@ -4380,31 +3158,30 @@ y2="270"
 
 <path
 class="chart-line"
-d="${path}"
+d="${d}"
 />
 
 ${
-weights
-.map(
-(weight, index) => {
+vals.map(
+(v,i)=>{
 
-const x =
-30 +
-index *
+const x=
+30+
+i*
 (
-740 /
+740/
 Math.max(
 1,
-weights.length - 1
+vals.length-1
 )
 );
 
-const y =
-270 -
+const y=
+270-
 (
-(weight - min) /
-(max - min)
-) *
+(v-min)/
+(max-min)
+)*
 230;
 
 return `
@@ -4415,59 +3192,50 @@ cy="${y}"
 r="5"
 />
 `;
-
 }
-)
-.join('')
+).join('')
 }
-
 `;
-
 }
 
 
 document.getElementById(
 'progressRange'
-).onchange =
+).onchange=
 renderProgress;
 
 
 document.getElementById(
 'addProgressBtn'
-).onclick =
-() => {
+).onclick=
+()=>{
 
-const weight =
+const weight=
 prompt(
 'Peso actual (kg):'
 );
 
-if (weight === null) {
-return;
-}
+if(weight===null)return;
 
-const number =
+const n=
 Number(weight);
 
-if (
-!Number.isFinite(
-number
-) ||
-number <= 0
-) {
+if(
+!Number.isFinite(n)||
+n<=0
+){
 
 alert(
 'Introduce un peso válido.'
 );
 
 return;
-
 }
 
-const note =
+const note=
 prompt(
 'Nota opcional:'
-) || '';
+)||'';
 
 state.progress.push({
 
@@ -4479,375 +3247,319 @@ dateKey(
 new Date()
 ),
 
-weight:
-number,
+weight:n,
 
 note
 
 });
 
 save();
-
 renderProgress();
-
 };
 
 
-document.addEventListener(
-'click',
-event => {
+document.addEventListener('click',e=>{
 
-const remove =
-event.target.closest(
+const r=
+e.target.closest(
 '[data-remove-progress]'
 );
 
-if (
-remove &&
+if(
+r&&
 confirm(
 '¿Eliminar este registro?'
 )
-) {
+){
 
-const progress =
+const arr=
 state.progress
 .slice()
 .sort(
-(a, b) =>
+(a,b)=>
 a.date.localeCompare(
 b.date
 )
 );
 
-const item =
-progress[
-Number(
-remove.dataset
-.removeProgress
-)
+const item=
+arr[
++r.dataset.removeProgress
 ];
 
-state.progress =
+state.progress=
 state.progress.filter(
-entry =>
-entry.id !==
-item.id
+x=>x.id!==item.id
 );
 
 save();
-
 renderProgress();
-
 }
-
-}
-);
+});
 
 
 /* =========================================================
-MANTENIMIENTO Y OBJETIVOS
+MANTENIMIENTO
 ========================================================= */
 
-function calculateMaintenance() {
+function calculateMaintenance(){
 
-const sex =
+const sex=
 document.getElementById(
 'mSex'
 ).value;
 
-const age =
+const age=
 Number(
 document.getElementById(
 'mAge'
 ).value
 );
 
-const weight =
+const weight=
 Number(
 document.getElementById(
 'mWeight'
 ).value
 );
 
-const height =
+const height=
 Number(
 document.getElementById(
 'mHeight'
 ).value
 );
 
-const activity =
+const activity=
 Number(
 document.getElementById(
 'mActivity'
 ).value
 );
 
-const adjustment =
+const adj=
 Number(
 document.getElementById(
 'mAdjustment'
 ).value
-) || 0;
+)||0;
 
-let bmr =
-10 * weight +
-6.25 * height -
-5 * age +
+let bmr=
+10*weight+
+6.25*height-
+5*age+
 (
-sex === 'male'
-? 5
-: -161
+sex==='male'
+?5
+:-161
 );
 
-let maintenance =
+let maint=
 Math.round(
-bmr *
-activity
+bmr*activity
 );
 
-const goal =
+const goal=
 document.getElementById(
 'mGoal'
 ).value;
 
-if (
-goal === 'cut' &&
-adjustment === 0
-) {
+if(
+goal==='cut'&&
+adj===0
+)
+maint-=300;
 
-maintenance -= 300;
+if(
+goal==='gain'&&
+adj===0
+)
+maint+=200;
 
-}
+maint+=adj;
 
-if (
-goal === 'gain' &&
-adjustment === 0
-) {
-
-maintenance += 200;
-
-}
-
-maintenance +=
-adjustment;
-
-const protein =
+const protein=
 Math.round(
-weight * 1.8
+weight*1.8
 );
 
-const fat =
+const fat=
 Math.round(
-weight * 0.8
+weight*.8
 );
 
-const carbs =
+const carbs=
 Math.max(
 0,
 Math.round(
 (
-maintenance -
-protein * 4 -
-fat * 9
-) / 4
+maint-
+protein*4-
+fat*9
+)/4
 )
 );
 
-state.maintenance = {
-
+state.maintenance={
 sex,
-
 age,
-
 weight,
-
 height,
-
 activity,
-
 goal,
-
-adjustment,
-
+adjustment:adj,
 bmr,
-
-maintenance
-
+maintenance:maint
 };
 
-state.goals = {
-
-calories:
-maintenance,
-
+state.goals={
+calories:maint,
 protein,
-
 carbs,
-
 fat
-
 };
 
 save();
-
 renderMaintenance();
-
 }
 
 
-function renderMaintenance() {
+function renderMaintenance(){
 
-const maintenance =
+const m=
 state.maintenance;
 
-const goals =
+const g=
 state.goals;
 
 document.getElementById(
 'mSex'
-).value =
-maintenance.sex ||
-'male';
+).value=
+m.sex||'male';
 
 document.getElementById(
 'mAge'
-).value =
-maintenance.age ||
-18;
+).value=
+m.age||18;
 
 document.getElementById(
 'mWeight'
-).value =
-maintenance.weight ||
-71;
+).value=
+m.weight||71;
 
 document.getElementById(
 'mHeight'
-).value =
-maintenance.height ||
-176;
+).value=
+m.height||176;
 
 document.getElementById(
 'mActivity'
-).value =
-maintenance.activity ||
-1.55;
+).value=
+m.activity||1.55;
 
 document.getElementById(
 'mGoal'
-).value =
-maintenance.goal ||
-'cut';
+).value=
+m.goal||'cut';
 
 document.getElementById(
 'mAdjustment'
-).value =
-maintenance.adjustment ??
-0;
+).value=
+m.adjustment??0;
 
 setText(
 'maintenanceResult',
 fmt(
-maintenance.maintenance ||
-goals.calories
+m.maintenance||
+g.calories
 )
 );
 
 setText(
 'goalProteinResult',
-fmt(goals.protein) +
-' g'
+fmt(g.protein)+' g'
 );
 
 setText(
 'goalCarbsResult',
-fmt(goals.carbs) +
-' g'
+fmt(g.carbs)+' g'
 );
 
 setText(
 'goalFatResult',
-fmt(goals.fat) +
-' g'
+fmt(g.fat)+' g'
 );
 
 document.getElementById(
 'goalCalInput'
-).value =
-goals.calories;
+).value=
+g.calories;
 
 document.getElementById(
 'goalProteinInput'
-).value =
-goals.protein;
+).value=
+g.protein;
 
 document.getElementById(
 'goalCarbsInput'
-).value =
-goals.carbs;
+).value=
+g.carbs;
 
 document.getElementById(
 'goalFatInput'
-).value =
-goals.fat;
-
+).value=
+g.fat;
 }
 
 
 document.getElementById(
 'maintenanceForm'
-).onsubmit =
-event => {
-
-event.preventDefault();
-
-calculateMaintenance();
-
+).onsubmit=
+e=>{
+e.preventDefault();
+calculateMaintenance()
 };
 
 
 document.getElementById(
 'saveManualGoals'
-).onclick =
-() => {
+).onclick=
+()=>{
 
-state.goals = {
+state.goals={
 
 calories:
 Number(
 document.getElementById(
 'goalCalInput'
 ).value
-) || 2300,
+)||2300,
 
 protein:
 Number(
 document.getElementById(
 'goalProteinInput'
 ).value
-) || 130,
+)||130,
 
 carbs:
 Number(
 document.getElementById(
 'goalCarbsInput'
 ).value
-) || 260,
+)||260,
 
 fat:
 Number(
 document.getElementById(
 'goalFatInput'
 ).value
-) || 70
+)||70
 
 };
 
 save();
-
 renderMaintenance();
-
 };
 
 
@@ -4855,231 +3567,117 @@ renderMaintenance();
 ASISTENTE
 ========================================================= */
 
-function assistantAnswer(
-question
-) {
+function assistantAnswer(q){
 
-const query =
-question.toLowerCase();
+const l=
+q.toLowerCase();
 
-const totals =
+const t=
 totalsForDate(
 dateKey(new Date())
 );
 
-if (
-query.includes('calor') ||
-query.includes('kcal')
-) {
-
-return `
-Hoy llevas
-${fmt(totals.calories)}
-kcal de un objetivo de
-${fmt(state.goals.calories)}
-kcal.
-`;
-
-}
-
-if (
-query.includes('prote')
-) {
-
-return `
-Hoy llevas
-${fmt(totals.protein, 1)}
-g de proteína.
-Tu objetivo guardado es
-${fmt(state.goals.protein)}
-g.
-`;
-
-}
-
-if (
-query.includes('sesion') ||
-query.includes('entren')
-) {
-
-return `
-Has registrado
-${
-state.workouts.filter(
-workout =>
-withinDays(
-workout.date,
-7
+if(
+l.includes('calor')||
+l.includes('kcal')
 )
-).length
-}
-sesiones en los últimos
-7 días.
-`;
+return `Hoy llevas ${fmt(t.calories)} kcal de un objetivo de ${fmt(state.goals.calories)} kcal.`;
 
-}
+if(
+l.includes('prote')
+)
+return `Hoy llevas ${fmt(t.protein,1)} g de proteína. Tu objetivo guardado es ${fmt(state.goals.protein)} g.`;
 
-if (
-query.includes('volumen')
-) {
+if(
+l.includes('sesion')||
+l.includes('entren')
+)
+return `Has registrado ${state.workouts.filter(w=>withinDays(w.date,7)).length} sesiones en los últimos 7 días.`;
 
-const volumes =
+if(
+l.includes('volumen')
+){
+
+const arr=
 state.workouts.flatMap(
-workout =>
-workout.exercises.map(
-exercise => ({
-
-name:
-exercise.name,
-
-volume:
-(
-exercise.sets ||
-[]
-).reduce(
-(total, set) =>
-total +
-(
-Number(
-set.weight
-) || 0
-) *
-(
-Number(
-set.reps
-) || 0
-),
+w=>
+w.exercises.map(
+e=>({
+name:e.name,
+v:(e.sets||[]).reduce(
+(a,s)=>
+a+
+(Number(s.weight)||0)*
+(Number(s.reps)||0),
 0
 )
-
 })
 )
 );
 
-volumes.sort(
-(a, b) =>
-b.volume -
-a.volume
+arr.sort(
+(a,b)=>b.v-a.v
 );
 
-return volumes[0]
-? `
-El mayor volumen registrado
-recientemente es de
-${fmt(
-volumes[0].volume
-)}
-kg en
-${volumes[0].name}.
-`
-: `
-Todavía no hay suficiente
-historial.
-`;
-
+return arr[0]
+?`El mayor volumen registrado recientemente es de ${fmt(arr[0].v)} kg en ${arr[0].name}.`
+:'Todavía no hay suficiente historial.'
 }
 
-return `
-Puedo consultar tus calorías,
-macros de hoy, sesiones recientes
-y progresión guardada.
-Prueba con:
-“¿cuánta proteína llevo hoy?”
-`;
-
+return `Puedo consultar tus calorías, macros de hoy, sesiones recientes y progresión guardada. Prueba con “¿cuánta proteína llevo hoy?”`
 }
 
 
-function sendAssistant(
-question
-) {
+function sendAssistant(q){
 
-if (!question.trim()) {
-return;
-}
+if(!q.trim())return;
 
-const box =
+const box=
 document.getElementById(
 'assistantMessages'
 );
 
 box.insertAdjacentHTML(
 'beforeend',
-`
-<div class="msg user">
-
-<small>
-Tú
-</small>
-
-${esc(question)}
-
-</div>
-`
+`<div class="msg user"><small>Tú</small>${esc(q)}</div>`
 );
 
 box.insertAdjacentHTML(
 'beforeend',
-`
-<div class="msg">
-
-<small>
-Nutri
-</small>
-
-${esc(
-assistantAnswer(
-question
-)
-)}
-
-</div>
-`
+`<div class="msg"><small>Nutri</small>${esc(assistantAnswer(q))}</div>`
 );
 
-box.scrollTop =
+box.scrollTop=
 box.scrollHeight;
-
 }
 
 
 document.getElementById(
 'assistantSend'
-).onclick =
-() => {
+).onclick=
+()=>{
 
-const input =
+const i=
 document.getElementById(
 'assistantInput'
 );
 
-sendAssistant(
-input.value
-);
+sendAssistant(i.value);
 
-input.value = '';
-
+i.value='';
 };
 
 
 document.getElementById(
 'assistantInput'
-).onkeydown =
-event => {
-
-if (
-event.key ===
-'Enter'
-) {
-
-document
-.getElementById(
-'assistantSend'
+).onkeydown=
+e=>{
+if(
+e.key==='Enter'
 )
-.click();
-
-}
-
+document.getElementById(
+'assistantSend'
+).click()
 };
 
 
@@ -5088,16 +3686,11 @@ document
 '.suggestions button'
 )
 .forEach(
-button => {
-
-button.onclick =
-() =>
-sendAssistant(
-button.dataset
-.question
-);
-
-}
+b=>
+b.onclick=
+()=>sendAssistant(
+b.dataset.question
+)
 );
 
 
@@ -5105,21 +3698,17 @@ button.dataset
 PESTAÑAS DE ENTRENAMIENTO
 ========================================================= */
 
-function switchTrainingTab(
-tab
-) {
+function switchTrainingTab(tab){
 
 document
 .querySelectorAll(
 '.training-tab'
 )
 .forEach(
-button =>
-button.classList.toggle(
+b=>
+b.classList.toggle(
 'active',
-button.dataset
-.trainingTab ===
-tab
+b.dataset.trainingTab===tab
 )
 );
 
@@ -5128,24 +3717,15 @@ document
 '.training-pane'
 )
 .forEach(
-pane =>
-pane.classList.toggle(
+p=>
+p.classList.toggle(
 'active',
-pane.id ===
-'training-' +
-tab
+p.id==='training-'+tab
 )
 );
 
-if (
-tab ===
-'progression'
-) {
-
+if(tab==='progression')
 renderProgression();
-
-}
-
 }
 
 
@@ -5154,16 +3734,11 @@ document
 '.training-tab'
 )
 .forEach(
-button => {
-
-button.onclick =
-() =>
-switchTrainingTab(
-button.dataset
-.trainingTab
-);
-
-}
+b=>
+b.onclick=
+()=>switchTrainingTab(
+b.dataset.trainingTab
+)
 );
 
 
@@ -5173,10 +3748,10 @@ EXPORTAR / IMPORTAR
 
 document.getElementById(
 'exportData'
-).onclick =
-() => {
+).onclick=
+()=>{
 
-const blob =
+const blob=
 new Blob(
 [
 JSON.stringify(
@@ -5191,51 +3766,48 @@ type:
 }
 );
 
-const link =
+const a=
 document.createElement(
 'a'
 );
 
-link.href =
+a.href=
 URL.createObjectURL(
 blob
 );
 
-link.download =
+a.download=
 `nutri-backup-${dateKey(
 new Date()
 )}.json`;
 
-link.click();
+a.click();
 
 URL.revokeObjectURL(
-link.href
+a.href
 );
-
 };
 
 
 document.getElementById(
 'importData'
-).onchange =
-event => {
+).onchange=
+e=>{
 
-const file =
-event.target.files[0];
+const file=
+e.target.files[0];
 
-if (!file) {
-return;
-}
+if(!file)return;
 
-const reader =
+const reader=
 new FileReader();
 
-reader.onload =
-() => {
+reader.onload=
+()=>{
 
-try {
+try{
 
-state =
+state=
 merge(
 initialState,
 JSON.parse(
@@ -5249,39 +3821,31 @@ alert(
 'Datos importados correctamente.'
 );
 
-} catch (error) {
+}catch(err){
 
 alert(
 'El archivo no es un backup válido de Nutri.'
 );
 
 }
-
 };
 
-reader.readAsText(
-file
-);
-
+reader.readAsText(file);
 };
 
-
-/* =========================================================
-RESTABLECER
-========================================================= */
 
 document.getElementById(
 'resetData'
-).onclick =
-() => {
+).onclick=
+()=>{
 
-if (
+if(
 confirm(
 'Esto borrará todos los datos guardados en este dispositivo. ¿Continuar?'
 )
-) {
+){
 
-state =
+state=
 clone(
 initialState
 );
@@ -5295,9 +3859,7 @@ renderAll();
 navigate(
 'dashboard'
 );
-
 }
-
 };
 
 
@@ -5305,7 +3867,7 @@ navigate(
 RENDER GENERAL
 ========================================================= */
 
-function renderAll() {
+function renderAll(){
 
 renderDashboard();
 
@@ -5319,9 +3881,5 @@ renderMaintenance();
 
 }
 
-
-/* =========================================================
-INICIO
-========================================================= */
 
 renderAll();
