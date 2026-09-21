@@ -3,753 +3,1206 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="theme-color" content="#0b1220">
 <title>Nutri</title>
 
-<link rel="stylesheet" href="style.css">
+<style>
+:root {
+--bg: #f5f7fb;
+--card: #ffffff;
+--text: #111827;
+--muted: #6b7280;
+--border: #e5e7eb;
+--primary: #2563eb;
+--primary-dark: #1d4ed8;
+--success: #16a34a;
+--danger: #dc2626;
+--shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+--radius: 20px;
+}
+
+* {
+box-sizing: border-box;
+}
+
+html {
+scroll-behavior: smooth;
+}
+
+body {
+margin: 0;
+font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+background: var(--bg);
+color: var(--text);
+}
+
+button,
+input,
+select {
+font: inherit;
+}
+
+button {
+cursor: pointer;
+}
+
+.topbar {
+position: sticky;
+top: 0;
+z-index: 100;
+background: rgba(11, 18, 32, 0.96);
+backdrop-filter: blur(15px);
+color: white;
+border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.topbar-inner {
+width: min(1150px, 94%);
+margin: auto;
+min-height: 70px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 20px;
+}
+
+.logo {
+font-size: 25px;
+font-weight: 800;
+letter-spacing: -0.8px;
+}
+
+.logo span {
+color: #60a5fa;
+}
+
+nav {
+display: flex;
+gap: 6px;
+overflow-x: auto;
+}
+
+nav a {
+color: #dbeafe;
+text-decoration: none;
+padding: 10px 13px;
+border-radius: 10px;
+font-size: 14px;
+white-space: nowrap;
+}
+
+nav a:hover {
+background: rgba(255,255,255,0.08);
+}
+
+main {
+width: min(1150px, 94%);
+margin: 30px auto 60px;
+}
+
+.hero {
+background: linear-gradient(135deg, #111827, #1e3a8a);
+color: white;
+border-radius: 28px;
+padding: 34px;
+margin-bottom: 22px;
+box-shadow: var(--shadow);
+}
+
+.hero h1 {
+margin: 0;
+font-size: clamp(30px, 5vw, 46px);
+letter-spacing: -1.5px;
+}
+
+.hero p {
+margin: 10px 0 0;
+color: #dbeafe;
+max-width: 650px;
+line-height: 1.6;
+}
+
+.section {
+margin-top: 24px;
+}
+
+.section-title {
+margin: 0 0 14px;
+font-size: 25px;
+letter-spacing: -0.5px;
+}
+
+.section-subtitle {
+margin: -7px 0 18px;
+color: var(--muted);
+}
+
+.card {
+background: var(--card);
+border: 1px solid rgba(229,231,235,0.9);
+border-radius: var(--radius);
+padding: 22px;
+box-shadow: var(--shadow);
+}
+
+.grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 18px;
+}
+
+.grid-3 {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 14px;
+}
+
+label {
+display: block;
+font-size: 14px;
+font-weight: 700;
+margin-bottom: 7px;
+}
+
+input,
+select {
+width: 100%;
+padding: 13px 14px;
+border: 1px solid var(--border);
+border-radius: 12px;
+background: #fff;
+color: var(--text);
+outline: none;
+transition: 0.2s;
+}
+
+input:focus,
+select:focus {
+border-color: var(--primary);
+box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+}
+
+.field {
+margin-bottom: 15px;
+}
+
+.button {
+border: 0;
+border-radius: 12px;
+padding: 13px 18px;
+font-weight: 750;
+transition: 0.2s;
+}
+
+.button-primary {
+background: var(--primary);
+color: white;
+}
+
+.button-primary:hover {
+background: var(--primary-dark);
+transform: translateY(-1px);
+}
+
+.button-danger {
+background: #fee2e2;
+color: #991b1b;
+}
+
+.button-secondary {
+background: #eef2ff;
+color: #1e40af;
+}
+
+.result-box {
+margin-top: 18px;
+padding: 20px;
+border-radius: 16px;
+background: #eff6ff;
+border: 1px solid #bfdbfe;
+}
+
+.result-number {
+font-size: 38px;
+font-weight: 850;
+color: var(--primary);
+margin: 5px 0;
+}
+
+.muted {
+color: var(--muted);
+}
+
+.macro-grid {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 12px;
+}
+
+.macro {
+background: #f8fafc;
+border: 1px solid var(--border);
+border-radius: 16px;
+padding: 17px;
+}
+
+.macro-label {
+color: var(--muted);
+font-size: 13px;
+}
+
+.macro-value {
+display: block;
+margin-top: 5px;
+font-size: 23px;
+font-weight: 800;
+}
+
+.search-results {
+margin-top: 10px;
+max-height: 350px;
+overflow-y: auto;
+}
+
+.food-result {
+padding: 14px;
+border: 1px solid var(--border);
+border-radius: 13px;
+margin-top: 8px;
+cursor: pointer;
+transition: 0.15s;
+}
+
+.food-result:hover {
+background: #f8fafc;
+border-color: #bfdbfe;
+transform: translateY(-1px);
+}
+
+.food-name {
+font-weight: 750;
+}
+
+.food-meta {
+color: var(--muted);
+font-size: 13px;
+margin-top: 4px;
+}
+
+.hidden {
+display: none !important;
+}
+
+.meal {
+border: 1px solid var(--border);
+border-radius: 15px;
+padding: 15px;
+margin-top: 10px;
+background: #fff;
+}
+
+.meal-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 12px;
+}
+
+.meal-name {
+font-weight: 750;
+}
+
+.meal-info {
+margin-top: 5px;
+color: var(--muted);
+font-size: 14px;
+}
+
+.delete {
+width: auto;
+border: 0;
+border-radius: 9px;
+padding: 7px 10px;
+background: #fee2e2;
+color: #991b1b;
+font-weight: 700;
+}
+
+.progress-list {
+margin-top: 18px;
+}
+
+.progress-row {
+margin-bottom: 18px;
+}
+
+.progress-top {
+display: flex;
+justify-content: space-between;
+gap: 10px;
+margin-bottom: 7px;
+font-size: 14px;
+font-weight: 650;
+}
+
+.progress-bar {
+width: 100%;
+height: 10px;
+border-radius: 999px;
+background: #e5e7eb;
+overflow: hidden;
+}
+
+.progress-fill {
+height: 100%;
+width: 0%;
+background: var(--primary);
+border-radius: inherit;
+transition: width 0.3s;
+}
+
+.history-item {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 15px;
+padding: 14px 0;
+border-bottom: 1px solid var(--border);
+}
+
+.history-item:last-child {
+border-bottom: 0;
+}
+
+.history-date {
+font-weight: 750;
+}
+
+.history-weight {
+color: var(--muted);
+margin-top: 3px;
+font-size: 14px;
+}
+
+.empty {
+color: var(--muted);
+text-align: center;
+padding: 25px 10px;
+}
+
+.status {
+margin-top: 12px;
+padding: 12px 14px;
+border-radius: 12px;
+background: #f8fafc;
+color: var(--muted);
+font-size: 14px;
+}
+
+footer {
+text-align: center;
+color: var(--muted);
+font-size: 13px;
+margin-top: 35px;
+}
+
+@media (max-width: 800px) {
+.grid,
+.grid-3 {
+grid-template-columns: 1fr;
+}
+
+.macro-grid {
+grid-template-columns: repeat(2, 1fr);
+}
+
+.topbar-inner {
+flex-direction: column;
+align-items: flex-start;
+padding: 13px 0;
+}
+
+nav {
+width: 100%;
+}
+
+.hero {
+padding: 25px;
+}
+}
+
+@media (max-width: 480px) {
+main {
+width: 92%;
+}
+
+.card {
+padding: 17px;
+}
+
+.macro-grid {
+grid-template-columns: 1fr 1fr;
+}
+}
+</style>
 </head>
 
 <body>
 
 <header class="topbar">
-
-<div class="brand">
-<div class="brand-icon">N</div>
-
-<div>
-<h1>Nutri</h1>
-<span>Nutrición · Entrenamiento · Progreso</span>
-</div>
-</div>
+<div class="topbar-inner">
+<div class="logo">Nutri<span>.</span></div>
 
 <nav>
-
-<button class="nav-button active" data-section="inicio">
-Nutrición
-</button>
-
-<button class="nav-button" data-section="alimentos">
-Alimentos
-</button>
-
-<button class="nav-button" data-section="entrenamiento">
-Entrenamiento
-</button>
-
-<button class="nav-button" data-section="asistente">
-Asistente
-</button>
-
+<a href="#mantenimiento">Mantenimiento</a>
+<a href="#comidas">Comidas</a>
+<a href="#progreso">Progreso</a>
 </nav>
-
+</div>
 </header>
 
+<main>
 
-<main class="container">
-
-
-<!-- =====================================================
-NUTRICIÓN
-===================================================== -->
-
-<section id="inicio" class="section active">
-
-<div class="hero">
-
-<span class="eyebrow">NUTRI</span>
-
-<h2>
-Controla tu alimentación
-<strong>y tu progreso.</strong>
-</h2>
-
+<section class="hero">
+<h1>Tu nutrición, en un solo lugar.</h1>
 <p>
-Registra tus alimentos, controla tus macros y
-lleva también tus entrenamientos.
+Calcula tus calorías de mantenimiento, registra tus alimentos,
+controla tus macros y guarda tu progreso.
+</p>
+</section>
+
+<!-- MANTENIMIENTO -->
+
+<section class="section" id="mantenimiento">
+<h2 class="section-title">Calorías de mantenimiento</h2>
+<p class="section-subtitle">
+Introduce tus datos para obtener una estimación de tu gasto energético diario.
 </p>
 
-</div>
-
-
-<!-- OBJETIVOS -->
-
 <div class="card">
-
-<div class="card-header">
+<div class="grid">
 
 <div>
-<h3>Objetivos diarios</h3>
-<p>Configura tus objetivos.</p>
+<div class="field">
+<label for="maintenanceAge">Edad</label>
+<input
+type="number"
+id="maintenanceAge"
+min="10"
+max="100"
+placeholder="Ej. 18"
+>
 </div>
 
-<button id="saveGoals" class="secondary-button">
-Guardar
+<div class="field">
+<label for="maintenanceWeight">Peso (kg)</label>
+<input
+type="number"
+id="maintenanceWeight"
+min="20"
+max="300"
+step="0.1"
+placeholder="Ej. 70"
+>
+</div>
+
+<div class="field">
+<label for="maintenanceHeight">Altura (cm)</label>
+<input
+type="number"
+id="maintenanceHeight"
+min="100"
+max="250"
+placeholder="Ej. 175"
+>
+</div>
+</div>
+
+<div>
+<div class="field">
+<label for="maintenanceSex">Sexo</label>
+<select id="maintenanceSex">
+<option value="male">Hombre</option>
+<option value="female">Mujer</option>
+</select>
+</div>
+
+<div class="field">
+<label for="maintenanceActivity">Actividad física</label>
+<select id="maintenanceActivity">
+<option value="1.2">Sedentario — poco ejercicio</option>
+<option value="1.375">Ligero — 1-3 días/semana</option>
+<option value="1.55">Moderado — 3-5 días/semana</option>
+<option value="1.725">Alto — 6-7 días/semana</option>
+<option value="1.9">Muy alto — entrenamiento intenso</option>
+</select>
+</div>
+
+<button
+class="button button-primary"
+id="calculateMaintenance"
+type="button"
+>
+Calcular mantenimiento
 </button>
-
-</div>
-
-
-<div class="goals-grid">
-
-<label>
-Calorías
-<input id="goalCalories" type="number" value="2300">
-</label>
-
-<label>
-Proteína
-<input id="goalProtein" type="number" value="130">
-</label>
-
-<label>
-Carbohidratos
-<input id="goalCarbs" type="number" value="250">
-</label>
-
-<label>
-Grasas
-<input id="goalFat" type="number" value="70">
-</label>
-
 </div>
 
 </div>
 
+<div id="maintenanceResult" class="result-box hidden">
+<div class="muted">Estimación de mantenimiento</div>
+<div class="result-number" id="maintenanceCalories">0 kcal</div>
+<div class="muted">
+Es una estimación. El gasto real puede variar.
+</div>
+</div>
+</div>
+</section>
 
-<!-- RESUMEN -->
+<!-- COMIDAS -->
+
+<section class="section" id="comidas">
+<h2 class="section-title">Diario de comidas</h2>
+<p class="section-subtitle">
+Busca un alimento, indica la cantidad y añádelo a tu día.
+</p>
 
 <div class="card">
 
-<div class="card-header">
-
-<div>
-<h3>Resumen de hoy</h3>
-<p>Tu consumo diario.</p>
-</div>
-
-</div>
-
-
-<div class="macro-grid">
-
-<div class="macro-card">
-
-<span>Calorías</span>
-
-<strong id="totalCalories">0 kcal</strong>
-
-<div class="progress">
-<div id="calorieProgress"></div>
-</div>
-
-<small id="calorieGoalText">
-0 / 2300 kcal
-</small>
-
-</div>
-
-
-<div class="macro-card">
-
-<span>Proteína</span>
-
-<strong id="totalProtein">0 g</strong>
-
-<div class="progress">
-<div id="proteinProgress"></div>
-</div>
-
-<small id="proteinGoalText">
-0 / 130 g
-</small>
-
-</div>
-
-
-<div class="macro-card">
-
-<span>Carbohidratos</span>
-
-<strong id="totalCarbs">0 g</strong>
-
-<div class="progress">
-<div id="carbsProgress"></div>
-</div>
-
-<small id="carbsGoalText">
-0 / 250 g
-</small>
-
-</div>
-
-
-<div class="macro-card">
-
-<span>Grasas</span>
-
-<strong id="totalFat">0 g</strong>
-
-<div class="progress">
-<div id="fatProgress"></div>
-</div>
-
-<small id="fatGoalText">
-0 / 70 g
-</small>
-
-</div>
-
-</div>
-
-</div>
-
-
-<!-- BUSCADOR -->
-
-<div class="card">
-
-<div class="card-header">
-
-<div>
-<h3>Añadir alimento</h3>
-<p>Busca un alimento.</p>
-</div>
-
-</div>
-
-
-<div class="search-box">
+<label for="foodSearch">Buscar alimento</label>
 
 <input
-id="foodSearch"
 type="text"
+id="foodSearch"
+placeholder="Ej. arroz, pollo, leche..."
 autocomplete="off"
-placeholder="Buscar pollo, arroz, leche..."
 >
 
 <div id="searchResults" class="search-results"></div>
 
-</div>
+<div id="selectedFoodCard" class="result-box hidden">
 
+<h3 id="selectedFoodName"></h3>
 
-<div id="selectedFoodBox" class="selected-food hidden">
+<div id="selectedFoodInfo" class="food-meta"></div>
 
-<div class="selected-food-title">
-
-<div>
-
-<span>Alimento seleccionado</span>
-
-<h3 id="selectedFoodName">
----
-</h3>
-
-</div>
-
-<button id="clearSelection" class="icon-button">
-×
-</button>
-
-</div>
-
-
-<div class="quantity-row">
-
-<label>
-Cantidad
-
-<div class="grams-input">
-
+<div class="field" style="margin-top:15px;">
+<label for="foodGrams">Cantidad (g/ml)</label>
 <input
-id="grams"
 type="number"
-min="0"
+id="foodGrams"
 value="100"
+min="0"
+step="1"
 >
-
-<span>g</span>
-
 </div>
 
-</label>
-
-
-<button id="addFood" class="primary-button">
-Añadir al día
+<button
+class="button button-primary"
+id="addFoodButton"
+type="button"
+>
+Añadir alimento
 </button>
 
 </div>
 
-
-<div class="food-preview">
-
-<div>
-<span>Calorías</span>
-<strong id="foodCalories">0 kcal</strong>
 </div>
 
-<div>
-<span>Proteína</span>
-<strong id="foodProtein">0 g</strong>
+<div class="card" style="margin-top:18px;">
+
+<h3>Resumen del día</h3>
+
+<div class="macro-grid">
+
+<div class="macro">
+<span class="macro-label">Calorías</span>
+<strong class="macro-value" id="totalCalories">0 kcal</strong>
 </div>
 
-<div>
-<span>Carbohidratos</span>
-<strong id="foodCarbs">0 g</strong>
+<div class="macro">
+<span class="macro-label">Proteínas</span>
+<strong class="macro-value" id="totalProtein">0 g</strong>
 </div>
 
-<div>
-<span>Grasas</span>
-<strong id="foodFat">0 g</strong>
+<div class="macro">
+<span class="macro-label">Carbohidratos</span>
+<strong class="macro-value" id="totalCarbs">0 g</strong>
+</div>
+
+<div class="macro">
+<span class="macro-label">Grasas</span>
+<strong class="macro-value" id="totalFat">0 g</strong>
 </div>
 
 </div>
 
+<div id="foodList" style="margin-top:18px;">
+<div id="emptyMessage" class="empty">
+Todavía no has añadido ningún alimento.
+</div>
 </div>
 
-</div>
-
-
-<!-- ALIMENTOS DEL DÍA -->
-
-<div class="card">
-
-<div class="card-header">
-
-<div>
-<h3>Alimentos de hoy</h3>
-<p>Tu registro diario.</p>
-</div>
-
-<button id="clearDay" class="danger-button">
-Vaciar día
+<button
+class="button button-danger"
+id="clearButton"
+type="button"
+style="margin-top:15px;"
+>
+Borrar alimentos del día
 </button>
 
 </div>
-
-
-<div id="dailyFoods" class="daily-foods"></div>
-
-</div>
-
 </section>
 
+<!-- PROGRESO -->
 
+<section class="section" id="progreso">
 
-<!-- =====================================================
-ALIMENTOS
-===================================================== -->
+<h2 class="section-title">Mi progreso</h2>
 
-<section id="alimentos" class="section">
-
-<div class="page-title">
-
-<span class="eyebrow">BASE DE DATOS</span>
-
-<h2>Alimentos</h2>
-
-<p>
-Alimentos disponibles en Nutri.
+<p class="section-subtitle">
+Registra tus datos para poder consultar cómo evolucionan con el tiempo.
 </p>
 
-</div>
-
+<div class="grid">
 
 <div class="card">
 
-<div class="database-top">
+<h3>Añadir registro</h3>
 
-<div>
-<strong id="foodCount">0</strong>
-<span>alimentos disponibles</span>
+<div class="field">
+<label for="progressDate">Fecha</label>
+<input type="date" id="progressDate">
 </div>
 
+<div class="field">
+<label for="progressWeight">Peso (kg)</label>
 <input
-id="databaseSearch"
-type="text"
-placeholder="Buscar alimento..."
+type="number"
+id="progressWeight"
+min="20"
+max="300"
+step="0.1"
+placeholder="Ej. 70.5"
 >
-
 </div>
 
-
-<div id="foodDatabaseList" class="food-database-list"></div>
-
-</div>
-
-</section>
-
-
-
-<!-- =====================================================
-ENTRENAMIENTO
-===================================================== -->
-
-<section id="entrenamiento" class="section">
-
-<div class="page-title">
-
-<span class="eyebrow">HIPERTROFIA</span>
-
-<h2>Entrenamiento</h2>
-
-<p>
-Registra tus ejercicios, series, repeticiones, peso y RIR.
-</p>
-
-</div>
-
-
-<!-- RESUMEN DEL ENTRENAMIENTO -->
-
-<div class="training-stats">
-
-<div class="training-stat">
-<span>Sesiones</span>
-<strong id="trainingSessions">0</strong>
-</div>
-
-<div class="training-stat">
-<span>Series registradas</span>
-<strong id="trainingSets">0</strong>
-</div>
-
-<div class="training-stat">
-<span>Volumen</span>
-<strong id="trainingVolume">0 kg</strong>
-</div>
-
-</div>
-
-
-<!-- CREAR ENTRENAMIENTO -->
-
-<div class="card">
-
-<div class="card-header">
-
-<div>
-<h3>Nuevo entrenamiento</h3>
-<p>Selecciona un ejercicio y registra tus series.</p>
-</div>
-
-</div>
-
-
-<div class="training-form">
-
-<label>
-Grupo muscular
-
-<select id="muscleFilter">
-
-<option value="Todos">
-Todos
-</option>
-
-<option value="Pecho">
-Pecho
-</option>
-
-<option value="Espalda">
-Espalda
-</option>
-
-<option value="Hombros">
-Hombros
-</option>
-
-<option value="Bíceps">
-Bíceps
-</option>
-
-<option value="Tríceps">
-Tríceps
-</option>
-
-<option value="Cuádriceps">
-Cuádriceps
-</option>
-
-<option value="Femoral">
-Femoral
-</option>
-
-<option value="Gemelos">
-Gemelos
-</option>
-
-<option value="Abdomen">
-Abdomen
-</option>
-
-</select>
-
-</label>
-
-
-<label>
-
-Ejercicio
-
-<select id="exerciseSelect"></select>
-<div class="custom-exercise-box">
-<h3>¿No aparece tu ejercicio?</h3>
-
+<div class="field">
+<label for="progressNote">Nota opcional</label>
 <input
 type="text"
-id="customExerciseName"
-placeholder="Escribe el nombre del ejercicio"
+id="progressNote"
+maxlength="150"
+placeholder="Ej. entrenamiento, descanso..."
 >
-
-<div class="form-row">
-<select id="customExerciseMuscle">
-<option value="Pecho">Pecho</option>
-<option value="Espalda">Espalda</option>
-<option value="Hombros">Hombros</option>
-<option value="Bíceps">Bíceps</option>
-<option value="Tríceps">Tríceps</option>
-<option value="Cuádriceps">Cuádriceps</option>
-<option value="Femoral">Femoral</option>
-<option value="Glúteos">Glúteos</option>
-<option value="Gemelos">Gemelos</option>
-<option value="Abdomen">Abdomen</option>
-<option value="Otro">Otro</option>
-</select>
-
-<select id="customExerciseType">
-<option value="Bilateral">Bilateral</option>
-<option value="Unilateral">Unilateral</option>
-</select>
 </div>
-
-<button type="button" id="useCustomExercise">
-Usar este ejercicio
-</button>
-</div>
-
-</label>
-
-</div>
-
-
-<div id="exerciseInfo" class="exercise-info"></div>
-
-
-<div class="set-form">
-
-<label>
-Peso (kg)
-
-<input
-id="setWeight"
-type="number"
-min="0"
-step="0.25"
-value="0"
->
-
-</label>
-
-
-<label>
-Repeticiones
-
-<input
-id="setReps"
-type="number"
-min="1"
-value="10"
->
-
-</label>
-
-
-<label>
-RIR
-
-<input
-id="setRir"
-type="number"
-min="0"
-max="5"
-value="1"
->
-
-</label>
-
 
 <button
-id="addSet"
-class="primary-button"
+class="button button-primary"
+id="addProgress"
+type="button"
 >
-Añadir serie
+Guardar registro
 </button>
 
-</div>
-
-
-<div class="current-exercise">
-
-<div class="current-exercise-header">
-
-<h3>
-Series del ejercicio
-</h3>
-
-<button
-id="finishExercise"
-class="secondary-button"
->
-Guardar ejercicio
-</button>
+<div id="progressStatus" class="status hidden"></div>
 
 </div>
-
-
-<div id="currentSets"></div>
-
-</div>
-
-</div>
-
-
-<!-- ENTRENAMIENTO ACTUAL -->
 
 <div class="card">
 
-<div class="card-header">
+<h3>Objetivo</h3>
 
-<div>
-<h3>Entrenamiento actual</h3>
-
-<p>
-Ejercicios que has registrado en esta sesión.
-</p>
+<div class="field">
+<label for="targetWeight">Peso objetivo (kg)</label>
+<input
+type="number"
+id="targetWeight"
+min="20"
+max="300"
+step="0.1"
+placeholder="Ej. 70"
+>
 </div>
 
 <button
-id="finishWorkout"
-class="primary-button"
+class="button button-secondary"
+id="saveTarget"
+type="button"
 >
-Finalizar entrenamiento
+Guardar objetivo
 </button>
 
+<div class="progress-list">
+
+<div class="progress-row">
+<div class="progress-top">
+<span>Progreso hacia el objetivo</span>
+<span id="progressPercentage">0%</span>
 </div>
 
+<div class="progress-bar">
+<div
+class="progress-fill"
+id="progressFill"
+></div>
+</div>
+</div>
 
-<div id="currentWorkout"></div>
+<div class="muted" id="progressSummary">
+Añade registros y un objetivo para ver el progreso.
+</div>
 
 </div>
 
+</div>
 
-<!-- HISTORIAL -->
+</div>
 
-<div class="card">
+<div class="card" style="margin-top:18px;">
 
-<div class="card-header">
-
-<div>
 <h3>Historial</h3>
 
-<p>
-Tus entrenamientos guardados.
-</p>
+<div id="progressHistory">
+<div class="empty">
+Todavía no hay registros.
+</div>
 </div>
 
 <button
-id="clearTrainingHistory"
-class="danger-button"
+class="button button-danger"
+id="clearProgress"
+type="button"
+style="margin-top:15px;"
 >
 Borrar historial
 </button>
 
 </div>
 
-
-<div id="trainingHistory"></div>
-
-</div>
-
 </section>
 
-
-
-<!-- =====================================================
-ASISTENTE
-===================================================== -->
-
-<section id="asistente" class="section">
-
-<div class="page-title">
-
-<span class="eyebrow">ASISTENTE</span>
-
-<h2>Asistente nutricional</h2>
-
-<p>
-Pregunta sobre tus alimentos, macros o entrenamiento.
-</p>
-
-</div>
-
-
-<div class="assistant-card">
-
-<div id="assistantMessages" class="assistant-messages">
-
-<div class="assistant-message bot">
-
-<strong>Nutri</strong>
-
-<p>
-Hola. Puedo consultar tus datos de hoy y ayudarte
-con cálculos básicos de nutrición y entrenamiento.
-</p>
-
-</div>
-
-</div>
-
-
-<div class="assistant-input">
-
-<input
-id="assistantInput"
-type="text"
-placeholder="Ej: ¿Cuánta proteína llevo hoy?"
->
-
-<button
-id="assistantSend"
-class="primary-button"
->
-Enviar
-</button>
-
-</div>
-
-</div>
-
-</section>
+<footer>
+Nutri · Datos nutricionales de referencia
+</footer>
 
 </main>
 
-
-<footer>
-
-<p>
-Nutri · Nutrición y entrenamiento
-</p>
-
-</footer>
-
-
 <!-- IMPORTANTE:
-foods.js ANTES de script.js
+foods.js debe cargarse ANTES que script.js.
 -->
-
 <script src="foods.js"></script>
+
+<script>
+/*
+* Mantenimiento
+*/
+
+const maintenanceButton =
+document.getElementById("calculateMaintenance");
+
+const maintenanceResult =
+document.getElementById("maintenanceResult");
+
+const maintenanceCalories =
+document.getElementById("maintenanceCalories");
+
+maintenanceButton.addEventListener("click", function () {
+
+const age = Number(
+document.getElementById("maintenanceAge").value
+);
+
+const weight = Number(
+document.getElementById("maintenanceWeight").value
+);
+
+const height = Number(
+document.getElementById("maintenanceHeight").value
+);
+
+const sex =
+document.getElementById("maintenanceSex").value;
+
+const activity =
+Number(
+document.getElementById("maintenanceActivity").value
+);
+
+if (!age || !weight || !height) {
+alert("Introduce edad, peso y altura.");
+return;
+}
+
+let bmr;
+
+if (sex === "male") {
+bmr =
+(10 * weight) +
+(6.25 * height) -
+(5 * age) +
+5;
+} else {
+bmr =
+(10 * weight) +
+(6.25 * height) -
+(5 * age) -
+161;
+}
+
+const tdee = Math.round(bmr * activity);
+
+maintenanceCalories.textContent =
+tdee.toLocaleString("es-ES") + " kcal";
+
+maintenanceResult.classList.remove("hidden");
+
+localStorage.setItem(
+"nutriMaintenance",
+JSON.stringify({
+age,
+weight,
+height,
+sex,
+activity,
+calories: tdee
+})
+);
+});
+
+
+/*
+* Progreso
+*/
+
+const progressDate =
+document.getElementById("progressDate");
+
+const today =
+new Date().toISOString().split("T")[0];
+
+progressDate.value = today;
+
+
+let progressHistory =
+JSON.parse(
+localStorage.getItem("nutriProgress") || "[]"
+);
+
+let targetWeight =
+Number(
+localStorage.getItem("nutriTargetWeight") || 0
+);
+
+
+function renderProgress() {
+
+const container =
+document.getElementById("progressHistory");
+
+if (!progressHistory.length) {
+
+container.innerHTML =
+'<div class="empty">Todavía no hay registros.</div>';
+
+updateProgressBar();
+
+return;
+}
+
+const sorted =
+[...progressHistory].sort(
+(a, b) =>
+new Date(b.date) - new Date(a.date)
+);
+
+container.innerHTML = "";
+
+sorted.forEach(function (item) {
+
+const wrapper =
+document.createElement("div");
+
+wrapper.className = "history-item";
+
+const left =
+document.createElement("div");
+
+const date =
+document.createElement("div");
+
+date.className = "history-date";
+
+date.textContent =
+new Date(item.date + "T12:00:00")
+.toLocaleDateString("es-ES");
+
+const note =
+document.createElement("div");
+
+note.className = "history-weight";
+
+note.textContent =
+item.weight.toFixed(1) +
+" kg" +
+(item.note ? " · " + item.note : "");
+
+left.appendChild(date);
+left.appendChild(note);
+
+const deleteButton =
+document.createElement("button");
+
+deleteButton.className = "delete";
+
+deleteButton.textContent = "Eliminar";
+
+deleteButton.addEventListener(
+"click",
+function () {
+
+progressHistory =
+progressHistory.filter(
+x => x.id !== item.id
+);
+
+saveProgress();
+
+renderProgress();
+}
+);
+
+wrapper.appendChild(left);
+wrapper.appendChild(deleteButton);
+
+container.appendChild(wrapper);
+});
+
+updateProgressBar();
+}
+
+
+function updateProgressBar() {
+
+const percentage =
+document.getElementById("progressPercentage");
+
+const fill =
+document.getElementById("progressFill");
+
+const summary =
+document.getElementById("progressSummary");
+
+if (!targetWeight || !progressHistory.length) {
+
+percentage.textContent = "0%";
+fill.style.width = "0%";
+
+summary.textContent =
+"Añade registros y un objetivo para ver el progreso.";
+
+return;
+}
+
+const sorted =
+[...progressHistory].sort(
+(a, b) =>
+new Date(a.date) - new Date(b.date)
+);
+
+const firstWeight =
+sorted[0].weight;
+
+const currentWeight =
+sorted[sorted.length - 1].weight;
+
+const totalDistance =
+Math.abs(firstWeight - targetWeight);
+
+const currentDistance =
+Math.abs(currentWeight - targetWeight);
+
+let percent = 0;
+
+if (totalDistance > 0) {
+percent =
+((totalDistance - currentDistance) /
+totalDistance) * 100;
+} else {
+percent = 100;
+}
+
+percent =
+Math.max(0, Math.min(100, percent));
+
+percentage.textContent =
+Math.round(percent) + "%";
+
+fill.style.width =
+percent + "%";
+
+summary.textContent =
+"Actual: " +
+currentWeight.toFixed(1) +
+" kg · Objetivo: " +
+targetWeight.toFixed(1) +
+" kg";
+}
+
+
+function saveProgress() {
+
+localStorage.setItem(
+"nutriProgress",
+JSON.stringify(progressHistory)
+);
+}
+
+
+document
+.getElementById("addProgress")
+.addEventListener("click", function () {
+
+const date =
+progressDate.value;
+
+const weight =
+Number(
+document.getElementById("progressWeight").value
+);
+
+const note =
+document.getElementById("progressNote").value.trim();
+
+if (!date || !weight) {
+alert("Introduce una fecha y un peso.");
+return;
+}
+
+progressHistory.push({
+id: Date.now(),
+date,
+weight,
+note
+});
+
+saveProgress();
+
+document.getElementById("progressWeight").value = "";
+document.getElementById("progressNote").value = "";
+
+const status =
+document.getElementById("progressStatus");
+
+status.textContent =
+"Registro guardado correctamente.";
+
+status.classList.remove("hidden");
+
+renderProgress();
+});
+
+
+document
+.getElementById("saveTarget")
+.addEventListener("click", function () {
+
+const value =
+Number(
+document.getElementById("targetWeight").value
+);
+
+if (!value) {
+alert("Introduce un peso objetivo.");
+return;
+}
+
+targetWeight = value;
+
+localStorage.setItem(
+"nutriTargetWeight",
+String(targetWeight)
+);
+
+updateProgressBar();
+});
+
+
+document
+.getElementById("clearProgress")
+.addEventListener("click", function () {
+
+if (!progressHistory.length) {
+return;
+}
+
+if (
+!confirm(
+"¿Seguro que quieres borrar todo el historial?"
+)
+) {
+return;
+}
+
+progressHistory = [];
+
+saveProgress();
+
+renderProgress();
+});
+
+
+/*
+* Recuperar mantenimiento guardado
+*/
+
+const savedMaintenance =
+JSON.parse(
+localStorage.getItem("nutriMaintenance") || "null"
+);
+
+if (savedMaintenance) {
+
+document.getElementById("maintenanceAge").value =
+savedMaintenance.age;
+
+document.getElementById("maintenanceWeight").value =
+savedMaintenance.weight;
+
+document.getElementById("maintenanceHeight").value =
+savedMaintenance.height;
+
+document.getElementById("maintenanceSex").value =
+savedMaintenance.sex;
+
+document.getElementById("maintenanceActivity").value =
+savedMaintenance.activity;
+
+maintenanceCalories.textContent =
+savedMaintenance.calories.toLocaleString("es-ES") +
+" kcal";
+
+maintenanceResult.classList.remove("hidden");
+}
+
+
+/*
+* Recuperar objetivo
+*/
+
+if (targetWeight) {
+
+document.getElementById("targetWeight").value =
+targetWeight;
+}
+
+
+renderProgress();
+
+</script>
+
+<!-- TU SISTEMA ACTUAL DE ALIMENTOS Y MACROS -->
 <script src="script.js"></script>
 
 </body>
