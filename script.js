@@ -975,6 +975,23 @@ description: "Variación realizada hacia un lado para trabajar de forma individu
 ];
 
 
+/* =====================================================
+EJERCICIOS PERSONALIZADOS
+===================================================== */
+
+let customExercises =
+JSON.parse(
+localStorage.getItem("nutriCustomExercises")
+) || [];
+
+
+customExercises.forEach(exercise => {
+
+exercises.push(exercise);
+
+});
+
+
 let currentSets = [];
 
 let currentWorkout = [];
@@ -997,6 +1014,183 @@ const exerciseInfo =
 document.getElementById("exerciseInfo");
 
 
+/* =====================================================
+PANEL PARA CREAR EJERCICIO
+===================================================== */
+
+const customExerciseBox =
+document.createElement("div");
+
+customExerciseBox.className =
+"custom-exercise-box";
+
+customExerciseBox.innerHTML = `
+
+<h3>¿No aparece tu ejercicio?</h3>
+
+<p>
+Añade cualquier ejercicio que hagas.
+</p>
+
+<input
+type="text"
+id="customExerciseName"
+placeholder="Nombre del ejercicio"
+>
+
+<select id="customExerciseMuscle">
+
+<option value="Pecho">Pecho</option>
+
+<option value="Espalda">Espalda</option>
+
+<option value="Hombros">Hombros</option>
+
+<option value="Bíceps">Bíceps</option>
+
+<option value="Tríceps">Tríceps</option>
+
+<option value="Cuádriceps">Cuádriceps</option>
+
+<option value="Femoral">Femoral</option>
+
+<option value="Glúteos">Glúteos</option>
+
+<option value="Gemelos">Gemelos</option>
+
+<option value="Abdomen">Abdomen</option>
+
+<option value="Otro">Otro</option>
+
+</select>
+
+<select id="customExerciseType">
+
+<option value="Bilateral">
+Bilateral
+</option>
+
+<option value="Unilateral">
+Unilateral
+</option>
+
+</select>
+
+<button
+type="button"
+id="createCustomExercise"
+>
+Añadir ejercicio
+</button>
+
+`;
+
+
+exerciseSelect.parentElement.appendChild(
+customExerciseBox
+);
+
+
+const customExerciseName =
+document.getElementById(
+"customExerciseName"
+);
+
+const customExerciseMuscle =
+document.getElementById(
+"customExerciseMuscle"
+);
+
+const customExerciseType =
+document.getElementById(
+"customExerciseType"
+);
+
+const createCustomExercise =
+document.getElementById(
+"createCustomExercise"
+);
+
+
+/* =====================================================
+CREAR EJERCICIO PERSONALIZADO
+===================================================== */
+
+createCustomExercise.addEventListener(
+"click",
+() => {
+
+const name =
+customExerciseName.value.trim();
+
+
+if (!name) {
+
+alert(
+"Escribe el nombre del ejercicio."
+);
+
+return;
+}
+
+
+const exercise = {
+
+id:
+"custom-" +
+Date.now(),
+
+name:
+name,
+
+muscle:
+customExerciseMuscle.value,
+
+type:
+customExerciseType.value,
+
+description:
+"Ejercicio personalizado."
+
+};
+
+
+customExercises.push(exercise);
+
+exercises.push(exercise);
+
+
+localStorage.setItem(
+"nutriCustomExercises",
+JSON.stringify(customExercises)
+);
+
+
+renderExerciseSelect();
+
+
+exerciseSelect.value =
+exercise.id;
+
+
+updateExerciseInfo();
+
+
+customExerciseName.value = "";
+
+
+alert(
+"Ejercicio añadido correctamente."
+);
+
+}
+);
+
+
+/* =====================================================
+ENTRENAMIENTO
+===================================================== */
+
 function renderExerciseSelect() {
 
 const muscle =
@@ -1013,6 +1207,24 @@ exercise.muscle === muscle
 
 
 exerciseSelect.innerHTML = "";
+
+
+if (!filtered.length) {
+
+const option =
+document.createElement("option");
+
+option.textContent =
+"No hay ejercicios para este músculo";
+
+option.disabled = true;
+
+exerciseSelect.appendChild(option);
+
+exerciseInfo.innerHTML = "";
+
+return;
+}
 
 
 filtered.forEach(exercise => {
@@ -1071,7 +1283,7 @@ ${escapeHTML(exercise.description)}
 </div>
 
 <span class="unilateral-badge">
-${exercise.type}
+${escapeHTML(exercise.type)}
 </span>
 
 `;
@@ -1090,6 +1302,10 @@ exerciseSelect.addEventListener(
 updateExerciseInfo
 );
 
+
+/* =====================================================
+AÑADIR SERIE
+===================================================== */
 
 document
 .getElementById("addSet")
@@ -1226,6 +1442,10 @@ container.appendChild(row);
 }
 
 
+/* =====================================================
+GUARDAR EJERCICIO
+===================================================== */
+
 document
 .getElementById("finishExercise")
 .addEventListener("click", () => {
@@ -1344,6 +1564,10 @@ container.appendChild(element);
 }
 
 
+/* =====================================================
+FINALIZAR ENTRENAMIENTO
+===================================================== */
+
 document
 .getElementById("finishWorkout")
 .addEventListener("click", () => {
@@ -1392,6 +1616,10 @@ alert("Entrenamiento guardado.");
 
 });
 
+
+/* =====================================================
+HISTORIAL
+===================================================== */
 
 function renderTrainingHistory() {
 
@@ -1601,8 +1829,7 @@ normalize(question);
 
 
 if (
-q.includes("proteina") ||
-q.includes("proteína")
+q.includes("proteina")
 ) {
 
 const total =
@@ -1620,8 +1847,7 @@ ${goals.protein} g.
 
 if (
 q.includes("caloria") ||
-q.includes("calorias") ||
-q.includes("caloría")
+q.includes("calorias")
 ) {
 
 const total =
