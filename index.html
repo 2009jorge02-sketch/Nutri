@@ -1,58 +1,2574 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111827">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Nutri</title>
-<link rel="stylesheet" href="style.css">
+
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;
+font:15px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+background:#f5f7f3;
+color:#182018
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+
+.top{
+height:64px;
+background:#fff;
+border-bottom:1px solid #e2e7e0;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 15px;
+position:sticky;
+top:0;
+z-index:5
+}
+
+.top button{
+border:0;
+background:#edf2eb;
+border-radius:12px;
+width:42px;
+height:42px
+}
+
+.avatar{border-radius:50%!important}
+.wrap{
+max-width:900px;
+margin:auto;
+padding:20px 15px 50px
+}
+
+.card{
+background:#fff;
+border:1px solid #e1e7df;
+border-radius:17px;
+padding:17px;
+margin:12px 0
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px
+}
+
+.metric{
+background:#f0f4ee;
+padding:14px;
+border-radius:14px
+}
+
+.bar{
+height:8px;
+background:#dfe6dc;
+border-radius:9px;
+margin:7px 0
+}
+
+.bar i{
+display:block;
+height:100%;
+background:#4f7655;
+border-radius:9px
+}
+
+.primary{
+background:#315b38;
+color:#fff;
+border:0;
+padding:12px 15px;
+border-radius:11px;
+font-weight:700
+}
+
+.secondary{
+background:#e9f0e7;
+border:0;
+padding:10px 13px;
+border-radius:10px
+}
+
+.muted{color:#6b746c}
+
+.row{
+display:flex;
+gap:8px;
+flex-wrap:wrap
+}
+
+.between{
+display:flex;
+justify-content:space-between;
+gap:10px;
+align-items:center
+}
+
+.drawer{
+display:none;
+position:fixed;
+inset:0;
+background:#0006;
+z-index:20
+}
+
+.drawer.open{display:block}
+
+.drawer aside{
+width:min(340px,88vw);
+height:100%;
+background:white;
+padding:18px;
+overflow:auto
+}
+
+.nav{
+display:block;
+width:100%;
+border:0;
+background:transparent;
+text-align:left;
+padding:12px;
+border-radius:10px
+}
+
+.nav:hover{background:#eef2eb}
+
+.section{
+font-size:11px;
+color:#7a827a;
+text-transform:uppercase;
+margin:16px 0 5px
+}
+
+.field{margin:10px 0}
+
+.field label{
+display:block;
+font-size:13px;
+color:#687168;
+margin-bottom:5px
+}
+
+.field input,
+.field select,
+.field textarea{
+width:100%;
+padding:11px;
+border:1px solid #d7dfd5;
+border-radius:10px
+}
+
+.meal{
+border:1px solid #e1e7df;
+border-radius:14px;
+padding:14px;
+margin:10px 0
+}
+
+.food{
+padding:12px 0;
+border-bottom:1px solid #edf0eb
+}
+
+.food:last-child{border:0}
+
+.chat{
+min-height:260px;
+display:flex;
+flex-direction:column;
+gap:9px
+}
+
+.bubble{
+max-width:88%;
+background:#edf2eb;
+padding:11px 13px;
+border-radius:14px
+}
+
+.bubble.me{
+align-self:flex-end;
+background:#315b38;
+color:#fff
+}
+
+.chatbar{
+display:flex;
+gap:7px;
+background:white;
+border:1px solid #dce3da;
+border-radius:13px;
+padding:7px;
+margin-top:12px
+}
+
+.chatbar input{
+flex:1;
+border:0;
+outline:0;
+padding:8px
+}
+
+.choice{
+border:1px solid #d5ddd3;
+background:#fff;
+padding:10px 12px;
+border-radius:10px
+}
+
+.choice:hover{
+background:#edf3eb
+}
+
+.food-result{
+border:1px solid #dfe6dc;
+background:#fff;
+padding:14px;
+border-radius:14px;
+margin:9px 0
+}
+
+.food-result:hover{
+border-color:#315b38
+}
+
+.food-result .title{
+font-weight:700;
+font-size:16px
+}
+
+.food-result .source{
+font-size:12px;
+color:#7b847c;
+margin-top:4px
+}
+
+.macro-row{
+display:flex;
+gap:7px;
+flex-wrap:wrap;
+margin-top:9px
+}
+
+.macro{
+background:#f0f4ee;
+padding:6px 9px;
+border-radius:8px;
+font-size:12px
+}
+
+.searchbox{
+display:flex;
+gap:8px;
+margin:12px 0
+}
+
+.searchbox input{
+flex:1;
+padding:13px;
+border:1px solid #d7dfd5;
+border-radius:11px;
+outline:none
+}
+
+.searchbox input:focus{
+border-color:#315b38
+}
+
+.selected-food{
+background:#f0f5ed;
+border-left:4px solid #315b38;
+padding:13px;
+border-radius:10px;
+margin:12px 0
+}
+
+.notice{
+background:#f0f5ed;
+border-left:4px solid #63815f;
+padding:11px;
+border-radius:9px
+}
+
+.calendar{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:5px
+}
+
+.calendar button{
+border:0;
+background:#edf1eb;
+border-radius:8px;
+padding:9px 2px
+}
+
+.calendar button.sel{
+background:#315b38;
+color:white
+}
+
+.photos{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:7px
+}
+
+.photos img{
+width:100%;
+aspect-ratio:1;
+object-fit:cover;
+border-radius:10px
+}
+
+.hidden{display:none}
+
+@media(max-width:600px){
+.grid{grid-template-columns:1fr}
+}
+</style>
 </head>
 
 <body>
-<div id="app">
 
-<aside class="sidebar">
-<div class="brand">
-<div class="brand-logo">N</div>
-<div>
-<strong>Nutri</strong>
-<span>Tu progreso</span>
-</div>
-</div>
-
-<nav class="nav">
-<button class="nav-item active" data-view="dashboard">⌂ <span>Inicio</span></button>
-<button class="nav-item" data-view="day">☷ <span>Diario</span></button>
-<button class="nav-item" data-view="training">🏋️ <span>Entrenamiento</span></button>
-<button class="nav-item" data-view="foods">🥗 <span>Alimentos</span></button>
-<button class="nav-item" data-view="recipes">🍳 <span>Recetas</span></button>
-<button class="nav-item" data-view="history">📈 <span>Historial</span></button>
-<button class="nav-item" data-view="settings">⚙️ <span>Ajustes</span></button>
-</nav>
-
-<div class="sidebar-bottom">
-<button id="themeBtn" class="theme-btn">🌙 Modo oscuro</button>
-</div>
-</aside>
-
-<main class="main">
-<header class="topbar">
-<div>
-<div class="eyebrow">NUTRICIÓN + ENTRENAMIENTO</div>
-<h1 id="pageTitle">Inicio</h1>
-</div>
-<div class="top-actions">
-<button id="quickTrainingBtn" class="primary-btn">＋ Entrenamiento</button>
-</div>
+<header class="top">
+<button onclick="menu()">☰</button>
+<b>Nutri</b>
+<button class="avatar" onclick="page('profile')">J</button>
 </header>
 
-<section id="content"></section>
-</main>
+<div id="drawer"
+class="drawer"
+onclick="if(event.target.id==='drawer')menu()">
+
+<aside>
+
+<h2>Nutri</h2>
+
+<div class="section">Principal</div>
+
+<button class="nav" onclick="page('home')">
+🏠 Inicio
+</button>
+
+<button class="nav" onclick="page('meals')">
+🍽️ Comidas
+</button>
+
+<button class="nav" onclick="page('foodsearch')">
+🔎 Buscar alimento
+</button>
+
+<button class="nav" onclick="page('foodai')">
+🤖 Añadir comida
+</button>
+
+<div class="section">Alimentos</div>
+
+<button class="nav" onclick="page('foods')">
+📚 Mis alimentos
+</button>
+
+<button class="nav" onclick="page('freq')">
+⭐ Alimentos frecuentes
+</button>
+
+<button class="nav" onclick="page('templates')">
+🧩 Plantillas / repetir
+</button>
+
+<div class="section">Seguimiento</div>
+
+<button class="nav" onclick="page('history')">
+📅 Historial
+</button>
+
+<button class="nav" onclick="page('progress')">
+📈 Progreso
+</button>
+
+<button class="nav" onclick="page('maintenance')">
+🧮 Calcular mantenimiento
+</button>
+
+<button class="nav" onclick="page('goals')">
+🥗 Objetivos nutricionales
+</button>
+
+<div class="section">Asistente</div>
+
+<button class="nav" onclick="page('assistant')">
+🤖 Asistente personal
+</button>
+
+<div class="section">Cuenta</div>
+
+<button class="nav" onclick="page('profile')">
+👤 Mi perfil
+</button>
+
+<button class="nav" onclick="page('settings')">
+⚙️ Configuración
+</button>
+
+<button class="nav" onclick="page('help')">
+❓ Ayuda
+</button>
+
+</aside>
 </div>
 
-<div id="modalRoot"></div>
-<div id="toastContainer"></div>
+<main class="wrap" id="app"></main>
 
-<script src="script.js"></script>
+<script>
+
+const K='nutriReal';
+
+const D=JSON.parse(localStorage.getItem(K)||'null')||{
+goals:{
+cal:2300,
+p:130,
+c:280,
+f:70
+},
+
+days:{},
+
+saved:[],
+freq:[],
+templates:[],
+
+maint:{
+i:0,
+a:[]
+},
+
+foodChat:[],
+assistant:[]
+};
+
+let current='home';
+let selectedDate=today();
+
+
+// =====================================================
+// BASE DE DATOS DE ALIMENTOS ESTIMADOS
+// =====================================================
+
+const FOOD_DATABASE=[
+
+{
+name:'Huevo entero crudo',
+aliases:['huevo','huevos','huevo crudo'],
+cal:143,
+p:12.6,
+c:0.7,
+f:9.5,
+unitWeight:50,
+unitName:'huevo',
+source:'Estimación basada en datos USDA'
+},
+
+{
+name:'Huevo entero cocido',
+aliases:['huevo cocido','huevo duro','huevo hervido'],
+cal:155,
+p:12.6,
+c:1.1,
+f:10.6,
+unitWeight:50,
+unitName:'huevo',
+source:'Estimación basada en datos USDA'
+},
+
+{
+name:'Clara de huevo',
+aliases:['clara','claras','clara huevo'],
+cal:52,
+p:10.9,
+c:0.7,
+f:0.2,
+unitWeight:33,
+unitName:'clara',
+source:'Estimación estándar'
+},
+
+{
+name:'Yema de huevo',
+aliases:['yema','yemas'],
+cal:322,
+p:15.9,
+c:3.6,
+f:26.5,
+unitWeight:17,
+unitName:'yema',
+source:'Estimación estándar'
+},
+
+{
+name:'Arroz blanco seco',
+aliases:['arroz','arroz seco','arroz blanco'],
+cal:344,
+p:7,
+c:77,
+f:0.8,
+source:'Base nutricional estándar'
+},
+
+{
+name:'Arroz blanco cocido',
+aliases:['arroz cocido','arroz blanco cocido'],
+cal:130,
+p:2.7,
+c:28.2,
+f:0.3,
+source:'Estimación estándar'
+},
+
+{
+name:'Pasta seca',
+aliases:['pasta','macarrones','espaguetis','espagueti'],
+cal:349,
+p:12,
+c:70,
+f:1.5,
+source:'Base nutricional estándar'
+},
+
+{
+name:'Pollo',
+aliases:['pollo','pechuga de pollo','pechuga'],
+cal:108,
+p:22,
+c:0.5,
+f:1.8,
+source:'Dato proporcionado en Nutri'
+},
+
+{
+name:'Crema de arroz',
+aliases:['crema arroz','cream of rice'],
+cal:372,
+p:6.4,
+c:85,
+f:0.6,
+source:'Dato proporcionado en Nutri'
+},
+
+{
+name:'Leche desnatada',
+aliases:['leche','leche desnatada'],
+cal:35,
+p:3.2,
+c:4.8,
+f:0.2,
+source:'Dato proporcionado en Nutri'
+},
+
+{
+name:'Patata cocida',
+aliases:['patata','patata cocida','papa'],
+cal:80,
+p:2,
+c:17,
+f:0.1,
+source:'Estimación estándar'
+},
+
+{
+name:'Brócoli',
+aliases:['brocoli','brócoli'],
+cal:29,
+p:3,
+c:1.8,
+f:0.4,
+source:'Dato proporcionado en Nutri'
+},
+
+{
+name:'Pan',
+aliases:['pan','pan blanco'],
+cal:249,
+p:9.4,
+c:48,
+f:1.4,
+source:'Dato proporcionado en Nutri'
+},
+
+{
+name:'Pavo',
+aliases:['pavo','fiambre de pavo'],
+cal:89,
+p:18.1,
+c:0,
+f:1.7,
+source:'Dato proporcionado en Nutri'
+},
+
+{
+name:'Maltodextrina',
+aliases:['maltodextrina','malto'],
+cal:380,
+p:0,
+c:95,
+f:0,
+source:'Dato proporcionado en Nutri'
+},
+
+{
+name:'Proteína en polvo',
+aliases:['proteina','proteína','whey','proteina whey'],
+cal:378,
+p:72.3,
+c:10.4,
+f:2.9,
+source:'Dato proporcionado en Nutri'
+},
+
+{
+name:'Caldo de pollo',
+aliases:['caldo','caldo pollo','caldo de pollo'],
+cal:11.2,
+p:0.4,
+c:0.52,
+f:0.8,
+source:'Dato proporcionado en Nutri'
+},
+
+{
+name:'Plátano',
+aliases:['platano','plátano','banana'],
+cal:89,
+p:1.1,
+c:22.8,
+f:0.3,
+unitWeight:118,
+unitName:'plátano',
+source:'Estimación estándar'
+},
+
+{
+name:'Manzana',
+aliases:['manzana','manzana roja','manzana verde'],
+cal:52,
+p:0.3,
+c:13.8,
+f:0.2,
+unitWeight:180,
+unitName:'manzana',
+source:'Estimación estándar'
+},
+
+{
+name:'Avena',
+aliases:['avena','copos de avena'],
+cal:389,
+p:16.9,
+c:66.3,
+f:6.9,
+source:'Estimación estándar'
+},
+
+{
+name:'Atún al natural',
+aliases:['atun','atún','atun al natural','atún al natural'],
+cal:116,
+p:26,
+c:0,
+f:1,
+source:'Estimación estándar'
+}
+
+];
+
+
+// =====================================================
+// UTILIDADES
+// =====================================================
+
+function save(){
+localStorage.setItem(K,JSON.stringify(D));
+}
+
+function today(){
+return new Date().toISOString().slice(0,10);
+}
+
+function menu(){
+document.getElementById('drawer').classList.toggle('open');
+}
+
+function page(p){
+current=p;
+document.getElementById('drawer').classList.remove('open');
+render();
+}
+
+function esc(x){
+return String(x).replace(
+/[&<>"']/g,
+c=>({
+'&':'&amp;',
+'<':'&lt;',
+'>':'&gt;',
+'"':'&quot;',
+"'":'&#39;'
+}[c])
+);
+}
+
+function base(t,b){
+document.getElementById('app').innerHTML=
+`<h1>${t}</h1>${b}`;
+}
+
+function metric(n,v,t,u){
+
+let z=Math.min(
+100,
+Math.round(v/t*100)||0
+);
+
+return `
+<div class="metric">
+<span class="muted">${n}</span>
+<br>
+<b>${v} / ${t} ${u}</b>
+
+<div class="bar">
+<i style="width:${z}%"></i>
+</div>
+
+<small class="muted">
+${Math.max(0,t-v)} ${u} restantes
+</small>
+</div>
+`;
+}
+
+function day(){
+
+if(!D.days[selectedDate]){
+
+D.days[selectedDate]={
+meals:{
+Desayuno:[],
+Comida:[],
+Merienda:[],
+Cena:[],
+Otra:[]
+},
+weight:'',
+notes:'',
+photos:[]
+};
+
+}
+
+return D.days[selectedDate];
+}
+
+function totals(){
+
+let t={
+cal:0,
+p:0,
+c:0,
+f:0
+};
+
+Object.values(day().meals)
+.flat()
+.forEach(x=>{
+
+t.cal+=Number(x.cal)||0;
+t.p+=Number(x.p)||0;
+t.c+=Number(x.c)||0;
+t.f+=Number(x.f)||0;
+
+});
+
+return t;
+}
+
+
+// =====================================================
+// BUSCADOR DE ALIMENTOS
+// =====================================================
+
+function normalize(text){
+
+return String(text)
+.toLowerCase()
+.normalize('NFD')
+.replace(/[\u0300-\u036f]/g,'')
+.trim();
+
+}
+
+function searchFoods(query){
+
+const q=normalize(query);
+
+if(!q){
+return [];
+}
+
+return FOOD_DATABASE
+.map(food=>{
+
+const name=normalize(food.name);
+const aliases=(food.aliases||[]).map(normalize);
+
+let score=0;
+
+if(name===q) score+=100;
+
+if(name.startsWith(q)) score+=50;
+
+if(name.includes(q)) score+=25;
+
+aliases.forEach(a=>{
+
+if(a===q) score+=90;
+
+if(a.startsWith(q)) score+=45;
+
+if(a.includes(q)) score+=20;
+
+});
+
+return {
+...food,
+score
+};
+
+})
+.filter(x=>x.score>0)
+.sort((a,b)=>b.score-a.score)
+.slice(0,10);
+
+}
+
+function renderFoodSearch(){
+
+const input=document.getElementById('foodSearchInput');
+
+const results=searchFoods(input.value);
+
+const container=document.getElementById('foodSearchResults');
+
+if(!input.value.trim()){
+
+container.innerHTML=`
+<div class="notice">
+Escribe un alimento para buscar una estimación.
+<br><br>
+Ejemplos: <b>huevo</b>, <b>arroz</b>,
+<b>pollo</b>, <b>avena</b>, <b>plátano</b>.
+</div>
+`;
+
+return;
+}
+
+if(!results.length){
+
+container.innerHTML=`
+<div class="card">
+No encuentro ese alimento en la base de datos.
+Puedes añadirlo manualmente desde
+<b>Mis alimentos</b>.
+</div>
+`;
+
+return;
+}
+
+container.innerHTML=results.map((food,index)=>`
+
+<div class="food-result">
+
+<div class="between">
+
+<div>
+<div class="title">
+${esc(food.name)}
+</div>
+
+<div class="source">
+${esc(food.source)}
+</div>
+</div>
+
+<button
+class="secondary"
+onclick="selectFood(${FOOD_DATABASE.indexOf(food)})">
+Seleccionar
+</button>
+
+</div>
+
+<div class="macro-row">
+
+<span class="macro">
+${food.cal} kcal
+</span>
+
+<span class="macro">
+P ${food.p} g
+</span>
+
+<span class="macro">
+C ${food.c} g
+</span>
+
+<span class="macro">
+G ${food.f} g
+</span>
+
+</div>
+
+${
+food.unitWeight
+?
+`<div class="source">
+≈ ${food.unitWeight} g por ${food.unitName}
+</div>`
+:
+''
+}
+
+</div>
+
+`).join('');
+
+}
+
+function selectFood(index){
+
+const food=FOOD_DATABASE[index];
+
+if(!food)return;
+
+const unitText=food.unitWeight
+? ` (${food.unitWeight} g ≈ 1 ${food.unitName})`
+: '';
+
+document.getElementById('foodSelected').innerHTML=`
+
+<div class="selected-food">
+
+<b>${esc(food.name)}</b>
+
+<div class="source">
+${esc(food.source)}
+</div>
+
+<div class="macro-row">
+
+<span class="macro">
+${food.cal} kcal / 100 g
+</span>
+
+<span class="macro">
+P ${food.p} g
+</span>
+
+<span class="macro">
+C ${food.c} g
+</span>
+
+<span class="macro">
+G ${food.f} g
+</span>
+
+</div>
+
+<div class="source">
+${unitText}
+</div>
+
+</div>
+
+`;
+
+document.getElementById('selectedFoodIndex').value=index;
+
+calculateSelectedFood();
+
+}
+
+function calculateSelectedFood(){
+
+const index=Number(
+document.getElementById('selectedFoodIndex').value
+);
+
+if(Number.isNaN(index))return;
+
+const food=FOOD_DATABASE[index];
+
+if(!food)return;
+
+const amount=Number(
+document.getElementById('foodAmount').value
+)||0;
+
+const mode=document.getElementById('foodAmountMode').value;
+
+let grams=amount;
+
+if(mode==='unit' && food.unitWeight){
+
+grams=amount*food.unitWeight;
+
+}
+
+const factor=grams/100;
+
+const cal=food.cal*factor;
+const p=food.p*factor;
+const c=food.c*factor;
+const f=food.f*factor;
+
+document.getElementById('calculatedMacros').innerHTML=`
+
+<div class="card">
+
+<b>Para ${amount} ${mode==='unit'
+?food.unitName+(amount===1?'':'s')
+:'g'}:</b>
+
+<div class="macro-row">
+
+<span class="macro">
+${cal.toFixed(1)} kcal
+</span>
+
+<span class="macro">
+P ${p.toFixed(1)} g
+</span>
+
+<span class="macro">
+C ${c.toFixed(1)} g
+</span>
+
+<span class="macro">
+G ${f.toFixed(1)} g
+</span>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+function addSearchedFood(){
+
+const index=Number(
+document.getElementById('selectedFoodIndex').value
+);
+
+if(Number.isNaN(index)){
+alert('Primero selecciona un alimento.');
+return;
+}
+
+const food=FOOD_DATABASE[index];
+
+const amount=Number(
+document.getElementById('foodAmount').value
+)||0;
+
+const mode=document.getElementById('foodAmountMode').value;
+
+if(amount<=0){
+alert('Introduce una cantidad válida.');
+return;
+}
+
+let grams=amount;
+
+if(mode==='unit'){
+
+if(!food.unitWeight){
+
+alert('Este alimento no tiene un peso por unidad registrado. Usa gramos.');
+
+return;
+
+}
+
+grams=amount*food.unitWeight;
+
+}
+
+const factor=grams/100;
+
+const item={
+name:food.name,
+
+qty:
+mode==='unit'
+? `${amount} ${food.unitName}${amount===1?'':'s'} (${grams.toFixed(0)} g)`
+: `${grams.toFixed(0)} g`,
+
+cal:Number((food.cal*factor).toFixed(1)),
+p:Number((food.p*factor).toFixed(1)),
+c:Number((food.c*factor).toFixed(1)),
+f:Number((food.f*factor).toFixed(1))
+};
+
+const meal=document.getElementById('foodMeal').value;
+
+day().meals[meal].push(item);
+
+save();
+
+alert(
+`${food.name} añadido a ${meal}.`
+);
+
+page('meals');
+
+}
+
+
+// =====================================================
+// PÁGINA DEL BUSCADOR
+// =====================================================
+
+function foodsearch(){
+
+base(
+'Buscar alimento',
+`
+
+<div class="card">
+
+<h2>
+¿No sabes los macros de un alimento?
+</h2>
+
+<p class="muted">
+Busca el alimento y Nutri te mostrará una
+estimación nutricional. Después puedes indicar
+los gramos o unidades que vas a comer.
+</p>
+
+<div class="searchbox">
+
+<input
+id="foodSearchInput"
+placeholder="Ej: huevo"
+oninput="renderFoodSearch()"
+autocomplete="off"
+>
+
+</div>
+
+<div id="foodSearchResults">
+
+<div class="notice">
+Escribe un alimento para empezar.
+<br><br>
+Prueba con:
+<b>huevo</b>,
+<b>arroz</b>,
+<b>pollo</b>,
+<b>avena</b>.
+</div>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>Usar alimento</h2>
+
+<input
+type="hidden"
+id="selectedFoodIndex"
+value=""
+>
+
+<div id="foodSelected">
+
+<p class="muted">
+Selecciona primero un alimento de los resultados.
+</p>
+
+</div>
+
+<div class="field">
+
+<label>Cantidad</label>
+
+<input
+id="foodAmount"
+type="number"
+min="0"
+step="0.1"
+value="100"
+oninput="calculateSelectedFood()"
+>
+
+</div>
+
+<div class="field">
+
+<label>Unidad</label>
+
+<select
+id="foodAmountMode"
+onchange="calculateSelectedFood()"
+>
+
+<option value="g">
+Gramos
+</option>
+
+<option value="unit">
+Unidades
+</option>
+
+</select>
+
+</div>
+
+<div class="field">
+
+<label>Añadir a</label>
+
+<select id="foodMeal">
+
+<option>Desayuno</option>
+<option>Comida</option>
+<option>Merienda</option>
+<option>Cena</option>
+<option>Otra</option>
+
+</select>
+
+</div>
+
+<div id="calculatedMacros"></div>
+
+<button
+class="primary"
+style="width:100%"
+onclick="addSearchedFood()"
+>
+＋ Añadir al día
+</button>
+
+</div>
+
+<div class="notice">
+
+<b>Importante:</b>
+cuando sea una estimación, Nutri la mostrará como
+estimación. Si tienes la etiqueta nutricional del
+producto concreto, sus datos tendrán prioridad.
+
+</div>
+
+`
+);
+
+}
+
+
+// =====================================================
+// INICIO
+// =====================================================
+
+function home(){
+
+let t=totals();
+
+base(
+`Hola, Jorge 👋`,
+`
+
+<div class="muted">
+Lunes, 21 de septiembre de 2026
+</div>
+
+<div class="card">
+
+<div class="grid">
+
+${metric(
+'Calorías',
+Math.round(t.cal),
+D.goals.cal,
+'kcal'
+)}
+
+${metric(
+'Proteína',
++t.p.toFixed(1),
+D.goals.p,
+'g'
+)}
+
+${metric(
+'Carbohidratos',
++t.c.toFixed(1),
+D.goals.c,
+'g'
+)}
+
+${metric(
+'Grasas',
++t.f.toFixed(1),
+D.goals.f,
+'g'
+)}
+
+</div>
+
+</div>
+
+<div class="card">
+
+<button
+class="primary"
+style="width:100%"
+onclick="page('foodsearch')"
+>
+🔎 Buscar alimento y calcular macros
+</button>
+
+</div>
+
+<div class="card">
+
+<button
+class="secondary"
+style="width:100%"
+onclick="page('foodai')"
+>
+＋ Añadir comida
+</button>
+
+</div>
+
+`
+);
+
+}
+
+
+// =====================================================
+// COMIDAS
+// =====================================================
+
+function meals(){
+
+let d=day();
+
+base(
+'Comidas',
+
+Object.keys(d.meals).map(m=>`
+
+<div class="meal">
+
+<div class="between">
+
+<b>${m}</b>
+
+<button
+class="secondary"
+onclick="openFoodSearchForMeal('${m}')"
+>
+＋ Añadir
+</button>
+
+</div>
+
+${
+d.meals[m].length
+
+?
+
+d.meals[m].map((x,i)=>`
+
+<div class="food">
+
+<div class="between">
+
+<span>
+<b>${esc(x.name)}</b>
+· ${esc(x.qty)}
+</span>
+
+<button
+class="secondary"
+onclick="delFood('${m}',${i})"
+>
+Eliminar
+</button>
+
+</div>
+
+<small>
+${x.cal} kcal ·
+P ${x.p} g ·
+C ${x.c} g ·
+G ${x.f} g
+</small>
+
+</div>
+
+`).join('')
+
+:
+
+'<span class="muted">Sin alimentos</span>'
+}
+
+</div>
+
+`).join('')
+);
+
+}
+
+function openFoodSearchForMeal(meal){
+
+page('foodsearch');
+
+setTimeout(()=>{
+
+const select=document.getElementById('foodMeal');
+
+if(select){
+select.value=meal;
+}
+
+},0);
+
+}
+
+function delFood(m,i){
+
+day().meals[m].splice(i,1);
+
+save();
+
+render();
+
+}
+
+
+// =====================================================
+// AÑADIR COMIDA
+// =====================================================
+
+function foodai(){
+
+if(!D.foodChat.length){
+
+D.foodChat=[
+{
+me:0,
+t:'¿Qué has comido? Escríbelo con cantidades. Si no sabes los macros de algo, también puedes buscarlo en el buscador de alimentos.'
+}
+];
+
+}
+
+base(
+'Añadir comida',
+`
+
+<div class="card">
+
+<div class="chat">
+
+${D.foodChat.map(x=>`
+
+<div class="bubble ${x.me?'me':''}">
+${esc(x.t)}
+</div>
+
+`).join('')}
+
+</div>
+
+</div>
+
+<div class="chatbar">
+
+<input
+id="fi"
+placeholder="Ej: 2 huevos y 100 g de pan"
+>
+
+<button
+class="primary"
+onclick="foodSend()"
+>
+➤
+</button>
+
+</div>
+
+<div class="card">
+
+<button
+class="secondary"
+onclick="page('foodsearch')"
+>
+🔎 Buscar alimento manualmente
+</button>
+
+</div>
+
+`
+);
+
+}
+
+function foodSend(){
+
+const i=document.getElementById('fi');
+
+const v=i.value.trim();
+
+if(!v)return;
+
+D.foodChat.push({
+me:1,
+t:v
+});
+
+D.foodChat.push({
+me:0,
+t:'Para calcularlo correctamente necesito conocer el alimento y la cantidad. Si no tienes los macros, usa el buscador de alimentos para obtener una estimación.'
+});
+
+save();
+
+render();
+
+}
+
+
+// =====================================================
+// MIS ALIMENTOS
+// =====================================================
+
+function foods(){
+
+base(
+'Mis alimentos',
+
+`
+
+<div class="card">
+
+<button
+class="primary"
+onclick="newSaved()"
+>
+＋ Guardar alimento
+</button>
+
+${
+D.saved.map((x,i)=>`
+
+<div class="food">
+
+<b>${esc(x.name)}</b>
+
+<div>
+${x.cal} kcal ·
+P ${x.p} ·
+C ${x.c} ·
+G ${x.f}
+/ 100 g
+</div>
+
+<button
+class="secondary"
+onclick="D.saved.splice(${i},1);save();render()"
+>
+Eliminar
+</button>
+
+</div>
+
+`).join('')
+}
+
+</div>
+
+`
+);
+
+}
+
+function newSaved(){
+
+let n=prompt('Nombre');
+
+if(!n)return;
+
+let cal=+prompt('Kcal /100 g')||0;
+let p=+prompt('Proteína /100 g')||0;
+let c=+prompt('Carbohidratos /100 g')||0;
+let f=+prompt('Grasas /100 g')||0;
+
+D.saved.push({
+name:n,
+cal,
+p,
+c,
+f
+});
+
+save();
+
+render();
+
+}
+
+
+// =====================================================
+// FRECUENTES
+// =====================================================
+
+function freq(){
+
+base(
+'Alimentos frecuentes',
+
+`
+
+<div class="card">
+
+<p class="muted">
+Aquí aparecerán tus alimentos utilizados
+con mayor frecuencia.
+</p>
+
+${
+D.freq.map(x=>`
+
+<div class="food">
+<b>${esc(x.name)}</b>
+· ${esc(x.qty)}
+</div>
+
+`).join('')
+}
+
+<button
+class="primary"
+onclick="addFreq()"
+>
+＋ Añadir
+</button>
+
+</div>
+
+`
+);
+
+}
+
+function addFreq(){
+
+let n=prompt('Alimento frecuente');
+
+if(!n)return;
+
+D.freq.push({
+name:n,
+qty:prompt('Cantidad')||''
+});
+
+save();
+
+render();
+
+}
+
+
+// =====================================================
+// PLANTILLAS
+// =====================================================
+
+function templates(){
+
+base(
+'Plantillas / repetir comida',
+
+`
+
+<div class="card">
+
+<p class="muted">
+Guarda comidas completas para poder
+repetirlas otro día.
+</p>
+
+${
+D.templates.map((x,i)=>`
+
+<div class="food">
+
+<b>${esc(x.name)}</b>
+
+<button
+class="secondary"
+onclick="repeatTemplate(${i})"
+>
+Repetir hoy
+</button>
+
+</div>
+
+`).join('')
+}
+
+<button
+class="primary"
+onclick="newTemplate()"
+>
+＋ Crear plantilla
+</button>
+
+</div>
+
+`
+);
+
+}
+
+function newTemplate(){
+
+let n=prompt('Nombre de la plantilla');
+
+if(n){
+
+D.templates.push({
+name:n
+});
+
+save();
+render();
+
+}
+
+}
+
+function repeatTemplate(i){
+
+alert(
+'Plantilla preparada para repetir: '+
+D.templates[i].name
+);
+
+}
+
+
+// =====================================================
+// HISTORIAL
+// =====================================================
+
+function history(){
+
+const days=Object.keys(D.days)
+.sort()
+.reverse();
+
+base(
+'Historial',
+
+days.length
+
+?
+
+days.map(d=>`
+
+<div class="card">
+
+<div class="between">
+
+<b>${d}</b>
+
+<button
+class="secondary"
+onclick="selectedDate='${d}';page('progress')"
+>
+Abrir
+</button>
+
+</div>
+
+<div class="muted">
+${Object.values(D.days[d].meals)
+.flat()
+.length}
+alimentos registrados
+</div>
+
+</div>
+
+`).join('')
+
+:
+
+'<div class="card muted">Todavía no hay días guardados.</div>'
+);
+
+}
+
+
+// =====================================================
+// PROGRESO
+// =====================================================
+
+function progress(){
+
+let d=day();
+
+let t=totals();
+
+let html=`
+
+<div class="card">
+
+<div class="between">
+
+<b>Septiembre 2026</b>
+
+<span class="muted">
+Selecciona un día
+</span>
+
+</div>
+
+<div class="calendar">
+
+${[
+'L','M','X','J','V','S','D'
+].map(x=>`
+
+<span
+class="muted"
+style="text-align:center"
+>
+${x}
+</span>
+
+`).join('')}
+
+${Array.from(
+{length:30},
+(_,i)=>{
+
+let x=
+'2026-09-'+
+String(i+1).padStart(2,'0');
+
+return `
+
+<button
+class="${x===selectedDate?'sel':''}"
+onclick="selectedDate='${x}';render()"
+>
+${i+1}
+${D.days[x]?' •':''}
+</button>
+
+`;
+
+}
+).join('')}
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>${selectedDate}</h2>
+
+<div class="field">
+
+<label>Peso</label>
+
+<input
+id="wt"
+value="${esc(d.weight)}"
+placeholder="kg"
+>
+
+</div>
+
+<div class="field">
+
+<label>Notas</label>
+
+<input
+id="nt"
+value="${esc(d.notes)}"
+>
+
+</div>
+
+<button
+class="primary"
+onclick="
+d.weight=wt.value;
+d.notes=nt.value;
+save();
+render()
+"
+>
+Guardar día
+</button>
+
+<h3>Alimentación</h3>
+
+${
+Object.entries(d.meals)
+.map(([m,a])=>{
+
+if(!a.length)return '';
+
+return `
+
+<b>${m}</b>
+
+${
+a.map(x=>`
+
+<div class="food">
+
+${esc(x.name)}
+· ${x.qty}
+· ${x.cal} kcal
+· P ${x.p}
+· C ${x.c}
+· G ${x.f}
+
+</div>
+
+`).join('')
+}
+
+`;
+
+}).join('')
+
+||
+
+'<p class="muted">Sin comidas.</p>'
+}
+
+<p>
+
+<b>Total:</b>
+
+${Math.round(t.cal)} kcal ·
+P ${t.p.toFixed(1)} ·
+C ${t.c.toFixed(1)} ·
+G ${t.f.toFixed(1)}
+
+</p>
+
+<h3>Fotos</h3>
+
+<input
+type="file"
+accept="image/*"
+multiple
+onchange="photos(event)"
+>
+
+<div class="photos">
+
+${d.photos.map(x=>`
+<img src="${x}">
+`).join('')}
+
+</div>
+
+</div>
+
+`;
+
+base('Progreso',html);
+
+}
+
+function photos(e){
+
+let d=day();
+
+[...e.target.files].forEach(f=>{
+
+let r=new FileReader();
+
+r.onload=()=>{
+
+d.photos.push(r.result);
+
+save();
+
+render();
+
+};
+
+r.readAsDataURL(f);
+
+});
+
+}
+
+
+// =====================================================
+// MANTENIMIENTO
+// =====================================================
+
+const qs=[
+
+['¿Cuál es tu fecha de nacimiento?','date'],
+
+['¿Cuál es tu sexo?',[
+'Mujer',
+'Hombre',
+'Prefiero no indicarlo'
+]],
+
+['¿Cuál es tu altura exacta en cm?','number'],
+
+['¿Cuál es tu peso actual en kg?','number'],
+
+['¿Cómo ha cambiado tu peso durante las últimas semanas?',[
+'Estable',
+'Ha subido',
+'Ha bajado',
+'No lo sé'
+]],
+
+['¿Cuántos pasos haces normalmente al día?',[
+'<3.000',
+'3.000–6.000',
+'6.000–9.000',
+'9.000–12.000',
+'>12.000',
+'No lo sé'
+]],
+
+['¿Cuántos días por semana entrenas?',[
+'0',
+'1–2',
+'3–4',
+'5–6',
+'7'
+]],
+
+['¿Qué entrenamiento haces principalmente?',[
+'Fuerza',
+'Cardio',
+'Ambos',
+'Otro'
+]],
+
+['¿Cuánto dura una sesión?',[
+'<45 min',
+'45–60 min',
+'60–90 min',
+'>90 min'
+]],
+
+['¿Haces cardio adicional?',[
+'No',
+'Ocasional',
+'Varias veces/semana'
+]],
+
+['¿Cómo es tu actividad fuera del entrenamiento?',[
+'Principalmente sentado/a',
+'Mixta',
+'Bastante activo/a',
+'Muy activa'
+]],
+
+['¿Tu actividad cambia mucho entre entrenamiento y descanso?',[
+'Poco',
+'Algo',
+'Mucho'
+]],
+
+['Cuéntame cualquier actividad que todavía no hayamos contabilizado.','text'],
+
+['¿Tienes datos de ingesta y peso de varias semanas?',[
+'Sí, completos',
+'Algunos',
+'No'
+]]
+
+];
+
+function maintenance(){
+
+let i=D.maint.i;
+
+if(i>=qs.length){
+
+base(
+'Resultado de mantenimiento',
+
+`
+
+<div class="card">
+
+<h2>Estimación inicial</h2>
+
+<div style="
+font-size:36px;
+font-weight:800
+">
+≈ 2450 kcal/día
+</div>
+
+<p class="muted">
+La estimación final debería utilizar
+actividad, entrenamiento, ingesta y evolución
+real del peso en lugar de tratar una cifra como
+exacta.
+</p>
+
+<button
+class="primary"
+onclick="page('goals')"
+>
+Ir a objetivos
+</button>
+
+</div>
+
+`
+);
+
+return;
+
+}
+
+let q=qs[i];
+
+let body;
+
+if(Array.isArray(q[1])){
+
+body=q[1].map(o=>`
+
+<button
+class="choice"
+onclick="maint('${esc(o)}')"
+>
+${esc(o)}
+</button>
+
+`).join('');
+
+}
+
+else{
+
+body=`
+
+<input
+id="ma"
+type="${q[1]}"
+style="width:100%;margin-bottom:10px"
+>
+
+<button
+class="primary"
+onclick="
+maint(document.getElementById('ma').value)
+"
+>
+Continuar
+</button>
+
+`;
+
+}
+
+base(
+'Calcular mantenimiento',
+
+`
+
+<div class="card">
+
+<div class="muted">
+Pregunta ${i+1} de ${qs.length}
+</div>
+
+<h2>${q[0]}</h2>
+
+<div class="row">
+${body}
+</div>
+
+</div>
+
+`
+);
+
+}
+
+function maint(v){
+
+D.maint.a.push(v);
+
+D.maint.i++;
+
+save();
+
+render();
+
+}
+
+
+// =====================================================
+// OBJETIVOS
+// =====================================================
+
+function goals(){
+
+base(
+'Objetivos nutricionales',
+
+`
+
+<div class="card">
+
+<div class="grid">
+
+${[
+['cal','Calorías','kcal'],
+['p','Proteína','g'],
+['c','Carbohidratos','g'],
+['f','Grasas','g']
+].map(x=>`
+
+<div class="field">
+
+<label>${x[1]}</label>
+
+<input
+id="g_${x[0]}"
+type="number"
+value="${D.goals[x[0]]}"
+>
+
+</div>
+
+`).join('')}
+
+</div>
+
+<button
+class="primary"
+onclick="
+D.goals={
+cal:+g_cal.value,
+p:+g_p.value,
+c:+g_c.value,
+f:+g_f.value
+};
+save();
+alert('Objetivos guardados');
+render()
+"
+>
+Guardar
+</button>
+
+</div>
+
+`
+);
+
+}
+
+
+// =====================================================
+// ASISTENTE
+// =====================================================
+
+function assistant(){
+
+if(!D.assistant.length){
+
+D.assistant=[{
+me:0,
+t:'Soy tu asistente personal. Pregúntame sobre nutrición, entrenamiento o salud.'
+}];
+
+}
+
+base(
+'Asistente personal',
+
+`
+
+<div class="card">
+
+<div class="chat">
+
+${D.assistant.map(x=>`
+
+<div class="bubble ${x.me?'me':''}">
+${esc(x.t)}
+</div>
+
+`).join('')}
+
+</div>
+
+</div>
+
+<div class="chatbar">
+
+<input
+id="ai"
+placeholder="Escribe tu duda"
+>
+
+<button
+class="primary"
+onclick="sendAssistant()"
+>
+➤
+</button>
+
+</div>
+
+`
+);
+
+}
+
+function sendAssistant(){
+
+let i=document.getElementById('ai');
+
+let v=i.value.trim();
+
+if(!v)return;
+
+D.assistant.push({
+me:1,
+t:v
+});
+
+D.assistant.push({
+me:0,
+t:'Puedo ayudarte con esa cuestión. Para una respuesta precisa utilizaré los datos registrados en Nutri y te pediré cualquier dato importante que falte.'
+});
+
+save();
+
+render();
+
+}
+
+
+// =====================================================
+// PERFIL
+// =====================================================
+
+function profile(){
+
+base(
+'Mi perfil',
+
+`
+
+<div class="card">
+
+<div class="avatar">
+J
+</div>
+
+${
+[
+['Nombre','Jorge'],
+['Email',''],
+['Usuario',''],
+['Fecha de nacimiento','']
+].map(x=>`
+
+<div class="field">
+
+<label>${x[0]}</label>
+
+<input value="${x[1]}">
+
+</div>
+
+`).join('')
+}
+
+</div>
+
+`
+);
+
+}
+
+
+// =====================================================
+// CONFIGURACIÓN
+// =====================================================
+
+function settings(){
+
+base(
+'Configuración',
+
+`
+
+<div class="card">
+
+${
+[
+'Notificaciones',
+'Unidades',
+'Privacidad',
+'Seguridad',
+'Exportar datos',
+'Apariencia'
+].map(x=>`
+
+<div
+class="between"
+style="
+padding:13px 0;
+border-bottom:1px solid #edf0eb
+"
+>
+
+<b>${x}</b>
+
+<button class="secondary">
+Configurar
+</button>
+
+</div>
+
+`).join('')
+}
+
+</div>
+
+`
+);
+
+}
+
+
+// =====================================================
+// AYUDA
+// =====================================================
+
+function help(){
+
+base(
+'Ayuda',
+
+`
+
+<div class="card">
+
+<h2>Buscador de alimentos</h2>
+
+<p class="muted">
+Busca alimentos aunque no conozcas sus macros.
+Nutri muestra una estimación y permite introducir
+gramos o unidades.
+</p>
+
+</div>
+
+<div class="card">
+
+<h2>Datos exactos</h2>
+
+<p class="muted">
+Cuando conozcas la etiqueta nutricional de un
+producto concreto, es mejor utilizar esos datos
+que una estimación genérica.
+</p>
+
+</div>
+
+`
+);
+
+}
+
+
+// =====================================================
+// RENDER PRINCIPAL
+// =====================================================
+
+function render(){
+
+const pages={
+home,
+meals,
+foodsearch,
+foodai,
+foods,
+freq,
+templates,
+history,
+progress,
+maintenance,
+goals,
+assistant,
+profile,
+settings,
+help
+};
+
+(pages[current]||home)();
+
+}
+
+
+// ARRANCAR APP
+
+render();
+
+</script>
+
 </body>
 </html>
