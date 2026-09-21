@@ -1,2088 +1,1561 @@
+/*
+NUTRI — script.js
+Funciones:
+- Buscador de alimentos
+- 358 alimentos desde foods.js
+- Cálculo de macros y calorías
+- Diario de alimentos
+- Calorías de mantenimiento
+- Objetivos diarios
+- Progreso de peso
+- Historial
+- Persistencia con localStorage
+- Navegación
+*/
+
+"use strict";
+
 document.addEventListener("DOMContentLoaded", () => {
 
-/* =====================================================
-BASE DE DATOS
-===================================================== */
-
-if (typeof foods === "undefined" || !Array.isArray(foods)) {
-
-console.error("foods.js no está cargado.");
-
-alert(
-"No se ha podido cargar la base de datos de alimentos."
-);
-
-return;
-}
-
-console.log(
-"Nutri cargado correctamente:",
-foods.length,
-"alimentos"
-);
-
-
-/* =====================================================
-NAVEGACIÓN
-===================================================== */
-
-const navButtons = document.querySelectorAll(".nav-button");
-const sections = document.querySelectorAll(".section");
-
-navButtons.forEach(button => {
-
-button.addEventListener("click", () => {
-
-const sectionId = button.dataset.section;
-
-navButtons.forEach(b => {
-b.classList.remove("active");
-});
-
-sections.forEach(section => {
-section.classList.remove("active");
-});
-
-button.classList.add("active");
-
-const section = document.getElementById(sectionId);
-
-if (section) {
-section.classList.add("active");
-}
-
-});
-
-});
-
-
-/* =====================================================
-NUTRICIÓN
-===================================================== */
+/* =========================================================
+ESTADO
+========================================================= */
 
 let selectedFood = null;
 
-let dailyFoods =
-JSON.parse(localStorage.getItem("nutriDailyFoods")) || [];
+let dailyFoods = JSON.parse(
+localStorage.getItem("nutri_daily_foods") || "[]"
+);
 
-let goals =
-JSON.parse(localStorage.getItem("nutriGoals")) || {
+let progressHistory = JSON.parse(
+localStorage.getItem("nutri_progress") || "[]"
+);
 
-calories: 2300,
-protein: 130,
-carbs: 250,
-fat: 70
+let settings = JSON.parse(
+localStorage.getItem("nutri_settings") || "{}"
+);
 
-};
+/* =========================================================
+UTILIDADES
+========================================================= */
 
+const $ = id => document.getElementById(id);
 
-const searchInput =
-document.getElementById("foodSearch");
+function save() {
+localStorage.setItem(
+"nutri_daily_foods",
+JSON.stringify(dailyFoods)
+);
 
-const searchResults =
-document.getElementById("searchResults");
+localStorage.setItem(
+"nutri_progress",
+JSON.stringify(progressHistory)
+);
 
-const selectedFoodBox =
-document.getElementById("selectedFoodBox");
+localStorage.setItem(
+"nutri_settings",
+JSON.stringify(settings)
+);
+}
 
-const selectedFoodName =
-document.getElementById("selectedFoodName");
+function number(value) {
+const n = Number(value);
+return Number.isFinite(n) ? n : 0;
+}
 
-const gramsInput =
-document.getElementById("grams");
+function round(value, decimals = 1) {
+const factor = Math.pow(10, decimals);
+return Math.round(value * factor) / factor;
+}
 
-const addFoodButton =
-document.getElementById("addFood");
+function format(value, decimals = 1) {
+return round(value, decimals).toLocaleString("es-ES");
+}
 
-const clearSelection =
-document.getElementById("clearSelection");
+function today() {
+return new Date().toISOString().slice(0, 10);
+}
 
-const dailyFoodsContainer =
-document.getElementById("dailyFoods");
+/* =========================================================
+NAVEGACIÓN
+========================================================= */
 
+const navButtons = document.querySelectorAll("[data-page]");
 
-const goalCalories =
-document.getElementById("goalCalories");
+navButtons.forEach(button => {
+button.addEventListener("click", () => {
+const pageName = button.dataset.page;
 
-const goalProtein =
-document.getElementById("goalProtein");
+document
+.querySelectorAll(".page")
+.forEach(page => page.classList.remove("active"));
 
-const goalCarbs =
-document.getElementById("goalCarbs");
+const page = $(`page-${pageName}`);
 
-const goalFat =
-document.getElementById("goalFat");
+if (page) {
+page.classList.add("active");
+}
 
+navButtons.forEach(btn => {
+btn.classList.toggle(
+"active",
+btn.dataset.page === pageName
+);
+});
 
-goalCalories.value = goals.calories;
-goalProtein.value = goals.protein;
-goalCarbs.value = goals.carbs;
-goalFat.value = goals.fat;
+window.scrollTo({
+top: 0,
+behavior: "smooth"
+});
+});
+});
 
+/* =========================================================
+REFERENCIA DE ALIMENTOS
+========================================================= */
 
-function normalize(text) {
+const foodDatabase =
+Array.isArray(window.foods)
+? window.foods
+: (
+typeof foods !== "undefined"
+? foods
+: []
+);
 
-return String(text)
+function normalizeText(text) {
+return String(text || "")
 .toLowerCase()
 .normalize("NFD")
 .replace(/[\u0300-\u036f]/g, "");
-
 }
 
+/* =========================================================
+BUSCADOR
+========================================================= */
 
-function number(value) {
+const searchInput = $("foodSearch");
+const searchResults = $("searchResults");
 
-return Number(
-Number(value).toFixed(1)
-);
-
-}
-
-
-function calculateFood(food, grams) {
-
-const multiplier = grams / 100;
-
-return {
-
-calories: food.calories * multiplier,
-
-protein: food.protein * multiplier,
-
-carbs: food.carbs * multiplier,
-
-fat: food.fat * multiplier
-
-};
-
-}
-
-
-function renderSearchResults(results) {
-
-searchResults.innerHTML = "";
-
-if (!results.length) {
-
-searchResults.innerHTML =
-`<div class="empty-state">
-No se han encontrado alimentos.
-</div>`;
-
-return;
-}
-
-
-results.forEach(food => {
-
-const item =
-document.createElement("div");
-
-item.className = "search-result";
-
-item.innerHTML = `
-
-<strong>${escapeHTML(food.name)}</strong>
-
-${food.brand
-? `<span>${escapeHTML(food.brand)}</span>`
-: ""
-}
-
-<small>
-${number(food.calories)} kcal /
-100 g ·
-${number(food.protein)} g proteína
-</small>
-
-`;
-
-
-item.addEventListener("click", () => {
-
-selectFood(food);
-
-});
-
-
-searchResults.appendChild(item);
-
-});
-
-}
-
+if (searchInput && searchResults) {
 
 searchInput.addEventListener("input", () => {
 
 const query =
-normalize(searchInput.value.trim());
-
-
-if (!query) {
+normalizeText(searchInput.value.trim());
 
 searchResults.innerHTML = "";
 
+if (!query) {
 return;
 }
 
+const terms = query
+.split(/\s+/)
+.filter(Boolean);
 
-const results =
-foods
+const results = foodDatabase
 .filter(food => {
 
-return (
-
-normalize(food.name || "")
-.includes(query)
-
-||
-
-normalize(food.brand || "")
-.includes(query)
-
-||
-
-normalize(food.category || "")
-.includes(query)
-
+const searchable =
+normalizeText(
+`${food.name} ${food.brand || ""} ${food.category || ""}`
 );
 
+return terms.every(term =>
+searchable.includes(term)
+);
 })
-.slice(0, 30);
+.slice(0, 50);
 
+if (!results.length) {
+searchResults.innerHTML = `
+<div class="empty">
+No se encontraron alimentos.
+</div>
+`;
+return;
+}
 
-renderSearchResults(results);
+results.forEach(food => {
 
+const element =
+document.createElement("div");
+
+element.className = "food-result";
+
+element.innerHTML = `
+<div>
+<div class="food-name">
+${escapeHTML(food.name)}
+</div>
+
+<div class="food-meta">
+${escapeHTML(food.category || "Alimento")}
+· ${format(food.protein)} g proteína
+· ${format(food.carbs)} g HC
+· ${format(food.fat)} g grasa
+</div>
+</div>
+
+<div class="food-cal">
+${format(food.calories, 0)} kcal
+</div>
+`;
+
+element.addEventListener(
+"click",
+() => selectFood(food)
+);
+
+searchResults.appendChild(element);
 });
-
+});
+}
 
 function selectFood(food) {
 
 selectedFood = food;
 
-selectedFoodBox.classList.remove("hidden");
+const card = $("selectedFoodCard");
 
-selectedFoodName.textContent =
+if (!card) {
+return;
+}
+
+card.classList.remove("hidden");
+
+if ($("selectedFoodName")) {
+$("selectedFoodName").textContent =
 food.name;
-
-gramsInput.value = 100;
-
-searchInput.value = food.name;
-
-searchResults.innerHTML = "";
-
-updateFoodPreview();
-
 }
 
-
-function updateFoodPreview() {
-
-if (!selectedFood) return;
-
-const grams =
-Number(gramsInput.value) || 0;
-
-const result =
-calculateFood(selectedFood, grams);
-
-
-document.getElementById("foodCalories")
-.textContent =
-`${number(result.calories)} kcal`;
-
-document.getElementById("foodProtein")
-.textContent =
-`${number(result.protein)} g`;
-
-document.getElementById("foodCarbs")
-.textContent =
-`${number(result.carbs)} g`;
-
-document.getElementById("foodFat")
-.textContent =
-`${number(result.fat)} g`;
-
-}
-
-
-gramsInput.addEventListener(
-"input",
-updateFoodPreview
-);
-
-
-clearSelection.addEventListener("click", () => {
-
-selectedFood = null;
-
-selectedFoodBox.classList.add("hidden");
-
-searchInput.value = "";
-
-searchResults.innerHTML = "";
-
-});
-
-
-addFoodButton.addEventListener("click", () => {
-
-if (!selectedFood) {
-
-alert("Selecciona primero un alimento.");
-
-return;
-}
-
-
-const grams =
-Number(gramsInput.value);
-
-
-if (!grams || grams <= 0) {
-
-alert("Introduce una cantidad válida.");
-
-return;
-}
-
-
-dailyFoods.push({
-
-id: generateId(),
-
-foodId: selectedFood.id,
-
-name: selectedFood.name,
-
-brand: selectedFood.brand,
-
-grams: grams
-
-});
-
-
-saveDailyFoods();
-
-renderDailyFoods();
-
-updateDailyTotals();
-
-});
-
-
-function renderDailyFoods() {
-
-dailyFoodsContainer.innerHTML = "";
-
-
-if (!dailyFoods.length) {
-
-dailyFoodsContainer.innerHTML = `
-
-<div class="empty-state">
-
-<h3>Aún no has añadido alimentos</h3>
-
-<p>
-Busca un alimento para comenzar.
-</p>
-
-</div>
-
-`;
-
-return;
-}
-
-
-dailyFoods.forEach(item => {
-
-const food =
-foods.find(
-f => String(f.id) === String(item.foodId)
-);
-
-
-if (!food) return;
-
-
-const result =
-calculateFood(food, item.grams);
-
-
-const element =
-document.createElement("div");
-
-element.className = "daily-food";
-
-
-element.innerHTML = `
-
-<div class="daily-food-info">
-
-<strong>
-${escapeHTML(food.name)}
-</strong>
-
+if ($("selectedFoodInfo")) {
+$("selectedFoodInfo").innerHTML = `
+<strong>${format(food.calories, 0)} kcal</strong>
+· ${format(food.protein)} g proteína
+· ${format(food.carbs)} g carbohidratos
+· ${format(food.fat)} g grasa
+<br>
 <span>
-${number(item.grams)} g
+Valores por 100 g/ml
 </span>
-
-<small>
-${number(result.calories)} kcal ·
-${number(result.protein)} P ·
-${number(result.carbs)} C ·
-${number(result.fat)} G
-</small>
-
-</div>
-
-<button
-class="remove-food"
-data-id="${item.id}"
->
-Eliminar
-</button>
-
 `;
-
-
-element
-.querySelector(".remove-food")
-.addEventListener("click", () => {
-
-dailyFoods =
-dailyFoods.filter(
-x => x.id !== item.id
-);
-
-saveDailyFoods();
-
-renderDailyFoods();
-
-updateDailyTotals();
-
-});
-
-
-dailyFoodsContainer.appendChild(element);
-
-});
-
 }
 
-
-function updateDailyTotals() {
-
-let calories = 0;
-let protein = 0;
-let carbs = 0;
-let fat = 0;
-
-
-dailyFoods.forEach(item => {
-
-const food =
-foods.find(
-f => String(f.id) === String(item.foodId)
-);
-
-
-if (!food) return;
-
-
-const result =
-calculateFood(food, item.grams);
-
-
-calories += result.calories;
-protein += result.protein;
-carbs += result.carbs;
-fat += result.fat;
-
-});
-
-
-document.getElementById("totalCalories")
-.textContent =
-`${number(calories)} kcal`;
-
-document.getElementById("totalProtein")
-.textContent =
-`${number(protein)} g`;
-
-document.getElementById("totalCarbs")
-.textContent =
-`${number(carbs)} g`;
-
-document.getElementById("totalFat")
-.textContent =
-`${number(fat)} g`;
-
-
-updateProgress(
-"calorieProgress",
-calories,
-goals.calories
-);
-
-updateProgress(
-"proteinProgress",
-protein,
-goals.protein
-);
-
-updateProgress(
-"carbsProgress",
-carbs,
-goals.carbs
-);
-
-updateProgress(
-"fatProgress",
-fat,
-goals.fat
-);
-
-
-document.getElementById("calorieGoalText")
-.textContent =
-`${number(calories)} / ${goals.calories} kcal`;
-
-document.getElementById("proteinGoalText")
-.textContent =
-`${number(protein)} / ${goals.protein} g`;
-
-document.getElementById("carbsGoalText")
-.textContent =
-`${number(carbs)} / ${goals.carbs} g`;
-
-document.getElementById("fatGoalText")
-.textContent =
-`${number(fat)} / ${goals.fat} g`;
-
+if ($("foodGrams")) {
+$("foodGrams").value = 100;
+}
 }
 
+/* =========================================================
+AÑADIR ALIMENTO
+========================================================= */
 
-function updateProgress(id, value, goal) {
+const addFoodButton =
+$("addFoodButton");
 
-const element =
-document.getElementById(id);
+if (addFoodButton) {
 
-
-if (!goal || goal <= 0) {
-
-element.style.width = "0%";
-
-return;
-}
-
-
-const percentage =
-Math.min(
-(value / goal) * 100,
-100
-);
-
-
-element.style.width =
-`${percentage}%`;
-
-}
-
-
-document
-.getElementById("saveGoals")
-.addEventListener("click", () => {
-
-goals = {
-
-calories:
-Number(goalCalories.value) || 0,
-
-protein:
-Number(goalProtein.value) || 0,
-
-carbs:
-Number(goalCarbs.value) || 0,
-
-fat:
-Number(goalFat.value) || 0
-
-};
-
-
-localStorage.setItem(
-"nutriGoals",
-JSON.stringify(goals)
-);
-
-
-updateDailyTotals();
-
-alert("Objetivos guardados.");
-
-});
-
-
-document
-.getElementById("clearDay")
-.addEventListener("click", () => {
-
-if (!dailyFoods.length) return;
-
-
-if (
-confirm(
-"¿Quieres borrar todos los alimentos de hoy?"
-)
-) {
-
-dailyFoods = [];
-
-saveDailyFoods();
-
-renderDailyFoods();
-
-updateDailyTotals();
-
-}
-
-});
-
-
-function saveDailyFoods() {
-
-localStorage.setItem(
-"nutriDailyFoods",
-JSON.stringify(dailyFoods)
-);
-
-}
-
-
-/* =====================================================
-BASE DE DATOS
-===================================================== */
-
-const foodCount =
-document.getElementById("foodCount");
-
-const databaseSearch =
-document.getElementById("databaseSearch");
-
-const foodDatabaseList =
-document.getElementById("foodDatabaseList");
-
-
-foodCount.textContent = foods.length;
-
-
-function renderDatabase(query = "") {
-
-const normalizedQuery =
-normalize(query);
-
-
-const results =
-foods
-.filter(food => {
-
-return (
-
-!normalizedQuery
-
-||
-
-normalize(food.name)
-.includes(normalizedQuery)
-
-||
-
-normalize(food.brand || "")
-.includes(normalizedQuery)
-
-||
-
-normalize(food.category || "")
-.includes(normalizedQuery)
-
-);
-
-})
-.slice(0, 100);
-
-
-foodDatabaseList.innerHTML = "";
-
-
-results.forEach(food => {
-
-const element =
-document.createElement("div");
-
-element.className =
-"database-food";
-
-
-element.innerHTML = `
-
-<strong>
-${escapeHTML(food.name)}
-</strong>
-
-<span>
-${escapeHTML(food.category || "")}
-</span>
-
-<small>
-${number(food.calories)} kcal ·
-${number(food.protein)} g P ·
-${number(food.carbs)} g C ·
-${number(food.fat)} g G
-por 100 g
-</small>
-
-`;
-
-
-foodDatabaseList.appendChild(element);
-
-});
-
-}
-
-
-databaseSearch.addEventListener(
-"input",
-() => {
-
-renderDatabase(
-databaseSearch.value
-);
-
-}
-);
-
-
-/* =====================================================
-ENTRENAMIENTO
-===================================================== */
-
-const exercises = [
-
-{
-id: 1,
-name: "Press de pecho en máquina",
-muscle: "Pecho",
-type: "Bilateral",
-description: "Press guiado para trabajar principalmente el pectoral."
-},
-
-{
-id: 2,
-name: "Press inclinado con mancuernas",
-muscle: "Pecho",
-type: "Bilateral",
-description: "Press inclinado con mancuernas para enfatizar la zona superior del pecho."
-},
-
-{
-id: 3,
-name: "Apertura unilateral en polea",
-muscle: "Pecho",
-type: "Unilateral",
-description: "Apertura en polea realizada con un brazo cada vez."
-},
-
-{
-id: 4,
-name: "Jalón al pecho",
-muscle: "Espalda",
-type: "Bilateral",
-description: "Jalón vertical para dorsales."
-},
-
-{
-id: 5,
-name: "Remo T-bar",
-muscle: "Espalda",
-type: "Bilateral",
-description: "Remo pesado para espalda media, romboides y dorsales."
-},
-
-{
-id: 6,
-name: "Remo unilateral en polea",
-muscle: "Espalda",
-type: "Unilateral",
-description: "Remo con un brazo para trabajar cada lado independientemente."
-},
-
-{
-id: 7,
-name: "Jalón unilateral en polea alta",
-muscle: "Espalda",
-type: "Unilateral",
-description: "Jalón con un brazo, permitiendo controlar individualmente cada dorsal."
-},
-
-{
-id: 8,
-name: "Elevación lateral",
-muscle: "Hombros",
-type: "Bilateral",
-description: "Movimiento para el deltoides lateral."
-},
-
-{
-id: 9,
-name: "Elevación lateral unilateral en polea",
-muscle: "Hombros",
-type: "Unilateral",
-description: "Elevación lateral con un brazo y tensión constante de la polea."
-},
-
-{
-id: 10,
-name: "Press de hombros",
-muscle: "Hombros",
-type: "Bilateral",
-description: "Press vertical para deltoides."
-},
-
-{
-id: 11,
-name: "Curl de bíceps en polea",
-muscle: "Bíceps",
-type: "Bilateral",
-description: "Curl controlado con tensión constante."
-},
-
-{
-id: 12,
-name: "Curl unilateral detrás del torso",
-muscle: "Bíceps",
-type: "Unilateral",
-description: "Curl unilateral con el brazo situado detrás del torso."
-},
-
-{
-id: 13,
-name: "Curl Scott en polea",
-muscle: "Bíceps",
-type: "Bilateral",
-description: "Curl con apoyo tipo predicador."
-},
-
-{
-id: 14,
-name: "Curl martillo unilateral",
-muscle: "Bíceps",
-type: "Unilateral",
-description: "Curl martillo realizado brazo por brazo."
-},
-
-{
-id: 15,
-name: "Extensión de tríceps en polea",
-muscle: "Tríceps",
-type: "Bilateral",
-description: "Extensión de codo con polea."
-},
-
-{
-id: 16,
-name: "Extensión unilateral de tríceps",
-muscle: "Tríceps",
-type: "Unilateral",
-description: "Extensión de tríceps trabajando un brazo cada vez."
-},
-
-{
-id: 17,
-name: "Extensión de tríceps por encima de la cabeza",
-muscle: "Tríceps",
-type: "Bilateral",
-description: "Movimiento con el brazo por encima de la cabeza."
-},
-
-{
-id: 18,
-name: "Extensión de cuádriceps",
-muscle: "Cuádriceps",
-type: "Bilateral",
-description: "Extensión de rodilla en máquina."
-},
-
-{
-id: 19,
-name: "Extensión unilateral de cuádriceps",
-muscle: "Cuádriceps",
-type: "Unilateral",
-description: "Extensión de rodilla trabajando una pierna cada vez."
-},
-
-{
-id: 20,
-name: "Curl femoral",
-muscle: "Femoral",
-type: "Bilateral",
-description: "Flexión de rodilla para isquiosurales."
-},
-
-{
-id: 21,
-name: "Curl femoral unilateral",
-muscle: "Femoral",
-type: "Unilateral",
-description: "Curl femoral realizado con una pierna cada vez."
-},
-
-{
-id: 22,
-name: "Elevación de gemelos de pie",
-muscle: "Gemelos",
-type: "Bilateral",
-description: "Trabajo de gemelos con rodilla extendida."
-},
-
-{
-id: 23,
-name: "Elevación unilateral de gemelos",
-muscle: "Gemelos",
-type: "Unilateral",
-description: "Elevación de gemelo con una sola pierna."
-},
-
-{
-id: 24,
-name: "Crunch en polea",
-muscle: "Abdomen",
-type: "Bilateral",
-description: "Flexión de tronco con resistencia."
-},
-
-{
-id: 25,
-name: "Crunch unilateral en polea",
-muscle: "Abdomen",
-type: "Unilateral",
-description: "Variación realizada hacia un lado para trabajar de forma individual."
-}
-
-];
-
-
-/* =====================================================
-EJERCICIOS PERSONALIZADOS
-===================================================== */
-
-let customExercises =
-JSON.parse(
-localStorage.getItem("nutriCustomExercises")
-) || [];
-
-
-customExercises.forEach(exercise => {
-
-exercises.push(exercise);
-
-});
-
-
-let currentSets = [];
-
-let currentWorkout = [];
-
-let trainingHistory =
-JSON.parse(
-localStorage.getItem(
-"nutriTrainingHistory"
-)
-) || [];
-
-
-const muscleFilter =
-document.getElementById("muscleFilter");
-
-const exerciseSelect =
-document.getElementById("exerciseSelect");
-
-const exerciseInfo =
-document.getElementById("exerciseInfo");
-
-
-/* =====================================================
-PANEL PARA CREAR EJERCICIO
-===================================================== */
-
-const customExerciseBox =
-document.createElement("div");
-
-customExerciseBox.className =
-"custom-exercise-box";
-
-customExerciseBox.innerHTML = `
-
-<h3>¿No aparece tu ejercicio?</h3>
-
-<p>
-Añade cualquier ejercicio que hagas.
-</p>
-
-<input
-type="text"
-id="customExerciseName"
-placeholder="Nombre del ejercicio"
->
-
-<select id="customExerciseMuscle">
-
-<option value="Pecho">Pecho</option>
-
-<option value="Espalda">Espalda</option>
-
-<option value="Hombros">Hombros</option>
-
-<option value="Bíceps">Bíceps</option>
-
-<option value="Tríceps">Tríceps</option>
-
-<option value="Cuádriceps">Cuádriceps</option>
-
-<option value="Femoral">Femoral</option>
-
-<option value="Glúteos">Glúteos</option>
-
-<option value="Gemelos">Gemelos</option>
-
-<option value="Abdomen">Abdomen</option>
-
-<option value="Otro">Otro</option>
-
-</select>
-
-<select id="customExerciseType">
-
-<option value="Bilateral">
-Bilateral
-</option>
-
-<option value="Unilateral">
-Unilateral
-</option>
-
-</select>
-
-<button
-type="button"
-id="createCustomExercise"
->
-Añadir ejercicio
-</button>
-
-`;
-
-
-exerciseSelect.parentElement.appendChild(
-customExerciseBox
-);
-
-
-const customExerciseName =
-document.getElementById(
-"customExerciseName"
-);
-
-const customExerciseMuscle =
-document.getElementById(
-"customExerciseMuscle"
-);
-
-const customExerciseType =
-document.getElementById(
-"customExerciseType"
-);
-
-const createCustomExercise =
-document.getElementById(
-"createCustomExercise"
-);
-
-
-/* =====================================================
-CREAR EJERCICIO PERSONALIZADO
-===================================================== */
-
-createCustomExercise.addEventListener(
+addFoodButton.addEventListener(
 "click",
 () => {
 
-const name =
-customExerciseName.value.trim();
-
-
-if (!name) {
-
-alert(
-"Escribe el nombre del ejercicio."
-);
-
+if (!selectedFood) {
 return;
 }
 
-
-const exercise = {
-
-id:
-"custom-" +
-Date.now(),
-
-name:
-name,
-
-muscle:
-customExerciseMuscle.value,
-
-type:
-customExerciseType.value,
-
-description:
-"Ejercicio personalizado."
-
-};
-
-
-customExercises.push(exercise);
-
-exercises.push(exercise);
-
-
-localStorage.setItem(
-"nutriCustomExercises",
-JSON.stringify(customExercises)
+const grams =
+number(
+$("foodGrams")
+? $("foodGrams").value
+: 100
 );
 
-
-renderExerciseSelect();
-
-
-exerciseSelect.value =
-exercise.id;
-
-
-updateExerciseInfo();
-
-
-customExerciseName.value = "";
-
-
-alert(
-"Ejercicio añadido correctamente."
-);
-
-}
-);
-
-
-/* =====================================================
-ENTRENAMIENTO
-===================================================== */
-
-function renderExerciseSelect() {
-
-const muscle =
-muscleFilter.value;
-
-
-const filtered =
-muscle === "Todos"
-? exercises
-: exercises.filter(
-exercise =>
-exercise.muscle === muscle
-);
-
-
-exerciseSelect.innerHTML = "";
-
-
-if (!filtered.length) {
-
-const option =
-document.createElement("option");
-
-option.textContent =
-"No hay ejercicios para este músculo";
-
-option.disabled = true;
-
-exerciseSelect.appendChild(option);
-
-exerciseInfo.innerHTML = "";
-
+if (grams <= 0) {
+alert("Introduce una cantidad válida.");
 return;
 }
 
-
-filtered.forEach(exercise => {
-
-const option =
-document.createElement("option");
-
-option.value = exercise.id;
-
-option.textContent =
-`${exercise.name} · ${exercise.type}`;
-
-exerciseSelect.appendChild(option);
-
+dailyFoods.push({
+id: Date.now() + Math.random(),
+foodId: selectedFood.id,
+name: selectedFood.name,
+grams,
+calories:
+selectedFood.calories * grams / 100,
+protein:
+selectedFood.protein * grams / 100,
+carbs:
+selectedFood.carbs * grams / 100,
+fat:
+selectedFood.fat * grams / 100
 });
 
+save();
 
-updateExerciseInfo();
+renderDailyFoods();
 
+if ($("foodSearch")) {
+$("foodSearch").value = "";
 }
 
+if ($("searchResults")) {
+$("searchResults").innerHTML = "";
+}
 
-function getSelectedExercise() {
+if ($("selectedFoodCard")) {
+$("selectedFoodCard")
+.classList.add("hidden");
+}
 
-return exercises.find(
-exercise =>
-String(exercise.id) ===
-String(exerciseSelect.value)
+selectedFood = null;
+}
 );
-
 }
 
+/* =========================================================
+DIARIO
+========================================================= */
 
-function updateExerciseInfo() {
+function renderDailyFoods() {
 
-const exercise =
-getSelectedExercise();
+const list = $("foodList");
 
-
-if (!exercise) {
-
-exerciseInfo.innerHTML = "";
-
+if (!list) {
 return;
 }
 
+list.innerHTML = "";
 
-exerciseInfo.innerHTML = `
+if (!dailyFoods.length) {
 
-<strong>
-${escapeHTML(exercise.name)}
-</strong>
-
-<div>
-${escapeHTML(exercise.description)}
+list.innerHTML = `
+<div class="empty">
+Todavía no has añadido ningún alimento.
 </div>
-
-<span class="unilateral-badge">
-${escapeHTML(exercise.type)}
-</span>
-
 `;
 
-}
-
-
-muscleFilter.addEventListener(
-"change",
-renderExerciseSelect
-);
-
-
-exerciseSelect.addEventListener(
-"change",
-updateExerciseInfo
-);
-
-
-/* =====================================================
-AÑADIR SERIE
-===================================================== */
-
-document
-.getElementById("addSet")
-.addEventListener("click", () => {
-
-const exercise =
-getSelectedExercise();
-
-
-const weight =
-Number(
-document.getElementById("setWeight").value
-);
-
-
-const reps =
-Number(
-document.getElementById("setReps").value
-);
-
-
-const rir =
-Number(
-document.getElementById("setRir").value
-);
-
-
-if (!exercise) {
-
-alert("Selecciona un ejercicio.");
+updateDailyTotals();
 
 return;
 }
 
-
-if (reps <= 0) {
-
-alert("Introduce las repeticiones.");
-
-return;
-}
-
-
-currentSets.push({
-
-id: generateId(),
-
-weight: weight || 0,
-
-reps: reps,
-
-rir: Math.max(
-0,
-Math.min(5, rir)
-)
-
-});
-
-
-renderCurrentSets();
-
-});
-
-
-function renderCurrentSets() {
-
-const container =
-document.getElementById("currentSets");
-
-
-container.innerHTML = "";
-
-
-if (!currentSets.length) {
-
-container.innerHTML =
-`<div class="empty-state">
-Todavía no hay series.
-</div>`;
-
-return;
-}
-
-
-currentSets.forEach((set, index) => {
+dailyFoods.forEach(item => {
 
 const row =
 document.createElement("div");
 
-row.className = "set-row";
-
+row.className = "meal";
 
 row.innerHTML = `
+<div>
+<div class="meal-title">
+${escapeHTML(item.name)}
+</div>
 
-<strong>
-Serie ${index + 1}
-</strong>
-
-<span>
-${number(set.weight)} kg
-</span>
-
-<span>
-${set.reps} reps · RIR ${set.rir}
-</span>
+<div class="meal-meta">
+${format(item.grams)} g
+· ${format(item.calories, 0)} kcal
+· P ${format(item.protein)} g
+· C ${format(item.carbs)} g
+· G ${format(item.fat)} g
+</div>
+</div>
 
 <button
-class="danger-button"
+class="meal-delete"
+type="button"
+data-delete-food="${item.id}"
 >
 Eliminar
 </button>
-
 `;
 
+list.appendChild(row);
+});
 
-row
-.querySelector("button")
-.addEventListener("click", () => {
+list
+.querySelectorAll("[data-delete-food]")
+.forEach(button => {
 
-currentSets =
-currentSets.filter(
-x => x.id !== set.id
+button.addEventListener(
+"click",
+() => {
+
+const id =
+Number(button.dataset.deleteFood);
+
+dailyFoods =
+dailyFoods.filter(
+item => item.id !== id
 );
 
-renderCurrentSets();
-
+save();
+renderDailyFoods();
+}
+);
 });
 
-
-container.appendChild(row);
-
-});
-
+updateDailyTotals();
 }
 
+function updateDailyTotals() {
 
-/* =====================================================
-GUARDAR EJERCICIO
-===================================================== */
+const totals = dailyFoods.reduce(
+(sum, item) => ({
+calories:
+sum.calories + number(item.calories),
 
-document
-.getElementById("finishExercise")
-.addEventListener("click", () => {
+protein:
+sum.protein + number(item.protein),
 
-const exercise =
-getSelectedExercise();
+carbs:
+sum.carbs + number(item.carbs),
 
+fat:
+sum.fat + number(item.fat)
+}),
+{
+calories: 0,
+protein: 0,
+carbs: 0,
+fat: 0
+}
+);
 
-if (!exercise) {
+if ($("totalCalories")) {
+$("totalCalories").textContent =
+`${format(totals.calories, 0)} kcal`;
+}
 
-alert("Selecciona un ejercicio.");
+if ($("totalProtein")) {
+$("totalProtein").textContent =
+`${format(totals.protein)} g`;
+}
 
+if ($("totalCarbs")) {
+$("totalCarbs").textContent =
+`${format(totals.carbs)} g`;
+}
+
+if ($("totalFat")) {
+$("totalFat").textContent =
+`${format(totals.fat)} g`;
+}
+
+updateGoalBars(totals);
+}
+
+const clearButton =
+$("clearButton");
+
+if (clearButton) {
+
+clearButton.addEventListener(
+"click",
+() => {
+
+if (!dailyFoods.length) {
 return;
 }
-
-
-if (!currentSets.length) {
-
-alert("Añade al menos una serie.");
-
-return;
-}
-
-
-currentWorkout.push({
-
-id: generateId(),
-
-exerciseId: exercise.id,
-
-name: exercise.name,
-
-muscle: exercise.muscle,
-
-type: exercise.type,
-
-sets: [...currentSets]
-
-});
-
-
-currentSets = [];
-
-renderCurrentSets();
-
-renderCurrentWorkout();
-
-});
-
-
-function renderCurrentWorkout() {
-
-const container =
-document.getElementById("currentWorkout");
-
-
-container.innerHTML = "";
-
-
-if (!currentWorkout.length) {
-
-container.innerHTML =
-`<div class="empty-state">
-Todavía no has añadido ejercicios a esta sesión.
-</div>`;
-
-return;
-}
-
-
-currentWorkout.forEach(exercise => {
-
-const element =
-document.createElement("div");
-
-element.className =
-"workout-exercise";
-
-
-const totalVolume =
-exercise.sets.reduce(
-(total, set) =>
-total +
-(set.weight * set.reps),
-0
-);
-
-
-element.innerHTML = `
-
-<div class="workout-exercise-header">
-
-<strong>
-${escapeHTML(exercise.name)}
-</strong>
-
-<small>
-${escapeHTML(exercise.type)}
-</small>
-
-</div>
-
-<div>
-${exercise.sets.length}
-series ·
-${number(totalVolume)} kg de volumen
-</div>
-
-`;
-
-
-container.appendChild(element);
-
-});
-
-}
-
-
-/* =====================================================
-FINALIZAR ENTRENAMIENTO
-===================================================== */
-
-document
-.getElementById("finishWorkout")
-.addEventListener("click", () => {
-
-if (!currentWorkout.length) {
-
-alert(
-"Añade al menos un ejercicio al entrenamiento."
-);
-
-return;
-}
-
-
-const workout = {
-
-id: generateId(),
-
-date:
-new Date().toISOString(),
-
-exercises:
-[...currentWorkout]
-
-};
-
-
-trainingHistory.unshift(workout);
-
-
-localStorage.setItem(
-"nutriTrainingHistory",
-JSON.stringify(trainingHistory)
-);
-
-
-currentWorkout = [];
-
-renderCurrentWorkout();
-
-renderTrainingHistory();
-
-updateTrainingStats();
-
-alert("Entrenamiento guardado.");
-
-});
-
-
-/* =====================================================
-HISTORIAL
-===================================================== */
-
-function renderTrainingHistory() {
-
-const container =
-document.getElementById("trainingHistory");
-
-
-container.innerHTML = "";
-
-
-if (!trainingHistory.length) {
-
-container.innerHTML =
-`<div class="empty-state">
-Todavía no tienes entrenamientos guardados.
-</div>`;
-
-return;
-}
-
-
-trainingHistory.forEach(workout => {
-
-const element =
-document.createElement("div");
-
-element.className =
-"history-workout";
-
-
-const date =
-new Date(workout.date);
-
-
-const totalSets =
-workout.exercises.reduce(
-(total, exercise) =>
-total +
-exercise.sets.length,
-0
-);
-
-
-const volume =
-workout.exercises.reduce(
-(total, exercise) =>
-total +
-exercise.sets.reduce(
-(sum, set) =>
-sum +
-(set.weight * set.reps),
-0
-),
-0
-);
-
-
-element.innerHTML = `
-
-<h4>
-${date.toLocaleDateString("es-ES")}
-</h4>
-
-<p>
-${workout.exercises.length}
-ejercicios ·
-${totalSets}
-series ·
-${number(volume)} kg
-de volumen
-</p>
-
-<p>
-${workout.exercises
-.map(
-exercise =>
-escapeHTML(exercise.name)
-)
-.join(" · ")
-}
-</p>
-
-`;
-
-
-container.appendChild(element);
-
-});
-
-}
-
-
-function updateTrainingStats() {
-
-let totalSets = 0;
-
-let totalVolume = 0;
-
-
-trainingHistory.forEach(workout => {
-
-workout.exercises.forEach(exercise => {
-
-totalSets +=
-exercise.sets.length;
-
-
-exercise.sets.forEach(set => {
-
-totalVolume +=
-set.weight * set.reps;
-
-});
-
-});
-
-});
-
-
-document.getElementById("trainingSessions")
-.textContent =
-trainingHistory.length;
-
-
-document.getElementById("trainingSets")
-.textContent =
-totalSets;
-
-
-document.getElementById("trainingVolume")
-.textContent =
-`${number(totalVolume)} kg`;
-
-}
-
-
-document
-.getElementById("clearTrainingHistory")
-.addEventListener("click", () => {
-
-if (!trainingHistory.length) return;
-
 
 if (
-confirm(
+!confirm(
+"¿Quieres borrar todos los alimentos del día?"
+)
+) {
+return;
+}
+
+dailyFoods = [];
+
+save();
+renderDailyFoods();
+}
+);
+}
+
+/* =========================================================
+CALORÍAS DE MANTENIMIENTO
+========================================================= */
+
+const maintenanceButton =
+$("calculateMaintenance");
+
+if (maintenanceButton) {
+
+maintenanceButton.addEventListener(
+"click",
+calculateMaintenance
+);
+}
+
+function calculateMaintenance() {
+
+const age =
+number(
+$("maintenanceAge")
+? $("maintenanceAge").value
+: 0
+);
+
+const weight =
+number(
+$("maintenanceWeight")
+? $("maintenanceWeight").value
+: 0
+);
+
+const height =
+number(
+$("maintenanceHeight")
+? $("maintenanceHeight").value
+: 0
+);
+
+const sex =
+$("maintenanceSex")
+? $("maintenanceSex").value
+: "male";
+
+const activity =
+number(
+$("maintenanceActivity")
+? $("maintenanceActivity").value
+: 1.2
+);
+
+if (
+age <= 0 ||
+weight <= 0 ||
+height <= 0
+) {
+alert(
+"Introduce edad, peso y altura."
+);
+return;
+}
+
+/*
+Mifflin-St Jeor.
+Se presenta como estimación, no como medición exacta.
+*/
+
+let bmr;
+
+if (sex === "female") {
+
+bmr =
+10 * weight +
+6.25 * height -
+5 * age -
+161;
+
+} else {
+
+bmr =
+10 * weight +
+6.25 * height -
+5 * age +
+5;
+}
+
+const maintenance =
+Math.round(bmr * activity);
+
+settings.maintenance = {
+age,
+weight,
+height,
+sex,
+activity,
+calories: maintenance
+};
+
+save();
+
+showMaintenanceResult(
+maintenance
+);
+
+updateGoalBars();
+}
+
+function showMaintenanceResult(
+calories
+) {
+
+const result =
+$("maintenanceResult");
+
+if (result) {
+result.classList.remove("hidden");
+}
+
+if ($("maintenanceCalories")) {
+$("maintenanceCalories").textContent =
+`${calories.toLocaleString("es-ES")} kcal`;
+}
+
+if ($("maintenanceValue")) {
+$("maintenanceValue").textContent =
+`${calories.toLocaleString("es-ES")} kcal`;
+}
+}
+
+function loadMaintenance() {
+
+const data =
+settings.maintenance;
+
+if (!data) {
+return;
+}
+
+if ($("maintenanceAge"))
+$("maintenanceAge").value =
+data.age;
+
+if ($("maintenanceWeight"))
+$("maintenanceWeight").value =
+data.weight;
+
+if ($("maintenanceHeight"))
+$("maintenanceHeight").value =
+data.height;
+
+if ($("maintenanceSex"))
+$("maintenanceSex").value =
+data.sex;
+
+if ($("maintenanceActivity"))
+$("maintenanceActivity").value =
+data.activity;
+
+showMaintenanceResult(
+data.calories
+);
+}
+
+/* =========================================================
+OBJETIVOS DIARIOS
+========================================================= */
+
+function updateGoalBars(totals) {
+
+totals = totals || {
+calories: dailyFoods.reduce(
+(s, x) => s + number(x.calories),
+0
+),
+protein: dailyFoods.reduce(
+(s, x) => s + number(x.protein),
+0
+),
+carbs: dailyFoods.reduce(
+(s, x) => s + number(x.carbs),
+0
+),
+fat: dailyFoods.reduce(
+(s, x) => s + number(x.fat),
+0
+)
+};
+
+const goals = settings.goals || {};
+
+const mappings = [
+["calories", totals.calories, goals.calories],
+["protein", totals.protein, goals.protein],
+["carbs", totals.carbs, goals.carbs],
+["fat", totals.fat, goals.fat]
+];
+
+mappings.forEach(
+([name, value, goal]) => {
+
+const bar =
+$(`goal-${name}`);
+
+const label =
+$(`goal-${name}-value`);
+
+if (!bar || !label || !goal) {
+return;
+}
+
+const percent =
+Math.min(
+100,
+Math.max(
+0,
+value / goal * 100
+)
+);
+
+bar.style.width =
+`${percent}%`;
+
+label.textContent =
+`${format(value)} / ${format(goal)}`;
+}
+);
+}
+
+const saveGoalsButton =
+$("saveGoals");
+
+if (saveGoalsButton) {
+
+saveGoalsButton.addEventListener(
+"click",
+() => {
+
+settings.goals = {
+calories:
+number(
+$("goalCalories")
+? $("goalCalories").value
+: 0
+),
+
+protein:
+number(
+$("goalProtein")
+? $("goalProtein").value
+: 0
+),
+
+carbs:
+number(
+$("goalCarbs")
+? $("goalCarbs").value
+: 0
+),
+
+fat:
+number(
+$("goalFat")
+? $("goalFat").value
+: 0
+)
+};
+
+save();
+updateDailyTotals();
+
+alert("Objetivos guardados.");
+}
+);
+}
+
+/* =========================================================
+PROGRESO
+========================================================= */
+
+const addProgress =
+$("addProgress");
+
+if (addProgress) {
+
+addProgress.addEventListener(
+"click",
+() => {
+
+const date =
+$("progressDate")
+? $("progressDate").value
+: today();
+
+const weight =
+number(
+$("progressWeight")
+? $("progressWeight").value
+: 0
+);
+
+const note =
+$("progressNote")
+? $("progressNote").value.trim()
+: "";
+
+if (!date || weight <= 0) {
+alert(
+"Introduce una fecha y un peso válido."
+);
+return;
+}
+
+progressHistory.push({
+id: Date.now(),
+date,
+weight,
+note
+});
+
+progressHistory.sort(
+(a,b) =>
+new Date(a.date) -
+new Date(b.date)
+);
+
+save();
+
+if ($("progressWeight"))
+$("progressWeight").value = "";
+
+if ($("progressNote"))
+$("progressNote").value = "";
+
+renderProgress();
+
+if ($("progressStatus")) {
+
+$("progressStatus").textContent =
+"Registro guardado correctamente.";
+
+$("progressStatus")
+.classList.remove("hidden");
+}
+}
+);
+}
+
+const saveTarget =
+$("saveTarget");
+
+if (saveTarget) {
+
+saveTarget.addEventListener(
+"click",
+() => {
+
+const target =
+number(
+$("targetWeight")
+? $("targetWeight").value
+: 0
+);
+
+if (target <= 0) {
+alert(
+"Introduce un objetivo válido."
+);
+return;
+}
+
+settings.targetWeight =
+target;
+
+save();
+
+renderProgress();
+}
+);
+}
+
+function renderProgress() {
+
+const historyContainer =
+$("progressHistory");
+
+if (!historyContainer) {
+updateProgressStats();
+return;
+}
+
+if (!progressHistory.length) {
+
+historyContainer.innerHTML = `
+<div class="empty">
+Todavía no hay registros.
+</div>
+`;
+
+updateProgressStats();
+
+return;
+}
+
+const sorted =
+[...progressHistory].sort(
+(a,b) =>
+new Date(b.date) -
+new Date(a.date)
+);
+
+historyContainer.innerHTML = "";
+
+sorted.forEach(item => {
+
+const row =
+document.createElement("div");
+
+row.className = "history-row";
+
+row.innerHTML = `
+<div>
+<strong>
+${new Date(
+item.date + "T12:00:00"
+).toLocaleDateString("es-ES")}
+</strong>
+
+<div class="muted">
+${format(item.weight)} kg
+${item.note
+? ` · ${escapeHTML(item.note)}`
+: ""}
+</div>
+</div>
+
+<button
+class="btn btn-danger"
+type="button"
+data-progress-delete="${item.id}"
+>
+Eliminar
+</button>
+`;
+
+historyContainer.appendChild(row);
+});
+
+historyContainer
+.querySelectorAll(
+"[data-progress-delete]"
+)
+.forEach(button => {
+
+button.addEventListener(
+"click",
+() => {
+
+const id =
+Number(
+button.dataset.progressDelete
+);
+
+progressHistory =
+progressHistory.filter(
+item => item.id !== id
+);
+
+save();
+renderProgress();
+}
+);
+});
+
+updateProgressStats();
+}
+
+function updateProgressStats() {
+
+const sorted =
+[...progressHistory].sort(
+(a,b) =>
+new Date(a.date) -
+new Date(b.date)
+);
+
+const latest =
+sorted.length
+? sorted[sorted.length - 1]
+: null;
+
+const first =
+sorted.length
+? sorted[0]
+: null;
+
+if ($("currentWeight")) {
+
+$("currentWeight").textContent =
+latest
+? `${format(latest.weight)} kg`
+: "—";
+}
+
+if ($("startingWeight")) {
+
+$("startingWeight").textContent =
+first
+? `${format(first.weight)} kg`
+: "—";
+}
+
+if ($("weightChange")) {
+
+if (first && latest) {
+
+const difference =
+latest.weight -
+first.weight;
+
+const prefix =
+difference > 0 ? "+" : "";
+
+$("weightChange").textContent =
+`${prefix}${format(difference)} kg`;
+
+} else {
+
+$("weightChange").textContent =
+"—";
+}
+}
+
+updateProgressBar(
+first,
+latest
+);
+}
+
+function updateProgressBar(
+first,
+latest
+) {
+
+const fill =
+$("progressFill");
+
+const percentage =
+$("progressPercentage");
+
+const summary =
+$("progressSummary");
+
+if (
+!fill ||
+!percentage ||
+!summary
+) {
+return;
+}
+
+const target =
+number(settings.targetWeight);
+
+if (
+!target ||
+!first ||
+!latest
+) {
+
+fill.style.width = "0%";
+percentage.textContent = "0%";
+
+summary.textContent =
+"Añade un objetivo y registros de peso.";
+
+return;
+}
+
+const initialDistance =
+Math.abs(
+first.weight - target
+);
+
+const currentDistance =
+Math.abs(
+latest.weight - target
+);
+
+let progress = 0;
+
+if (initialDistance === 0) {
+
+progress = 100;
+
+} else {
+
+progress =
+(
+(initialDistance -
+currentDistance) /
+initialDistance
+) * 100;
+}
+
+progress =
+Math.max(
+0,
+Math.min(100, progress)
+);
+
+fill.style.width =
+`${progress}%`;
+
+percentage.textContent =
+`${Math.round(progress)}%`;
+
+summary.textContent =
+`Actual: ${format(latest.weight)} kg · ` +
+`Objetivo: ${format(target)} kg`;
+}
+
+const clearProgress =
+$("clearProgress");
+
+if (clearProgress) {
+
+clearProgress.addEventListener(
+"click",
+() => {
+
+if (!progressHistory.length) {
+return;
+}
+
+if (
+!confirm(
 "¿Quieres borrar todo el historial?"
 )
 ) {
-
-trainingHistory = [];
-
-localStorage.removeItem(
-"nutriTrainingHistory"
-);
-
-renderTrainingHistory();
-
-updateTrainingStats();
-
+return;
 }
 
-});
+progressHistory = [];
 
+save();
+renderProgress();
+}
+);
+}
 
-/* =====================================================
-ASISTENTE LOCAL
-===================================================== */
+/* =========================================================
+ASISTENTE NUTRI
+========================================================= */
 
 const assistantInput =
-document.getElementById("assistantInput");
+$("assistantInput");
 
-const assistantSend =
-document.getElementById("assistantSend");
+const assistantButton =
+$("assistantButton");
 
 const assistantMessages =
-document.getElementById("assistantMessages");
-
+$("assistantMessages");
 
 function addAssistantMessage(
-message,
-type
+text,
+type = "assistant"
 ) {
 
-const element =
+if (!assistantMessages) {
+return;
+}
+
+const message =
 document.createElement("div");
 
-element.className =
+message.className =
 `assistant-message ${type}`;
 
+message.textContent = text;
 
-element.innerHTML =
-`<p>${escapeHTML(message)}</p>`;
-
-
-assistantMessages.appendChild(element);
+assistantMessages.appendChild(
+message
+);
 
 assistantMessages.scrollTop =
 assistantMessages.scrollHeight;
-
 }
 
-
-function assistantAnswer(question) {
+function assistantReply(input) {
 
 const q =
-normalize(question);
+normalizeText(input);
 
+const totals =
+dailyFoods.reduce(
+(sum,item) => ({
+calories:
+sum.calories +
+number(item.calories),
+
+protein:
+sum.protein +
+number(item.protein),
+
+carbs:
+sum.carbs +
+number(item.carbs),
+
+fat:
+sum.fat +
+number(item.fat)
+}),
+{
+calories: 0,
+protein: 0,
+carbs: 0,
+fat: 0
+}
+);
 
 if (
-q.includes("proteina")
+q.includes("calorias") &&
+(
+q.includes("hoy") ||
+q.includes("llevo") ||
+q.includes("comido")
+)
 ) {
 
-const total =
-calculateDailyTotals();
+return `
+Llevas ${format(totals.calories,0)} kcal hoy,
+con ${format(totals.protein)} g de proteína,
+${format(totals.carbs)} g de carbohidratos
+y ${format(totals.fat)} g de grasa.
+`.trim();
+}
 
+if (
+q.includes("mantenimiento") ||
+q.includes("mantener")
+) {
+
+if (
+settings.maintenance &&
+settings.maintenance.calories
+) {
 
 return `
-Hoy llevas ${number(total.protein)} g
-de proteína, frente a tu objetivo de
-${goals.protein} g.
-`;
+Tu última estimación guardada de mantenimiento es de
+${format(settings.maintenance.calories,0)} kcal/día.
+`.trim();
 
 }
 
-
-if (
-q.includes("caloria") ||
-q.includes("calorias")
-) {
-
-const total =
-calculateDailyTotals();
-
-
 return `
-Hoy llevas ${number(total.calories)} kcal
-de un objetivo de ${goals.calories} kcal.
-`;
-
+Todavía no tienes calculado el mantenimiento.
+Puedes hacerlo desde la sección "Mantenimiento".
+`.trim();
 }
 
-
 if (
-q.includes("carbo") ||
-q.includes("hidrato")
+q.includes("proteina") ||
+q.includes("proteína")
 ) {
 
-const total =
-calculateDailyTotals();
-
-
 return `
-Hoy llevas ${number(total.carbs)} g
-de carbohidratos, frente a un objetivo de
-${goals.carbs} g.
-`;
-
+Actualmente llevas ${format(totals.protein)} g de proteína hoy.
+`.trim();
 }
 
+if (
+q.includes("carbohidrato") ||
+q.includes("carbohidratos")
+) {
+
+return `
+Actualmente llevas ${format(totals.carbs)} g de carbohidratos hoy.
+`.trim();
+}
 
 if (
 q.includes("grasa") ||
 q.includes("grasas")
 ) {
 
-const total =
-calculateDailyTotals();
-
-
 return `
-Hoy llevas ${number(total.fat)} g
-de grasa, frente a un objetivo de
-${goals.fat} g.
-`;
-
+Actualmente llevas ${format(totals.fat)} g de grasa hoy.
+`.trim();
 }
 
+if (
+q.includes("progreso") ||
+q.includes("peso")
+) {
+
+if (!progressHistory.length) {
+
+return `
+Todavía no tienes registros de peso.
+`.trim();
+}
+
+const latest =
+[...progressHistory].sort(
+(a,b) =>
+new Date(b.date) -
+new Date(a.date)
+)[0];
+
+return `
+Tu último registro es de ${format(latest.weight)} kg,
+del ${new Date(
+latest.date + "T12:00:00"
+).toLocaleDateString("es-ES")}.
+`.trim();
+}
 
 if (
-q.includes("entrenamiento") ||
-q.includes("entreno")
+q.includes("hola") ||
+q.includes("buenas")
 ) {
 
 return `
-Tienes ${trainingHistory.length}
-entrenamientos guardados en tu historial.
-`;
-
+¡Hola! Puedo ayudarte a consultar tus calorías,
+macros, mantenimiento y progreso dentro de Nutri.
+`.trim();
 }
-
-
-if (
-q.includes("unilateral")
-) {
-
-const unilateral =
-exercises.filter(
-exercise =>
-exercise.type === "Unilateral"
-);
-
 
 return `
-Nutri tiene ${unilateral.length}
-ejercicios unilaterales registrados,
-incluyendo espalda, hombros, bíceps,
-tríceps, piernas, gemelos y abdomen.
-`;
-
+Puedo consultar tus alimentos del día,
+calorías, proteínas, carbohidratos, grasas,
+mantenimiento y progreso.
+`.trim();
 }
-
-
-return `
-Puedo consultar tus calorías, proteína,
-carbohidratos, grasas y datos básicos
-de entrenamiento.
-`;
-
-}
-
-
-function calculateDailyTotals() {
-
-let calories = 0;
-let protein = 0;
-let carbs = 0;
-let fat = 0;
-
-
-dailyFoods.forEach(item => {
-
-const food =
-foods.find(
-f =>
-String(f.id) ===
-String(item.foodId)
-);
-
-
-if (!food) return;
-
-
-const result =
-calculateFood(
-food,
-item.grams
-);
-
-
-calories += result.calories;
-protein += result.protein;
-carbs += result.carbs;
-fat += result.fat;
-
-});
-
-
-return {
-calories,
-protein,
-carbs,
-fat
-};
-
-}
-
 
 function sendAssistant() {
 
-const question =
+if (!assistantInput) {
+return;
+}
+
+const text =
 assistantInput.value.trim();
 
-
-if (!question) return;
-
+if (!text) {
+return;
+}
 
 addAssistantMessage(
-question,
+text,
 "user"
 );
 
-
 assistantInput.value = "";
 
-
-setTimeout(() => {
-
+setTimeout(
+() => {
 addAssistantMessage(
-assistantAnswer(question),
-"bot"
+assistantReply(text),
+"assistant"
 );
-
-}, 150);
-
+},
+120
+);
 }
 
+if (assistantButton) {
 
-assistantSend.addEventListener(
+assistantButton.addEventListener(
 "click",
 sendAssistant
 );
+}
 
+if (assistantInput) {
 
 assistantInput.addEventListener(
 "keydown",
 event => {
 
 if (event.key === "Enter") {
-
+event.preventDefault();
 sendAssistant();
-
+}
+}
+);
 }
 
+/* =========================================================
+EXPORTAR DATOS
+========================================================= */
+
+const exportButton =
+$("exportData");
+
+if (exportButton) {
+
+exportButton.addEventListener(
+"click",
+() => {
+
+const data = {
+foods: dailyFoods,
+progress: progressHistory,
+settings
+};
+
+const blob =
+new Blob(
+[
+JSON.stringify(
+data,
+null,
+2
+)
+],
+{
+type:
+"application/json"
 }
 );
 
+const url =
+URL.createObjectURL(blob);
 
-/* =====================================================
-UTILIDADES
-===================================================== */
+const link =
+document.createElement("a");
 
-function generateId() {
+link.href = url;
 
-return (
-Date.now().toString(36) +
-Math.random()
-.toString(36)
-.substring(2)
+link.download =
+"nutri-datos.json";
+
+link.click();
+
+URL.revokeObjectURL(url);
+}
 );
-
 }
 
+/* =========================================================
+IMPORTAR DATOS
+========================================================= */
 
-function escapeHTML(text) {
+const importInput =
+$("importData");
 
-return String(text)
+if (importInput) {
+
+importInput.addEventListener(
+"change",
+event => {
+
+const file =
+event.target.files[0];
+
+if (!file) {
+return;
+}
+
+const reader =
+new FileReader();
+
+reader.onload = () => {
+
+try {
+
+const data =
+JSON.parse(
+reader.result
+);
+
+if (
+Array.isArray(
+data.foods
+)
+) {
+dailyFoods =
+data.foods;
+}
+
+if (
+Array.isArray(
+data.progress
+)
+) {
+progressHistory =
+data.progress;
+}
+
+if (
+data.settings &&
+typeof data.settings ===
+"object"
+) {
+settings =
+data.settings;
+}
+
+save();
+
+renderDailyFoods();
+renderProgress();
+loadMaintenance();
+
+alert(
+"Datos importados correctamente."
+);
+
+} catch (error) {
+
+alert(
+"El archivo no tiene un formato válido."
+);
+}
+};
+
+reader.readAsText(file);
+}
+);
+}
+
+/* =========================================================
+ESCAPE HTML
+========================================================= */
+
+function escapeHTML(value) {
+
+return String(value ?? "")
 .replace(/&/g, "&amp;")
 .replace(/</g, "&lt;")
 .replace(/>/g, "&gt;")
 .replace(/"/g, "&quot;")
 .replace(/'/g, "&#039;");
-
 }
 
+/* =========================================================
+INICIALIZACIÓN
+========================================================= */
 
-/* =====================================================
-INICIALIZAR TODO
-===================================================== */
+function initializeInputs() {
 
+if ($("progressDate")) {
+$("progressDate").value =
+today();
+}
+
+if (
+settings.targetWeight &&
+$("targetWeight")
+) {
+
+$("targetWeight").value =
+settings.targetWeight;
+}
+
+if (
+settings.goals
+) {
+
+if ($("goalCalories"))
+$("goalCalories").value =
+settings.goals.calories || "";
+
+if ($("goalProtein"))
+$("goalProtein").value =
+settings.goals.protein || "";
+
+if ($("goalCarbs"))
+$("goalCarbs").value =
+settings.goals.carbs || "";
+
+if ($("goalFat"))
+$("goalFat").value =
+settings.goals.fat || "";
+}
+}
+
+initializeInputs();
+loadMaintenance();
 renderDailyFoods();
-
-updateDailyTotals();
-
-renderDatabase();
-
-renderExerciseSelect();
-
-renderCurrentSets();
-
-renderCurrentWorkout();
-
-renderTrainingHistory();
-
-updateTrainingStats();
+renderProgress();
 
 });
