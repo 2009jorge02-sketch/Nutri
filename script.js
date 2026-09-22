@@ -268,7 +268,12 @@ document.getElementById('progressTrainingStats').innerHTML=`<div class="macro-gr
 }
 function renderSettings(){document.getElementById('profileName').value=state.profile.name||''}
 
-document.querySelectorAll('.nav-item').forEach(b=>b.onclick=()=>go(b.dataset.page));
+document.querySelectorAll('.nav-item').forEach(b=>{
+b.onclick=()=>{
+go(b.dataset.page);
+document.querySelector('.sidebar')?.classList.remove('open');
+};
+});
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 document.getElementById('mobileMenu').onclick=()=>document.querySelector('.sidebar').classList.toggle('open');
 
@@ -365,12 +370,3 @@ activeWorkout.exercises[ei].sets[si][k]=n(x.value)
 
 function renderAll(){renderHome();renderNutrition();renderTraining();renderProgress();renderSettings()}
 renderAll();
-// Cerrar automáticamente el menú móvil al seleccionar una sección
-document.querySelectorAll('.nav-item').forEach(button => {
-button.addEventListener('click', () => {
-const sidebar = document.querySelector('.sidebar');
-if (sidebar) {
-sidebar.classList.remove('open');
-}
-});
-});
