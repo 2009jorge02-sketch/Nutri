@@ -14,7 +14,15 @@ const defaultExercises=[
 ['Press militar','Hombros','Barra'],['Elevaciones laterales','Hombros','Mancuernas'],['Sentadilla','Piernas','Barra'],
 ['Extensión de cuádriceps','Cuádriceps','Máquina'],['Curl femoral','Isquios','Máquina'],['Prensa','Piernas','Máquina'],
 ['Elevación de gemelos','Gemelos','Máquina'],['Plancha','Abdomen','Peso corporal'],['Crunch en polea','Abdomen','Polea']
-].map((x,i)=>({id:'ex_'+i,name:x[0],group:x[1],equipment:x[2],notes:'',custom:false}));
+].map((x,i)=>({
+id:'ex_'+i,
+name:x[0],
+group:x[1],
+equipment:x[2],
+type:'bilateral',
+notes:'',
+custom:false
+}));
 
 const defaults={
 goals:{calories:2300,protein:130,carbs:260,fat:70},
@@ -213,7 +221,7 @@ document.getElementById('exerciseModal').showModal()
 function saveExercise(){
 const name=document.getElementById('exerciseName').value.trim();
 if(!name)return alert('Introduce un nombre.');
-state.customExercises.push({id:uid('ex'),name,group:document.getElementById('exerciseGroup').value,equipment:document.getElementById('exerciseEquipment').value.trim()||'Otro',notes:document.getElementById('exerciseNotes').value.trim(),custom:true});
+state.customExercises.push({id:uid('ex'),name,group:document.getElementById('exerciseGroup').value,equipment:document.getElementById('exerciseEquipment').value.trim()||'Otro',type:'bilateral',notes:document.getElementById('exerciseNotes').value.trim(),custom:true});
 save();document.getElementById('exerciseModal').close();renderTraining()
 }
 function openRoutine(){
