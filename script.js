@@ -365,3 +365,12 @@ activeWorkout.exercises[ei].sets[si][k]=n(x.value)
 
 function renderAll(){renderHome();renderNutrition();renderTraining();renderProgress();renderSettings()}
 renderAll();
+// Cerrar automáticamente el menú móvil al seleccionar una sección
+document.querySelectorAll('.nav-item').forEach(button => {
+button.addEventListener('click', () => {
+const sidebar = document.querySelector('.sidebar');
+if (sidebar) {
+sidebar.classList.remove('open');
+}
+});
+});
