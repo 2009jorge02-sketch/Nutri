@@ -6,11 +6,955 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nutri — Nutrición y entrenamiento</title>
 <link rel="stylesheet" href="style.css">
+
+<style>
+/* =========================================================
+NUTRI — NUEVA INTERFAZ
+Solo diseño. Los IDs y hooks funcionales se mantienen.
+========================================================= */
+
+:root {
+--bg: #f5f6f8;
+--surface: #ffffff;
+--surface-2: #f8f9fb;
+--border: #e7e9ee;
+--text: #17191f;
+--muted: #737985;
+--primary: #111827;
+--accent: #5b5ce2;
+--accent-soft: #eef0ff;
+--green: #19a974;
+--green-soft: #eaf8f2;
+--orange: #f29a38;
+--orange-soft: #fff4e7;
+--red: #e05252;
+--shadow: 0 8px 30px rgba(20, 25, 35, .055);
+--radius: 18px;
+}
+
+* {
+box-sizing: border-box;
+}
+
+body {
+margin: 0;
+background: var(--bg);
+color: var(--text);
+font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+font: inherit;
+}
+
+button {
+cursor: pointer;
+}
+
+.app {
+min-height: 100vh;
+display: flex;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar {
+position: fixed;
+left: 0;
+top: 0;
+bottom: 0;
+width: 245px;
+background: #fff;
+border-right: 1px solid var(--border);
+padding: 24px 16px;
+display: flex;
+flex-direction: column;
+z-index: 50;
+}
+
+.brand {
+display: flex;
+align-items: center;
+gap: 11px;
+padding: 4px 10px 30px;
+}
+
+.brand-mark {
+width: 40px;
+height: 40px;
+border-radius: 12px;
+display: grid;
+place-items: center;
+background: var(--primary);
+color: white;
+font-size: 20px;
+font-weight: 800;
+}
+
+.brand strong {
+display: block;
+font-size: 20px;
+letter-spacing: -.5px;
+}
+
+.brand span {
+display: block;
+color: var(--muted);
+font-size: 11px;
+margin-top: 2px;
+}
+
+.sidebar nav {
+display: flex;
+flex-direction: column;
+gap: 5px;
+}
+
+.nav-item {
+border: 0;
+background: transparent;
+color: #6c727d;
+width: 100%;
+min-height: 46px;
+border-radius: 12px;
+padding: 0 13px;
+display: flex;
+align-items: center;
+gap: 12px;
+text-align: left;
+font-size: 14px;
+font-weight: 600;
+transition: .18s ease;
+}
+
+.nav-item:hover {
+background: #f5f6f8;
+color: var(--text);
+}
+
+.nav-item.active {
+background: var(--accent-soft);
+color: var(--accent);
+}
+
+.nav-item:first-letter {
+font-size: 17px;
+}
+
+.sidebar-bottom {
+margin-top: auto;
+padding: 10px;
+}
+
+.local-badge {
+background: #f5f6f8;
+color: #7a808b;
+border-radius: 10px;
+padding: 10px;
+font-size: 11px;
+text-align: center;
+}
+
+/* ================= MAIN ================= */
+
+.main {
+width: calc(100% - 245px);
+margin-left: 245px;
+min-height: 100vh;
+padding: 0 42px 50px;
+}
+
+.topbar {
+height: 92px;
+max-width: 1320px;
+margin: auto;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+
+.page-kicker,
+.eyebrow {
+color: #9297a1;
+font-size: 10px;
+font-weight: 800;
+letter-spacing: .12em;
+}
+
+.topbar h1 {
+margin: 3px 0 0;
+font-size: 27px;
+line-height: 1;
+letter-spacing: -.7px;
+}
+
+.mobile-menu {
+display: none;
+border: 1px solid var(--border);
+background: white;
+border-radius: 11px;
+width: 42px;
+height: 42px;
+}
+
+.page {
+max-width: 1320px;
+margin: auto;
+padding-bottom: 40px;
+}
+
+.page:not(.active) {
+display: none;
+}
+
+/* ================= GENERAL PANELS ================= */
+
+.panel,
+.meal-card,
+.metric-card,
+.hero-card,
+.nutrition-stat {
+background: var(--surface);
+border: 1px solid var(--border);
+box-shadow: var(--shadow);
+}
+
+.panel {
+border-radius: var(--radius);
+padding: 23px;
+}
+
+.panel-head {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 15px;
+margin-bottom: 20px;
+}
+
+.panel-head h3 {
+margin: 4px 0 0;
+font-size: 17px;
+letter-spacing: -.25px;
+}
+
+.panel-head > div:first-child {
+min-width: 0;
+}
+
+.muted {
+color: var(--muted);
+}
+
+/* ================= BUTTONS ================= */
+
+.primary-btn,
+.secondary-btn,
+.danger-btn {
+border: 0;
+border-radius: 11px;
+min-height: 42px;
+padding: 0 16px;
+font-weight: 700;
+font-size: 13px;
+transition: .18s ease;
+}
+
+.primary-btn {
+background: var(--primary);
+color: #fff;
+}
+
+.primary-btn:hover {
+transform: translateY(-1px);
+background: #292e39;
+}
+
+.secondary-btn {
+background: #f3f4f6;
+color: #353942;
+}
+
+.secondary-btn:hover {
+background: #e9ebef;
+}
+
+.danger-btn {
+background: #fff0f0;
+color: var(--red);
+}
+
+.full {
+width: 100%;
+}
+
+.button-row {
+display: flex;
+gap: 9px;
+align-items: center;
+flex-wrap: wrap;
+}
+
+.button-column {
+display: flex;
+flex-direction: column;
+gap: 9px;
+}
+
+.add-btn {
+width: 35px;
+height: 35px;
+border: 0;
+border-radius: 10px;
+background: var(--accent-soft);
+color: var(--accent);
+font-size: 21px;
+line-height: 1;
+font-weight: 500;
+}
+
+/* ================= HOME ================= */
+
+.hero-grid {
+display: grid;
+grid-template-columns: 1.7fr .9fr .9fr;
+gap: 15px;
+margin-bottom: 15px;
+}
+
+.hero-card {
+min-height: 185px;
+border-radius: var(--radius);
+padding: 27px;
+background: var(--primary);
+color: #fff;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+}
+
+.hero-card .eyebrow {
+color: #aeb4c0;
+}
+
+.hero-card h2 {
+font-size: 27px;
+margin: 8px 0 7px;
+letter-spacing: -.7px;
+}
+
+.hero-card p {
+color: #b8bdc7;
+font-size: 13px;
+margin: 0;
+}
+
+.hero-card .primary-btn {
+background: #fff;
+color: var(--primary);
+align-self: flex-start;
+margin-top: 20px;
+}
+
+.metric-card {
+border-radius: var(--radius);
+min-height: 185px;
+padding: 25px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+}
+
+.metric-card > span {
+color: var(--muted);
+font-size: 12px;
+font-weight: 700;
+}
+
+.metric-card strong {
+font-size: 35px;
+letter-spacing: -1.5px;
+margin-top: 8px;
+}
+
+.metric-card small {
+color: var(--muted);
+margin-top: 2px;
+}
+
+.progress {
+width: 100%;
+height: 7px;
+background: #eceef2;
+border-radius: 99px;
+overflow: hidden;
+margin-top: 19px;
+}
+
+.progress i {
+display: block;
+height: 100%;
+width: 0;
+background: var(--accent);
+border-radius: inherit;
+}
+
+.section-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 15px;
+margin-bottom: 15px;
+}
+
+.macro-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 10px;
+}
+
+.macro-grid > div {
+background: var(--surface-2);
+border-radius: 13px;
+padding: 16px;
+}
+
+.macro-grid span {
+display: block;
+color: var(--muted);
+font-size: 11px;
+}
+
+.macro-grid strong {
+display: block;
+margin: 7px 0 13px;
+font-size: 19px;
+}
+
+.macro-grid i {
+display: block;
+height: 5px;
+background: var(--accent);
+border-radius: 10px;
+width: 0;
+}
+
+/* ================= NUTRITION ================= */
+
+.date-row {
+display: flex;
+align-items: center;
+gap: 8px;
+margin-bottom: 17px;
+}
+
+.date-row input {
+border: 1px solid var(--border);
+background: white;
+height: 40px;
+padding: 0 12px;
+border-radius: 10px;
+color: var(--text);
+}
+
+.nutrition-summary {
+display: grid;
+grid-template-columns: 1.25fr repeat(5, 1fr);
+gap: 10px;
+margin-bottom: 15px;
+}
+
+.calorie-ring {
+min-height: 132px;
+background: var(--primary);
+color: white;
+border-radius: var(--radius);
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
+}
+
+.calorie-ring strong {
+display: block;
+font-size: 29px;
+letter-spacing: -1px;
+}
+
+.calorie-ring span {
+font-size: 11px;
+color: #aeb4bf;
+}
+
+.nutrition-stat {
+min-height: 132px;
+border-radius: var(--radius);
+padding: 18px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+}
+
+.nutrition-stat span {
+color: var(--muted);
+font-size: 11px;
+font-weight: 700;
+}
+
+.nutrition-stat strong {
+font-size: 17px;
+margin-top: 8px;
+}
+
+.nutrition-layout {
+display: grid;
+grid-template-columns: minmax(0, 1fr) 320px;
+gap: 15px;
+}
+
+.meal-card {
+border-radius: var(--radius);
+padding: 19px;
+margin-bottom: 12px;
+}
+
+.meal-head {
+display: flex;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 11px;
+}
+
+.meal-head span {
+color: var(--muted);
+font-size: 10px;
+font-weight: 800;
+letter-spacing: .08em;
+}
+
+.meal-head strong {
+display: block;
+margin-top: 3px;
+font-size: 13px;
+}
+
+.sticky {
+position: sticky;
+top: 20px;
+}
+
+.recipe-mini-list {
+min-height: 30px;
+}
+
+/* ================= TRAINING ================= */
+
+.training-hero {
+background: var(--primary);
+color: white;
+border-radius: var(--radius);
+padding: 28px;
+margin-bottom: 15px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 25px;
+}
+
+.training-hero .eyebrow {
+color: #aeb4c0;
+}
+
+.training-hero h2 {
+margin: 7px 0 5px;
+font-size: 26px;
+letter-spacing: -.7px;
+}
+
+.training-hero p {
+margin: 0;
+color: #b7bdc7;
+font-size: 13px;
+}
+
+.training-hero .secondary-btn {
+background: #2b303a;
+color: #fff;
+}
+
+.training-hero .primary-btn {
+background: #fff;
+color: var(--primary);
+}
+
+.training-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 15px;
+margin-bottom: 15px;
+}
+
+.mini-search {
+width: 145px;
+height: 36px;
+border: 1px solid var(--border);
+border-radius: 9px;
+padding: 0 10px;
+outline: none;
+background: #fafbfc;
+}
+
+.mini-search:focus,
+.large-search:focus,
+input:focus,
+select:focus,
+textarea:focus {
+border-color: #b8bbff;
+box-shadow: 0 0 0 3px rgba(91,92,226,.08);
+outline: none;
+}
+
+/* ================= PROGRESS ================= */
+
+.progress-grid {
+display: grid;
+grid-template-columns: 1.4fr 1fr;
+gap: 15px;
+margin-bottom: 15px;
+}
+
+.big-number {
+font-size: 42px;
+font-weight: 800;
+letter-spacing: -2px;
+margin: 5px 0 15px;
+}
+
+.chart {
+min-height: 220px;
+border-radius: 13px;
+background: var(--surface-2);
+}
+
+/* ================= SETTINGS ================= */
+
+.settings-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 15px;
+}
+
+.settings-grid label,
+.modal-box label {
+display: flex;
+flex-direction: column;
+gap: 7px;
+color: #555b66;
+font-size: 12px;
+font-weight: 700;
+margin-bottom: 14px;
+}
+
+input,
+select,
+textarea {
+width: 100%;
+min-height: 42px;
+border: 1px solid var(--border);
+border-radius: 10px;
+background: #fff;
+padding: 0 12px;
+color: var(--text);
+transition: .15s ease;
+}
+
+textarea {
+padding-top: 10px;
+min-height: 100px;
+resize: vertical;
+}
+
+.file-btn {
+position: relative;
+display: block;
+overflow: hidden;
+border-radius: 11px;
+background: #f3f4f6;
+color: #353942;
+text-align: center;
+padding: 12px;
+font-size: 13px;
+font-weight: 700;
+cursor: pointer;
+}
+
+.file-btn input {
+position: absolute;
+inset: 0;
+opacity: 0;
+cursor: pointer;
+}
+
+/* ================= MODALS ================= */
+
+.modal {
+border: 0;
+padding: 0;
+background: transparent;
+max-width: none;
+max-height: none;
+}
+
+.modal::backdrop {
+background: rgba(10, 13, 20, .52);
+backdrop-filter: blur(3px);
+}
+
+.modal-box {
+width: min(560px, calc(100vw - 30px));
+max-height: calc(100vh - 30px);
+overflow-y: auto;
+margin: auto;
+padding: 25px;
+border: 1px solid var(--border);
+border-radius: 20px;
+background: white;
+box-shadow: 0 25px 80px rgba(0,0,0,.18);
+}
+
+.modal-head {
+display: flex;
+align-items: flex-start;
+justify-content: space-between;
+margin-bottom: 22px;
+}
+
+.modal-head h3 {
+margin: 5px 0 0;
+font-size: 21px;
+letter-spacing: -.4px;
+}
+
+.close {
+width: 34px;
+height: 34px;
+border: 0;
+border-radius: 9px;
+background: #f1f2f4;
+color: #555b65;
+font-size: 22px;
+line-height: 1;
+}
+
+.form-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 0 12px;
+}
+
+.form-grid .wide {
+grid-column: 1 / -1;
+}
+
+.large-search {
+min-height: 48px;
+font-size: 14px;
+margin-bottom: 12px;
+}
+
+.food-results {
+max-height: 310px;
+overflow-y: auto;
+}
+
+.selected-box {
+margin: 10px 0;
+padding: 14px;
+border-radius: 11px;
+background: var(--accent-soft);
+}
+
+.hidden {
+display: none !important;
+}
+
+.recipe-add-row {
+display: grid;
+grid-template-columns: 1fr 100px auto;
+gap: 7px;
+margin-bottom: 12px;
+}
+
+.maintenance-result {
+background: var(--surface-2);
+border-radius: 12px;
+padding: 15px;
+margin: 10px 0 16px;
+}
+
+.workout-modal .modal-box {
+width: min(720px, calc(100vw - 30px));
+}
+
+.rest-timer {
+margin: 15px 0;
+padding: 13px;
+background: var(--surface-2);
+border-radius: 12px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+
+.rest-timer strong {
+font-size: 23px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1100px) {
+.main {
+padding: 0 25px 40px;
+}
+
+.nutrition-summary {
+grid-template-columns: repeat(3, 1fr);
+}
+
+.calorie-ring {
+grid-column: span 3;
+}
+
+.nutrition-layout {
+grid-template-columns: 1fr;
+}
+
+.sticky {
+position: static;
+}
+}
+
+@media (max-width: 850px) {
+.sidebar {
+transform: translateX(-100%);
+transition: transform .2s ease;
+}
+
+.sidebar.open {
+transform: translateX(0);
+}
+
+.main {
+width: 100%;
+margin-left: 0;
+padding: 0 16px 35px;
+}
+
+.mobile-menu {
+display: block;
+}
+
+.hero-grid,
+.section-grid,
+.training-grid,
+.progress-grid,
+.settings-grid {
+grid-template-columns: 1fr;
+}
+
+.hero-card,
+.metric-card {
+min-height: 150px;
+}
+
+.training-hero {
+align-items: flex-start;
+flex-direction: column;
+}
+}
+
+@media (max-width: 600px) {
+.topbar {
+height: 78px;
+}
+
+.topbar h1 {
+font-size: 23px;
+}
+
+.hero-card h2 {
+font-size: 23px;
+}
+
+.macro-grid {
+grid-template-columns: 1fr;
+}
+
+.nutrition-summary {
+grid-template-columns: 1fr 1fr;
+}
+
+.calorie-ring {
+grid-column: span 2;
+}
+
+.date-row {
+overflow-x: auto;
+}
+
+.date-row input {
+min-width: 145px;
+}
+
+.panel {
+padding: 18px;
+}
+
+.form-grid {
+grid-template-columns: 1fr;
+}
+
+.form-grid .wide {
+grid-column: auto;
+}
+
+.recipe-add-row {
+grid-template-columns: 1fr 80px;
+}
+
+.recipe-add-row button {
+grid-column: 1 / -1;
+}
+
+.training-hero {
+padding: 22px;
+}
+
+.training-hero .button-row {
+width: 100%;
+}
+
+.training-hero .button-row button {
+flex: 1;
+}
+
+.mini-search {
+width: 120px;
+}
+}
+</style>
 </head>
+
 <body>
+
 <div class="app">
 
+<!-- ================= SIDEBAR ================= -->
+
 <aside class="sidebar">
+
 <div class="brand">
 <div class="brand-mark">N</div>
 <div>
@@ -20,291 +964,1033 @@
 </div>
 
 <nav>
-<button class="nav-item active" data-page="home">⌂ <span>Inicio</span></button>
-<button class="nav-item" data-page="nutrition">◉ <span>Nutrición</span></button>
-<button class="nav-item" data-page="training">◈ <span>Entrenamiento</span></button>
-<button class="nav-item" data-page="progress">↗ <span>Progreso</span></button>
-<button class="nav-item" data-page="settings">⚙ <span>Ajustes</span></button>
+<button class="nav-item active" data-page="home">
+<span>⌂</span>
+<span>Inicio</span>
+</button>
+
+<button class="nav-item" data-page="nutrition">
+<span>◉</span>
+<span>Nutrición</span>
+</button>
+
+<button class="nav-item" data-page="training">
+<span>◈</span>
+<span>Entrenamiento</span>
+</button>
+
+<button class="nav-item" data-page="progress">
+<span>↗</span>
+<span>Progreso</span>
+</button>
+
+<button class="nav-item" data-page="settings">
+<span>⚙</span>
+<span>Ajustes</span>
+</button>
 </nav>
 
 <div class="sidebar-bottom">
 <div class="local-badge">● Datos guardados localmente</div>
 </div>
+
 </aside>
 
+
+<!-- ================= MAIN ================= -->
+
 <main class="main">
+
 <header class="topbar">
+
 <div>
 <div class="page-kicker" id="pageKicker">NUTRI</div>
 <h1 id="pageTitle">Tu día</h1>
 </div>
+
 <button class="mobile-menu" id="mobileMenu">☰</button>
+
 </header>
 
+
+<!-- ================= HOME ================= -->
+
 <section class="page active" id="page-home">
+
 <div class="hero-grid">
+
 <div class="hero-card">
+
 <div>
 <span class="eyebrow">HOY</span>
 <h2 id="homeGreeting">Tu resumen diario</h2>
 <p>Controla tu alimentación y entrenamiento desde un solo lugar.</p>
 </div>
-<button class="primary-btn" data-go="nutrition">Registrar comida</button>
+
+<button class="primary-btn" data-go="nutrition">
+Registrar comida
+</button>
+
 </div>
 
+
 <div class="metric-card">
+
 <span>Calorías</span>
+
 <strong id="homeCalories">0</strong>
+
 <small id="homeCaloriesTarget">/ 2300 kcal</small>
-<div class="progress"><i id="homeCaloriesBar"></i></div>
+
+<div class="progress">
+<i id="homeCaloriesBar"></i>
 </div>
 
+</div>
+
+
 <div class="metric-card">
+
 <span>Proteína</span>
+
 <strong id="homeProtein">0 g</strong>
+
 <small id="homeProteinTarget">/ 130 g</small>
-<div class="progress"><i id="homeProteinBar"></i></div>
+
+<div class="progress">
+<i id="homeProteinBar"></i>
 </div>
+
 </div>
+
+</div>
+
 
 <div class="section-grid">
+
 <div class="panel">
-<div class="panel-head"><div><span class="eyebrow">MACROS</span><h3>Objetivo diario</h3></div></div>
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">MACROS</span>
+<h3>Objetivo diario</h3>
+</div>
+
+</div>
+
 <div class="macro-grid">
-<div><span>Proteína</span><strong id="homeMacroProtein">0 g</strong><i id="homeMacroProteinBar"></i></div>
-<div><span>Carbohidratos</span><strong id="homeMacroCarbs">0 g</strong><i id="homeMacroCarbsBar"></i></div>
-<div><span>Grasas</span><strong id="homeMacroFat">0 g</strong><i id="homeMacroFatBar"></i></div>
-</div>
+
+<div>
+<span>Proteína</span>
+<strong id="homeMacroProtein">0 g</strong>
+<i id="homeMacroProteinBar"></i>
 </div>
 
+<div>
+<span>Carbohidratos</span>
+<strong id="homeMacroCarbs">0 g</strong>
+<i id="homeMacroCarbsBar"></i>
+</div>
+
+<div>
+<span>Grasas</span>
+<strong id="homeMacroFat">0 g</strong>
+<i id="homeMacroFatBar"></i>
+</div>
+
+</div>
+
+</div>
+
+
 <div class="panel">
-<div class="panel-head"><div><span class="eyebrow">ENTRENAMIENTO</span><h3>Hoy</h3></div></div>
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">ENTRENAMIENTO</span>
+<h3>Hoy</h3>
+</div>
+
+</div>
+
 <div id="homeWorkout"></div>
-</div>
+
 </div>
 
-<div class="panel">
-<div class="panel-head"><div><span class="eyebrow">RESUMEN</span><h3>Actividad reciente</h3></div></div>
-<div id="homeRecent"></div>
 </div>
+
+
+<div class="panel">
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">RESUMEN</span>
+<h3>Actividad reciente</h3>
+</div>
+
+</div>
+
+<div id="homeRecent"></div>
+
+</div>
+
 </section>
 
+
+<!-- ================= NUTRITION ================= -->
+
 <section class="page" id="page-nutrition">
+
 <div class="date-row">
+
 <button class="secondary-btn" id="prevDay">‹</button>
+
 <input type="date" id="nutritionDate">
+
 <button class="secondary-btn" id="nextDay">›</button>
+
 <button class="secondary-btn" id="todayBtn">Hoy</button>
+
 </div>
 
+
 <div class="nutrition-summary">
+
 <div class="calorie-ring">
+
 <div>
 <strong id="nutritionCalories">0</strong>
 <span>kcal</span>
 </div>
+
 </div>
-<div class="nutrition-stat"><span>Objetivo</span><strong id="nutritionTarget">2300 kcal</strong></div>
-<div class="nutrition-stat"><span>Restantes</span><strong id="nutritionRemaining">2300 kcal</strong></div>
-<div class="nutrition-stat"><span>Proteína</span><strong id="nutritionProtein">0 / 130 g</strong></div>
-<div class="nutrition-stat"><span>Carbohidratos</span><strong id="nutritionCarbs">0 / 260 g</strong></div>
-<div class="nutrition-stat"><span>Grasas</span><strong id="nutritionFat">0 / 70 g</strong></div>
+
+<div class="nutrition-stat">
+<span>Objetivo</span>
+<strong id="nutritionTarget">2300 kcal</strong>
 </div>
+
+<div class="nutrition-stat">
+<span>Restantes</span>
+<strong id="nutritionRemaining">2300 kcal</strong>
+</div>
+
+<div class="nutrition-stat">
+<span>Proteína</span>
+<strong id="nutritionProtein">0 / 130 g</strong>
+</div>
+
+<div class="nutrition-stat">
+<span>Carbohidratos</span>
+<strong id="nutritionCarbs">0 / 260 g</strong>
+</div>
+
+<div class="nutrition-stat">
+<span>Grasas</span>
+<strong id="nutritionFat">0 / 70 g</strong>
+</div>
+
+</div>
+
 
 <div class="nutrition-layout">
+
 <div>
+
 <div class="meal-card">
-<div class="meal-head"><div><span>DESAYUNO</span><strong id="mealBreakfastTotal">0 kcal</strong></div><button class="add-btn" data-meal="breakfast">+</button></div>
+
+<div class="meal-head">
+
+<div>
+<span>DESAYUNO</span>
+<strong id="mealBreakfastTotal">0 kcal</strong>
+</div>
+
+<button class="add-btn" data-meal="breakfast">+</button>
+
+</div>
+
 <div id="meal-breakfast"></div>
+
 </div>
+
+
 <div class="meal-card">
-<div class="meal-head"><div><span>COMIDA</span><strong id="mealLunchTotal">0 kcal</strong></div><button class="add-btn" data-meal="lunch">+</button></div>
+
+<div class="meal-head">
+
+<div>
+<span>COMIDA</span>
+<strong id="mealLunchTotal">0 kcal</strong>
+</div>
+
+<button class="add-btn" data-meal="lunch">+</button>
+
+</div>
+
 <div id="meal-lunch"></div>
+
 </div>
+
+
 <div class="meal-card">
-<div class="meal-head"><div><span>MERIENDA</span><strong id="mealSnackTotal">0 kcal</strong></div><button class="add-btn" data-meal="snack">+</button></div>
+
+<div class="meal-head">
+
+<div>
+<span>MERIENDA</span>
+<strong id="mealSnackTotal">0 kcal</strong>
+</div>
+
+<button class="add-btn" data-meal="snack">+</button>
+
+</div>
+
 <div id="meal-snack"></div>
+
 </div>
+
+
 <div class="meal-card">
-<div class="meal-head"><div><span>CENA</span><strong id="mealDinnerTotal">0 kcal</strong></div><button class="add-btn" data-meal="dinner">+</button></div>
+
+<div class="meal-head">
+
+<div>
+<span>CENA</span>
+<strong id="mealDinnerTotal">0 kcal</strong>
+</div>
+
+<button class="add-btn" data-meal="dinner">+</button>
+
+</div>
+
 <div id="meal-dinner"></div>
+
 </div>
+
 </div>
+
 
 <aside>
+
 <div class="panel sticky">
-<div class="panel-head"><div><span class="eyebrow">OBJETIVOS</span><h3>Tus macros</h3></div></div>
-<div id="nutritionMacroPanel"></div>
-<button class="secondary-btn full" id="openMaintenance">Calcular mantenimiento</button>
-<button class="secondary-btn full" id="openGoals">Editar objetivos</button>
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">OBJETIVOS</span>
+<h3>Tus macros</h3>
 </div>
 
+</div>
+
+<div id="nutritionMacroPanel"></div>
+
+<button class="secondary-btn full" id="openMaintenance">
+Calcular mantenimiento
+</button>
+
+<button class="secondary-btn full" id="openGoals">
+Editar objetivos
+</button>
+
+</div>
+
+
 <div class="panel">
-<div class="panel-head"><div><span class="eyebrow">RECETAS</span><h3>Mis recetas</h3></div><button class="secondary-btn" id="openRecipe">+</button></div>
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">RECETAS</span>
+<h3>Mis recetas</h3>
+</div>
+
+<button class="secondary-btn" id="openRecipe">+</button>
+
+</div>
+
 <div id="recipeMiniList"></div>
+
 </div>
+
 </aside>
+
 </div>
+
 </section>
+
+
+<!-- ================= TRAINING ================= -->
 
 <section class="page" id="page-training">
+
 <div class="training-hero">
+
 <div>
+
 <span class="eyebrow">ENTRENAMIENTO</span>
+
 <h2>Construye tu entrenamiento</h2>
+
 <p>Crea ejercicios, diseña rutinas y registra cada serie.</p>
+
 </div>
+
 <div class="button-row">
-<button class="secondary-btn" id="openExercise">+ Ejercicio</button>
-<button class="primary-btn" id="openRoutine">+ Rutina</button>
+
+<button class="secondary-btn" id="openExercise">
++ Ejercicio
+</button>
+
+<button class="primary-btn" id="openRoutine">
++ Rutina
+</button>
+
 </div>
+
 </div>
+
 
 <div class="training-grid">
+
 <div class="panel">
-<div class="panel-head"><div><span class="eyebrow">RUTINAS</span><h3>Mis rutinas</h3></div></div>
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">RUTINAS</span>
+<h3>Mis rutinas</h3>
+</div>
+
+</div>
+
 <div id="routineList"></div>
+
 </div>
 
+
 <div class="panel">
-<div class="panel-head"><div><span class="eyebrow">EJERCICIOS</span><h3>Biblioteca</h3></div><input class="mini-search" id="exerciseSearch" placeholder="Buscar..."></div>
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">EJERCICIOS</span>
+<h3>Biblioteca</h3>
+</div>
+
+<input
+class="mini-search"
+id="exerciseSearch"
+placeholder="Buscar..."
+>
+
+</div>
+
 <div id="exerciseList"></div>
-</div>
+
 </div>
 
-<div class="panel">
-<div class="panel-head"><div><span class="eyebrow">HISTORIAL</span><h3>Entrenamientos</h3></div></div>
-<div id="workoutHistory"></div>
 </div>
+
+
+<div class="panel">
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">HISTORIAL</span>
+<h3>Entrenamientos</h3>
+</div>
+
+</div>
+
+<div id="workoutHistory"></div>
+
+</div>
+
 </section>
+
+
+<!-- ================= PROGRESS ================= -->
 
 <section class="page" id="page-progress">
+
 <div class="progress-grid">
+
 <div class="panel">
-<div class="panel-head"><div><span class="eyebrow">PESO</span><h3>Evolución</h3></div><button class="secondary-btn" id="addWeight">+ Registrar</button></div>
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">PESO</span>
+<h3>Evolución</h3>
+</div>
+
+<button class="secondary-btn" id="addWeight">
++ Registrar
+</button>
+
+</div>
+
 <div class="big-number" id="currentWeight">—</div>
+
 <div class="chart" id="weightChart"></div>
+
 </div>
 
+
 <div class="panel">
-<div class="panel-head"><div><span class="eyebrow">ENTRENAMIENTO</span><h3>Rendimiento</h3></div></div>
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">ENTRENAMIENTO</span>
+<h3>Rendimiento</h3>
+</div>
+
+</div>
+
 <div id="progressTrainingStats"></div>
-</div>
+
 </div>
 
-<div class="panel">
-<div class="panel-head"><div><span class="eyebrow">HISTORIAL</span><h3>Registros de peso</h3></div></div>
-<div id="weightHistory"></div>
 </div>
+
+
+<div class="panel">
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">HISTORIAL</span>
+<h3>Registros de peso</h3>
+</div>
+
+</div>
+
+<div id="weightHistory"></div>
+
+</div>
+
 </section>
 
+
+<!-- ================= SETTINGS ================= -->
+
 <section class="page" id="page-settings">
+
 <div class="settings-grid">
-<div class="panel">
-<div class="panel-head"><div><span class="eyebrow">PERFIL</span><h3>Configuración</h3></div></div>
-<label>Nombre<input id="profileName"></label>
-<button class="primary-btn full" id="saveProfile">Guardar</button>
-</div>
 
 <div class="panel">
-<div class="panel-head"><div><span class="eyebrow">DATOS</span><h3>Copias de seguridad</h3></div></div>
-<p class="muted">Tus datos se guardan en este dispositivo.</p>
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">PERFIL</span>
+<h3>Configuración</h3>
+</div>
+
+</div>
+
+<label>
+Nombre
+<input id="profileName">
+</label>
+
+<button class="primary-btn full" id="saveProfile">
+Guardar
+</button>
+
+</div>
+
+
+<div class="panel">
+
+<div class="panel-head">
+
+<div>
+<span class="eyebrow">DATOS</span>
+<h3>Copias de seguridad</h3>
+</div>
+
+</div>
+
+<p class="muted">
+Tus datos se guardan en este dispositivo.
+</p>
+
 <div class="button-column">
-<button class="secondary-btn" id="exportData">Exportar datos</button>
-<label class="file-btn">Importar datos<input type="file" id="importData" accept=".json"></label>
-<button class="danger-btn" id="resetData">Restablecer Nutri</button>
+
+<button class="secondary-btn" id="exportData">
+Exportar datos
+</button>
+
+<label class="file-btn">
+Importar datos
+<input
+type="file"
+id="importData"
+accept=".json"
+>
+</label>
+
+<button class="danger-btn" id="resetData">
+Restablecer Nutri
+</button>
+
 </div>
+
 </div>
+
 </div>
+
 </section>
 
 </main>
 </div>
 
-<!-- MODALES -->
+
+<!-- =========================================================
+MODALES
+========================================================= -->
+
+
+<!-- FOOD -->
 
 <dialog id="foodModal" class="modal">
+
 <form method="dialog" class="modal-box">
-<div class="modal-head"><div><span class="eyebrow">ALIMENTOS</span><h3>Añadir alimento</h3></div><button class="close">×</button></div>
-<input id="foodSearch" class="large-search" placeholder="Buscar alimento...">
+
+<div class="modal-head">
+
+<div>
+<span class="eyebrow">ALIMENTOS</span>
+<h3>Añadir alimento</h3>
+</div>
+
+<button class="close">×</button>
+
+</div>
+
+<input
+id="foodSearch"
+class="large-search"
+placeholder="Buscar alimento..."
+>
+
 <div id="foodResults" class="food-results"></div>
+
 <div id="selectedFoodBox" class="selected-box hidden"></div>
-<label>Cantidad (g/ml)<input id="foodGrams" type="number" min="0" step="1" value="100"></label>
-<div class="button-row"><button type="button" class="secondary-btn" id="cancelFood">Cancelar</button><button type="button" class="primary-btn" id="confirmFood">Añadir</button></div>
+
+<label>
+Cantidad (g/ml)
+<input
+id="foodGrams"
+type="number"
+min="0"
+step="1"
+value="100"
+>
+</label>
+
+<div class="button-row">
+
+<button
+type="button"
+class="secondary-btn"
+id="cancelFood"
+>
+Cancelar
+</button>
+
+<button
+type="button"
+class="primary-btn"
+id="confirmFood"
+>
+Añadir
+</button>
+
+</div>
+
 </form>
+
 </dialog>
+
+
+<!-- GOALS -->
 
 <dialog id="goalsModal" class="modal">
+
 <form method="dialog" class="modal-box">
-<div class="modal-head"><div><span class="eyebrow">OBJETIVOS</span><h3>Objetivos diarios</h3></div><button class="close">×</button></div>
-<div class="form-grid">
-<label>Calorías<input id="goalCalories" type="number"></label>
-<label>Proteína (g)<input id="goalProtein" type="number"></label>
-<label>Carbohidratos (g)<input id="goalCarbs" type="number"></label>
-<label>Grasas (g)<input id="goalFat" type="number"></label>
+
+<div class="modal-head">
+
+<div>
+<span class="eyebrow">OBJETIVOS</span>
+<h3>Objetivos diarios</h3>
 </div>
-<button type="button" class="primary-btn full" id="saveGoals">Guardar objetivos</button>
+
+<button class="close">×</button>
+
+</div>
+
+<div class="form-grid">
+
+<label>
+Calorías
+<input id="goalCalories" type="number">
+</label>
+
+<label>
+Proteína (g)
+<input id="goalProtein" type="number">
+</label>
+
+<label>
+Carbohidratos (g)
+<input id="goalCarbs" type="number">
+</label>
+
+<label>
+Grasas (g)
+<input id="goalFat" type="number">
+</label>
+
+</div>
+
+<button
+type="button"
+class="primary-btn full"
+id="saveGoals"
+>
+Guardar objetivos
+</button>
+
 </form>
+
 </dialog>
+
+
+<!-- MAINTENANCE -->
 
 <dialog id="maintenanceModal" class="modal">
+
 <form method="dialog" class="modal-box">
-<div class="modal-head"><div><span class="eyebrow">CALCULADORA</span><h3>Mantenimiento energético</h3></div><button class="close">×</button></div>
-<div class="form-grid">
-<label>Sexo<select id="mSex"><option value="male">Hombre</option><option value="female">Mujer</option></select></label>
-<label>Edad<input id="mAge" type="number"></label>
-<label>Peso (kg)<input id="mWeight" type="number" step="0.1"></label>
-<label>Altura (cm)<input id="mHeight" type="number"></label>
-<label class="wide">Actividad<select id="mActivity"><option value="1.2">Sedentario — poco o ningún ejercicio</option><option value="1.375">Ligero — 1-3 días/semana</option><option value="1.55">Moderado — 3-5 días/semana</option><option value="1.725">Alto — 6-7 días/semana</option><option value="1.9">Muy alto — entrenamiento intenso</option></select></label>
+
+<div class="modal-head">
+
+<div>
+<span class="eyebrow">CALCULADORA</span>
+<h3>Mantenimiento energético</h3>
 </div>
-<div class="maintenance-result" id="maintenanceResult"></div>
-<button type="button" class="primary-btn full" id="calculateMaintenance">Calcular y guardar</button>
+
+<button class="close">×</button>
+
+</div>
+
+<div class="form-grid">
+
+<label>
+Sexo
+<select id="mSex">
+<option value="male">Hombre</option>
+<option value="female">Mujer</option>
+</select>
+</label>
+
+<label>
+Edad
+<input id="mAge" type="number">
+</label>
+
+<label>
+Peso (kg)
+<input id="mWeight" type="number" step="0.1">
+</label>
+
+<label>
+Altura (cm)
+<input id="mHeight" type="number">
+</label>
+
+<label class="wide">
+Actividad
+
+<select id="mActivity">
+
+<option value="1.2">
+Sedentario — poco o ningún ejercicio
+</option>
+
+<option value="1.375">
+Ligero — 1-3 días/semana
+</option>
+
+<option value="1.55">
+Moderado — 3-5 días/semana
+</option>
+
+<option value="1.725">
+Alto — 6-7 días/semana
+</option>
+
+<option value="1.9">
+Muy alto — entrenamiento intenso
+</option>
+
+</select>
+
+</label>
+
+</div>
+
+<div
+class="maintenance-result"
+id="maintenanceResult"
+></div>
+
+<button
+type="button"
+class="primary-btn full"
+id="calculateMaintenance"
+>
+Calcular y guardar
+</button>
+
 </form>
+
 </dialog>
+
+
+<!-- RECIPE -->
 
 <dialog id="recipeModal" class="modal">
+
 <form method="dialog" class="modal-box">
-<div class="modal-head"><div><span class="eyebrow">RECETA</span><h3>Crear receta</h3></div><button class="close">×</button></div>
-<label>Nombre<input id="recipeName" placeholder="Ej. Bowl de pollo"></label>
-<div class="recipe-add-row"><input id="recipeFoodSearch" placeholder="Buscar alimento"><input id="recipeFoodGrams" type="number" value="100"><button type="button" class="secondary-btn" id="addRecipeIngredient">Añadir</button></div>
+
+<div class="modal-head">
+
+<div>
+<span class="eyebrow">RECETA</span>
+<h3>Crear receta</h3>
+</div>
+
+<button class="close">×</button>
+
+</div>
+
+<label>
+Nombre
+<input
+id="recipeName"
+placeholder="Ej. Bowl de pollo"
+>
+</label>
+
+<div class="recipe-add-row">
+
+<input
+id="recipeFoodSearch"
+placeholder="Buscar alimento"
+>
+
+<input
+id="recipeFoodGrams"
+type="number"
+value="100"
+>
+
+<button
+type="button"
+class="secondary-btn"
+id="addRecipeIngredient"
+>
+Añadir
+</button>
+
+</div>
+
 <div id="recipeIngredients"></div>
-<button type="button" class="primary-btn full" id="saveRecipe">Guardar receta</button>
+
+<button
+type="button"
+class="primary-btn full"
+id="saveRecipe"
+>
+Guardar receta
+</button>
+
 </form>
+
 </dialog>
+
+
+<!-- EXERCISE -->
 
 <dialog id="exerciseModal" class="modal">
+
 <form method="dialog" class="modal-box">
-<div class="modal-head"><div><span class="eyebrow">EJERCICIO</span><h3>Crear ejercicio</h3></div><button class="close">×</button></div>
-<div class="form-grid">
-<label>Nombre<input id="exerciseName"></label>
-<label>Grupo muscular<select id="exerciseGroup"><option>Pecho</option><option>Espalda</option><option>Hombros</option><option>Bíceps</option><option>Tríceps</option><option>Cuádriceps</option><option>Isquios</option><option>Glúteos</option><option>Gemelos</option><option>Abdomen</option><option>Full body</option></select></label>
-<label>Equipamiento<input id="exerciseEquipment" placeholder="Barra, máquina..."></label>
-<label class="wide">Notas<textarea id="exerciseNotes"></textarea></label>
+
+<div class="modal-head">
+
+<div>
+<span class="eyebrow">EJERCICIO</span>
+<h3>Crear ejercicio</h3>
 </div>
-<button type="button" class="primary-btn full" id="saveExercise">Guardar ejercicio</button>
+
+<button class="close">×</button>
+
+</div>
+
+<div class="form-grid">
+
+<label>
+Nombre
+<input id="exerciseName">
+</label>
+
+<label>
+Grupo muscular
+
+<select id="exerciseGroup">
+<option>Pecho</option>
+<option>Espalda</option>
+<option>Hombros</option>
+<option>Bíceps</option>
+<option>Tríceps</option>
+<option>Cuádriceps</option>
+<option>Isquios</option>
+<option>Glúteos</option>
+<option>Gemelos</option>
+<option>Abdomen</option>
+<option>Full body</option>
+</select>
+
+</label>
+
+<label>
+Equipamiento
+<input
+id="exerciseEquipment"
+placeholder="Barra, máquina..."
+>
+</label>
+
+<label class="wide">
+Notas
+<textarea id="exerciseNotes"></textarea>
+</label>
+
+</div>
+
+<button
+type="button"
+class="primary-btn full"
+id="saveExercise"
+>
+Guardar ejercicio
+</button>
+
 </form>
+
 </dialog>
+
+
+<!-- ROUTINE -->
 
 <dialog id="routineModal" class="modal">
+
 <form method="dialog" class="modal-box">
-<div class="modal-head"><div><span class="eyebrow">RUTINA</span><h3>Crear rutina</h3></div><button class="close">×</button></div>
-<label>Nombre<input id="routineName" placeholder="Ej. Push A"></label>
+
+<div class="modal-head">
+
+<div>
+<span class="eyebrow">RUTINA</span>
+<h3>Crear rutina</h3>
+</div>
+
+<button class="close">×</button>
+
+</div>
+
+<label>
+Nombre
+<input
+id="routineName"
+placeholder="Ej. Push A"
+>
+</label>
+
 <label>Ejercicios</label>
+
 <div id="routineExercisePicker"></div>
-<button type="button" class="primary-btn full" id="saveRoutine">Guardar rutina</button>
+
+<button
+type="button"
+class="primary-btn full"
+id="saveRoutine"
+>
+Guardar rutina
+</button>
+
 </form>
+
 </dialog>
 
+
+<!-- WORKOUT -->
+
 <dialog id="workoutModal" class="modal workout-modal">
+
 <form method="dialog" class="modal-box">
-<div class="modal-head"><div><span class="eyebrow">ENTRENAMIENTO</span><h3 id="workoutTitle">Entrenamiento</h3></div><button class="close">×</button></div>
+
+<div class="modal-head">
+
+<div>
+<span class="eyebrow">ENTRENAMIENTO</span>
+<h3 id="workoutTitle">Entrenamiento</h3>
+</div>
+
+<button class="close">×</button>
+
+</div>
+
 <div id="workoutContent"></div>
-<div class="rest-timer"><strong id="timer">00:00</strong><button type="button" class="secondary-btn" id="startTimer">Iniciar descanso</button></div>
-<button type="button" class="primary-btn full" id="finishWorkout">Finalizar entrenamiento</button>
+
+<div class="rest-timer">
+
+<strong id="timer">00:00</strong>
+
+<button
+type="button"
+class="secondary-btn"
+id="startTimer"
+>
+Iniciar descanso
+</button>
+
+</div>
+
+<button
+type="button"
+class="primary-btn full"
+id="finishWorkout"
+>
+Finalizar entrenamiento
+</button>
+
 </form>
+
 </dialog>
+
 
 <script src="foods.js"></script>
 <script src="script.js"></script>
+
 </body>
 </html>
