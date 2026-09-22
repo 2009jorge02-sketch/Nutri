@@ -1220,3 +1220,21 @@ animation-iteration-count: 1 !important;
 transition-duration: .01ms !important;
 }
 }
+/* Botón de menú móvil */
+.mobile-menu {
+background: #171923;
+color: #ffffff;
+border: 1px solid #171923;
+font-size: 20px;
+font-weight: 700;
+box-shadow: 0 4px 12px rgba(20, 24, 40, .12);
+}
+
+.mobile-menu:hover {
+background: #2b2e3a;
+border-color: #2b2e3a;
+}
+
+.mobile-menu:active {
+transform: scale(.96);
+}
