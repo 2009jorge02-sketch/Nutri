@@ -259,72 +259,49 @@ document.getElementById('workoutContent').innerHTML=activeWorkout.exercises.map(
 const ex=exerciseById(e.exerciseId);
 const type=ex?.type||'bilateral';
 
-return `
-<div class="workout-exercise">
-<strong>${esc(ex?.name||'Ejercicio')}</strong>
+let setsHtml='';
 
-${e.sets.map((s,si)=>{
-
+e.sets.forEach((s,si)=>{
 if(type==='bilateral'){
-return `
+setsHtml+=`
 <div class="set-row">
 <span>${si+1}</span>
-<input type="number" min="0" step=".5"
-data-w-e="${ei}" data-w-s="${si}" data-w-k="weight"
-value="${s.weight}">
-<input type="number" min="0"
-data-w-e="${ei}" data-w-s="${si}" data-w-k="reps"
-value="${s.reps}">
-<input type="number" min="0" max="10"
-data-w-e="${ei}" data-w-s="${si}" data-w-k="rir"
-value="${s.rir}">
-<button type="button" class="set-done"
-data-set-done="${ei}-${si}">
-${s.done?'✓':'○'}
-</button>
+<input type="number" min="0" step=".5" data-w-e="${ei}" data-w-s="${si}" data-w-k="weight" value="${s.weight}">
+<input type="number" min="0" data-w-e="${ei}" data-w-s="${si}" data-w-k="reps" value="${s.reps}">
+<input type="number" min="0" max="10" data-w-e="${ei}" data-w-s="${si}" data-w-k="rir" value="${s.rir}">
+<button type="button" class="set-done" data-set-done="${ei}-${si}">${s.done?'✓':'○'}</button>
 </div>`;
-}
-
-return `
+}else{
+setsHtml+=`
 <div class="unilateral-set">
 <div class="set-label">Serie ${si+1}</div>
 
 <div class="side-row">
 <strong>Izquierda</strong>
-<input type="number" min="0" step=".5"
-data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="weight"
-value="${s.left?.weight??0}">
-<input type="number" min="0"
-data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="reps"
-value="${s.left?.reps??s.reps}">
-<input type="number" min="0" max="10"
-data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="rir"
-value="${s.left?.rir??s.rir}">
+<input type="number" min="0" step=".5" data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="weight" value="${s.left?.weight??0}">
+<input type="number" min="0" data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="reps" value="${s.left?.reps??s.reps}">
+<input type="number" min="0" max="10" data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="rir" value="${s.left?.rir??s.rir}">
 </div>
 
 <div class="side-row">
 <strong>Derecha</strong>
-<input type="number" min="0" step=".5"
-data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="weight"
-value="${s.right?.weight??0}">
-<input type="number" min="0"
-data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="reps"
-value="${s.right?.reps??s.reps}">
-<input type="number" min="0" max="10"
-data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="rir"
-value="${s.right?.rir??s.rir}">
+<input type="number" min="0" step=".5" data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="weight" value="${s.right?.weight??0}">
+<input type="number" min="0" data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="reps" value="${s.right?.reps??s.reps}">
+<input type="number" min="0" max="10" data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="rir" value="${s.right?.rir??s.rir}">
 </div>
 
-<button type="button" class="set-done"
-data-set-done="${ei}-${si}">
-${s.done?'✓':'○'}
-</button>
+<button type="button" class="set-done" data-set-done="${ei}-${si}">${s.done?'✓':'○'}</button>
 </div>`;
-}).join('')}
+}
+});
+
+return `
+<div class="workout-exercise">
+<strong>${esc(ex?.name||'Ejercicio')}</strong>
+${setsHtml}
 </div>`;
 }).join('');
 }
-
 function finishWorkout(){
 if(!activeWorkout)return;
 state.workouts.push(structuredClone(activeWorkout));save();activeWorkout=null;document.getElementById('workoutModal').close();renderTraining();renderHome()
