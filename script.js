@@ -242,18 +242,15 @@ save();document.getElementById('routineModal').close();renderTraining()
 }
 function startRoutine(id){
 const r = state.routines.find(x => String(x.id) === String(id));
-
 if (!r) return;
 
 activeWorkout = {
 routineId: r.id,
 name: r.name,
 date: today(),
-exercises: r.exercises.map(e => {
-return {
+exercises: r.exercises.map(e => ({
 exerciseId: e.exerciseId,
-sets: Array.from({ length: e.sets }, () => {
-return {
+sets: Array.from({length: e.sets}, () => ({
 weight: 0,
 reps: e.reps,
 rir: e.rir,
@@ -268,10 +265,8 @@ weight: 0,
 reps: e.reps,
 rir: e.rir
 }
-};
-})
-};
-})
+}))
+}))
 };
 
 renderWorkout();
@@ -279,51 +274,52 @@ document.getElementById('workoutModal').showModal();
 }
 
 function renderWorkout(){
-document.getElementById('workoutTitle').textContent=activeWorkout.name;
+document.getElementById('workoutTitle').textContent = activeWorkout.name;
 
-document.getElementById('workoutContent').innerHTML=activeWorkout.exercises.map((e,ei)=>{
-const ex=exerciseById(e.exerciseId);
-const type=ex?.type||'bilateral';
+document.getElementById('workoutContent').innerHTML =
+activeWorkout.exercises.map((e, ei) => {
+const ex = exerciseById(e.exerciseId);
+const type = ex?.type || 'bilateral';
 
-let setsHtml='';
+let setsHtml = '';
 
-e.sets.forEach((s,si)=>{
-if(type==='bilateral'){
-setsHtml+=`
+e.sets.forEach((s, si) => {
+if(type === 'bilateral'){
+setsHtml += `
 <div class="set-row">
-<span>${si+1}</span>
+<span>${si + 1}</span>
 <input type="number" min="0" step=".5" data-w-e="${ei}" data-w-s="${si}" data-w-k="weight" value="${s.weight}">
 <input type="number" min="0" data-w-e="${ei}" data-w-s="${si}" data-w-k="reps" value="${s.reps}">
 <input type="number" min="0" max="10" data-w-e="${ei}" data-w-s="${si}" data-w-k="rir" value="${s.rir}">
-<button type="button" class="set-done" data-set-done="${ei}-${si}">${s.done?'✓':'○'}</button>
+<button type="button" class="set-done" data-set-done="${ei}-${si}">${s.done ? '✓' : '○'}</button>
 </div>`;
 }else{
-setsHtml+=`
+setsHtml += `
 <div class="unilateral-set">
-<div class="set-label">Serie ${si+1}</div>
+<div class="set-label">Serie ${si + 1}</div>
 
 <div class="side-row">
 <strong>Izquierda</strong>
-<input type="number" min="0" step=".5" data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="weight" value="${s.left?.weight??0}">
-<input type="number" min="0" data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="reps" value="${s.left?.reps??s.reps}">
-<input type="number" min="0" max="10" data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="rir" value="${s.left?.rir??s.rir}">
+<input type="number" min="0" step=".5" data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="weight" value="${s.left?.weight ?? 0}">
+<input type="number" min="0" data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="reps" value="${s.left?.reps ?? s.reps}">
+<input type="number" min="0" max="10" data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="rir" value="${s.left?.rir ?? s.rir}">
 </div>
 
 <div class="side-row">
 <strong>Derecha</strong>
-<input type="number" min="0" step=".5" data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="weight" value="${s.right?.weight??0}">
-<input type="number" min="0" data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="reps" value="${s.right?.reps??s.reps}">
-<input type="number" min="0" max="10" data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="rir" value="${s.right?.rir??s.rir}">
+<input type="number" min="0" step=".5" data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="weight" value="${s.right?.weight ?? 0}">
+<input type="number" min="0" data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="reps" value="${s.right?.reps ?? s.reps}">
+<input type="number" min="0" max="10" data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="rir" value="${s.right?.rir ?? s.rir}">
 </div>
 
-<button type="button" class="set-done" data-set-done="${ei}-${si}">${s.done?'✓':'○'}</button>
+<button type="button" class="set-done" data-set-done="${ei}-${si}">${s.done ? '✓' : '○'}</button>
 </div>`;
 }
 });
 
 return `
 <div class="workout-exercise">
-<strong>${esc(ex?.name||'Ejercicio')}</strong>
+<strong>${esc(ex?.name || 'Ejercicio')}</strong>
 ${setsHtml}
 </div>`;
 }).join('');
