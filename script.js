@@ -221,7 +221,7 @@ document.getElementById('exerciseModal').showModal()
 function saveExercise(){
 const name=document.getElementById('exerciseName').value.trim();
 if(!name)return alert('Introduce un nombre.');
-state.customExercises.push({id:uid('ex'),name,group:document.getElementById('exerciseGroup').value,equipment:document.getElementById('exerciseEquipment').value.trim()||'Otro',type:'bilateral',notes:document.getElementById('exerciseNotes').value.trim(),custom:true});
+state.customExercises.push({id:uid('ex'),name,group:document.getElementById('exerciseGroup').value,equipment:document.getElementById('exerciseEquipment').value.trim()||'Otro',type:document.getElementById('exerciseType').value,notes:document.getElementById('exerciseNotes').value.trim(),custom:true});
 save();document.getElementById('exerciseModal').close();renderTraining()
 }
 function openRoutine(){
@@ -242,16 +242,89 @@ save();document.getElementById('routineModal').close();renderTraining()
 }
 function startRoutine(id){
 const r=state.routines.find(x=>String(x.id)===String(id));if(!r)return;
-activeWorkout={routineId:r.id,name:r.name,date:today(),exercises:r.exercises.map(e=>({exerciseId:e.exerciseId,sets:Array.from({length:e.sets},()=>({weight:0,reps:e.reps,rir:e.rir,done:false}))}))};
+activeWorkout={routineId:r.id,name:r.name,date:today(),exercises:r.exercises.map(e=>({exerciseId:e.exerciseId,sets:Array.from({length:e.sets},()=>({
+weight:0,
+reps:e.reps,
+rir:e.rir,
+done:false,
+left:{weight:0,reps:e.reps,rir:e.rir},
+right:{weight:0,reps:e.reps,rir:e.rir}
+}))
 renderWorkout();document.getElementById('workoutModal').showModal()
 }
 function renderWorkout(){
 document.getElementById('workoutTitle').textContent=activeWorkout.name;
+
 document.getElementById('workoutContent').innerHTML=activeWorkout.exercises.map((e,ei)=>{
 const ex=exerciseById(e.exerciseId);
-return `<div class="workout-exercise"><strong>${esc(ex?.name||'Ejercicio')}</strong>${e.sets.map((s,si)=>`<div class="set-row"><span>${si+1}</span><input type="number" min="0" step=".5" data-w-e="${ei}" data-w-s="${si}" data-w-k="weight" value="${s.weight}"><input type="number" min="0" data-w-e="${ei}" data-w-s="${si}" data-w-k="reps" value="${s.reps}"><input type="number" min="0" max="10" data-w-e="${ei}" data-w-s="${si}" data-w-k="rir" value="${s.rir}"><button type="button" class="set-done" data-set-done="${ei}-${si}">${s.done?'✓':'○'}</button></div>`).join('')}</div>`
-}).join('')
+const type=ex?.type||'bilateral';
+
+return `
+<div class="workout-exercise">
+<strong>${esc(ex?.name||'Ejercicio')}</strong>
+
+${e.sets.map((s,si)=>{
+
+if(type==='bilateral'){
+return `
+<div class="set-row">
+<span>${si+1}</span>
+<input type="number" min="0" step=".5"
+data-w-e="${ei}" data-w-s="${si}" data-w-k="weight"
+value="${s.weight}">
+<input type="number" min="0"
+data-w-e="${ei}" data-w-s="${si}" data-w-k="reps"
+value="${s.reps}">
+<input type="number" min="0" max="10"
+data-w-e="${ei}" data-w-s="${si}" data-w-k="rir"
+value="${s.rir}">
+<button type="button" class="set-done"
+data-set-done="${ei}-${si}">
+${s.done?'✓':'○'}
+</button>
+</div>`;
 }
+
+return `
+<div class="unilateral-set">
+<div class="set-label">Serie ${si+1}</div>
+
+<div class="side-row">
+<strong>Izquierda</strong>
+<input type="number" min="0" step=".5"
+data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="weight"
+value="${s.left?.weight??0}">
+<input type="number" min="0"
+data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="reps"
+value="${s.left?.reps??s.reps}">
+<input type="number" min="0" max="10"
+data-w-e="${ei}" data-w-s="${si}" data-w-side="left" data-w-k="rir"
+value="${s.left?.rir??s.rir}">
+</div>
+
+<div class="side-row">
+<strong>Derecha</strong>
+<input type="number" min="0" step=".5"
+data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="weight"
+value="${s.right?.weight??0}">
+<input type="number" min="0"
+data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="reps"
+value="${s.right?.reps??s.reps}">
+<input type="number" min="0" max="10"
+data-w-e="${ei}" data-w-s="${si}" data-w-side="right" data-w-k="rir"
+value="${s.right?.rir??s.rir}">
+</div>
+
+<button type="button" class="set-done"
+data-set-done="${ei}-${si}">
+${s.done?'✓':'○'}
+</button>
+</div>`;
+}).join('')}
+</div>`;
+}).join('');
+}
+
 function finishWorkout(){
 if(!activeWorkout)return;
 state.workouts.push(structuredClone(activeWorkout));save();activeWorkout=null;document.getElementById('workoutModal').close();renderTraining();renderHome()
@@ -370,9 +443,18 @@ renderWorkout()
 
 document.addEventListener('input',e=>{
 const x=e.target.closest('[data-w-e]');
+
 if(x&&activeWorkout){
-const ei=Number(x.dataset.wE),si=Number(x.dataset.wS),k=x.dataset.wK;
-activeWorkout.exercises[ei].sets[si][k]=n(x.value)
+const ei=Number(x.dataset.wE);
+const si=Number(x.dataset.wS);
+const k=x.dataset.wK;
+const side=x.dataset.wSide;
+
+if(side){
+activeWorkout.exercises[ei].sets[si][side][k]=n(x.value);
+}else{
+activeWorkout.exercises[ei].sets[si][k]=n(x.value);
+}
 }
 });
 
