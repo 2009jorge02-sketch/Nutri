@@ -1022,95 +1022,7 @@ grid-template-columns: 1fr 90px;
 .recipe-add-row button {
 grid-column: 1 / -1;
 }
-
-/* navegación inferior móvil */
-.app::after {
-content: "";
-position: fixed;
-z-index: 90;
-left: 0;
-right: 0;
-bottom: 0;
-height: 68px;
-background: rgba(255,255,255,.96);
-border-top: 1px solid var(--border);
-box-shadow: 0 -8px 25px rgba(20,24,40,.07);
-pointer-events: none;
-}
-
-.app::before {
-content: "";
-position: fixed;
-z-index: 91;
-left: 0;
-right: 0;
-bottom: 0;
-height: 68px;
-pointer-events: none;
-}
-
-/* convertimos el sidebar en barra inferior */
-.sidebar {
-display: flex;
-position: fixed;
-top: auto;
-left: 0;
-right: 0;
-bottom: 0;
-width: 100%;
-height: 68px;
-padding: 0;
-background: transparent;
-border: 0;
-z-index: 100;
-pointer-events: none;
-}
-
-.brand,
-.sidebar-bottom {
-display: none;
-}
-
-.sidebar nav {
-width: 100%;
-height: 68px;
-padding: 7px 8px;
-display: grid;
-grid-template-columns: repeat(5, 1fr);
-gap: 3px;
-background: rgba(255,255,255,.96);
-border-top: 1px solid var(--border);
-pointer-events: auto;
-}
-
-.nav-item,
-.nav-item.active {
-min-height: 54px;
-padding: 4px 2px;
-border-radius: 11px;
-flex-direction: column;
-justify-content: center;
-gap: 1px;
-font-size: 10px;
-line-height: 1.1;
-text-align: center;
-}
-
-.nav-item.active {
-padding-left: 2px;
-}
-
-.nav-item.active::before {
-display: none;
-}
-
-.nav-item:first-letter {
-font-size: 17px;
-}
-
-.local-badge {
-display: none;
-}
+  
 }
 
 /* =========================================================
@@ -1237,4 +1149,116 @@ border-color: #2b2e3a;
 
 .mobile-menu:active {
 transform: scale(.96);
+}
+/* =========================================================
+MENÚ MÓVIL — DESPLEGABLE LATERAL
+========================================================= */
+
+@media (max-width: 800px) {
+
+/* Botón de las tres rayas */
+.mobile-menu {
+display: grid;
+place-items: center;
+width: 44px;
+height: 44px;
+padding: 0;
+background: #171923;
+color: #ffffff;
+border: 1px solid #171923;
+border-radius: 12px;
+font-size: 21px;
+font-weight: 800;
+box-shadow: 0 5px 14px rgba(20, 24, 40, .15);
+position: relative;
+z-index: 110;
+}
+
+.mobile-menu:hover {
+background: #2b2e3a;
+}
+
+.mobile-menu:active {
+transform: scale(.96);
+}
+
+/* Sidebar oculto hasta pulsar las tres rayas */
+.sidebar {
+display: flex;
+position: fixed;
+top: 0;
+left: 0;
+bottom: auto;
+right: auto;
+width: 280px;
+height: 100vh;
+padding: 24px 16px;
+background: #ffffff;
+border-right: 1px solid var(--border);
+box-shadow: 15px 0 45px rgba(20, 24, 40, .14);
+transform: translateX(-105%);
+transition: transform .25s ease;
+z-index: 105;
+pointer-events: none;
+}
+
+/* Cuando JS añade .open, aparece */
+.sidebar.open {
+transform: translateX(0);
+pointer-events: auto;
+}
+
+/* Volvemos a mostrar la identidad del menú */
+.brand {
+display: flex;
+}
+
+.sidebar-bottom {
+display: block;
+}
+
+.sidebar nav {
+display: flex;
+flex-direction: column;
+gap: 5px;
+}
+
+.nav-item,
+.nav-item.active {
+width: 100%;
+min-height: 48px;
+padding: 0 13px;
+flex-direction: row;
+justify-content: flex-start;
+gap: 12px;
+font-size: 14px;
+text-align: left;
+}
+
+.nav-item.active {
+padding-left: 20px;
+}
+
+.nav-item.active::before {
+display: block;
+}
+
+/* Fondo oscuro detrás del menú */
+.sidebar::after {
+content: "";
+position: fixed;
+top: 0;
+left: 280px;
+width: 100vw;
+height: 100vh;
+background: rgba(15, 18, 30, .35);
+opacity: 0;
+pointer-events: none;
+transition: opacity .25s ease;
+}
+
+.sidebar.open::after {
+opacity: 1;
+pointer-events: auto;
+}
 }
