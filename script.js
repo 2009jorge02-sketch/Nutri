@@ -241,8 +241,16 @@ state.routines.push({id:uid('routine'),name,exercises:routineExercises.map(exerc
 save();document.getElementById('routineModal').close();renderTraining()
 }
 function startRoutine(id){
-const r=state.routines.find(x=>String(x.id)===String(id));if(!r)return;
-activeWorkout={routineId:r.id,name:r.name,date:today(),exercises:r.exercises.map(e=>({exerciseId:e.exerciseId,sets:Array.from({length:e.sets},()=>({
+const r=state.routines.find(x=>String(x.id)===String(id));
+if(!r)return;
+
+activeWorkout={
+routineId:r.id,
+name:r.name,
+date:today(),
+exercises:r.exercises.map(e=>({
+exerciseId:e.exerciseId,
+sets:Array.from({length:e.sets},()=>({
 weight:0,
 reps:e.reps,
 rir:e.rir,
@@ -250,8 +258,11 @@ done:false,
 left:{weight:0,reps:e.reps,rir:e.rir},
 right:{weight:0,reps:e.reps,rir:e.rir}
 }))
+}))
 };
-renderWorkout();document.getElementById('workoutModal').showModal()
+
+renderWorkout();
+document.getElementById('workoutModal').showModal();
 }
 function renderWorkout(){
 document.getElementById('workoutTitle').textContent=activeWorkout.name;
