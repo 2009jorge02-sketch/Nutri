@@ -250,6 +250,7 @@ done:false,
 left:{weight:0,reps:e.reps,rir:e.rir},
 right:{weight:0,reps:e.reps,rir:e.rir}
 }))
+};
 renderWorkout();document.getElementById('workoutModal').showModal()
 }
 function renderWorkout(){
